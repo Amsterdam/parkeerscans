@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+import re
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,14 +22,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'p3-@lhsqjspnyvga&3-@*j2n_w=bumb3ax8^a%-w(*zoqmrpg$'
+insecure_key = 'insecure'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', insecure_key)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = SECRET_KEY == insecure_key
 
-ALLOWED_HOSTS = []
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
+ALLOWED_HOSTS = ['*']
 
 
+INTERNAL_IPS = ('127.0.0.1', '0.0.0.0')
+
+SITE_ID = 1
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'scans',
+    'predictive_parking',
 ]
 
 MIDDLEWARE = [
@@ -70,13 +81,28 @@ TEMPLATES = [
 WSGI_APPLICATION = 'predictive_parking.wsgi.application'
 
 
+def get_docker_host():
+    """Find the local docker-deamon
+    """
+    d_host = os.getenv('DOCKER_HOST', None)
+    if d_host:
+        if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', d_host):
+            return d_host
+        return re.match(r'tcp://(.*?):\d+', d_host).group(1)
+    return 'localhost'
+
+
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.getenv('DATABASE_NAME', 'predictiveparking'),
+        'USER': os.getenv('DATABASE_USER', 'predictiveparking'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
+        'HOST': os.getenv('DATABASE_PORT_5432_TCP_ADDR', get_docker_host()),
+        'PORT': os.getenv('DATABASE_PORT_5432_TCP_PORT', '5434'),
     }
 }
 
@@ -113,7 +139,119 @@ USE_L10N = True
 
 USE_TZ = True
 
+REST_FRAMEWORK = dict(
+    PAGE_SIZE=100,
 
+    MAX_PAGINATE_BY=100,
+    DEFAULT_AUTHENTICATION_CLASSES=(
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    DEFAULT_PAGINATION_CLASS='drf_hal_json.pagination.HalPageNumberPagination',
+    DEFAULT_PARSER_CLASSES=('drf_hal_json.parsers.JsonHalParser',),
+    DEFAULT_RENDERER_CLASSES=(
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer'
+    ),
+    DEFAULT_FILTER_BACKENDS=(
+        'rest_framework.filters.DjangoFilterBackend',
+        # 'rest_framework.filters.OrderingFilter',
+
+        ),
+    COERCE_DECIMAL_TO_STRING=True,
+)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'console': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        },
+    },
+
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+    },
+
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+
+
+    'loggers': {
+        'django.db': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+
+        # Debug all batch jobs
+        'doc': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'index': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+
+        'search': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        'elasticsearch': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        'urllib3': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        'factory.containers': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
+        'factory.generate': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
+        'requests.packages.urllib3.connectionpool': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        # Log all unhandled exceptions
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+    },
+}
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 

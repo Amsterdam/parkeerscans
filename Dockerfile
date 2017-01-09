@@ -9,6 +9,8 @@ RUN apt-get update \
 	&& apt-get install -y \
 		gdal-bin \
 		libgeos-dev \
+		unrar \
+		unzip \
 		netcat \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
