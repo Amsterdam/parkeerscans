@@ -3,31 +3,23 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-source docker-wait.sh
+#source docker-wait.sh
 
-source docker-migrate.sh
+#source docker-migrate.sh
 
-echo 'Downloading latest mks dumps'
-python get_mks_dumps.py
+echo 'Downloading latest parking scan data'
+# python get_os_data.py
 
-echo 'Store mks dumps in database'
-source loaddumps.sh
 
-echo 'Copy bag geometrie naar hg_geobag'
+# these commands do not overwirte existing files!!
+unzip -n 'data/*.zip' -d unzipped/
+unrar e -o- 'data/*.rar' unzipped/ || echo "nothing to unrar"
 
-source copy_bagvbo_to_hr.sh
+rm unzipped/*.xlsx
 
-# load mks data into HR models
-python /app/manage.py run_import
+echo 'Remove invalid rows'
 
-# autocorrect locations fields with search resultaten
-python /app/manage.py run_import --search
+# sed -i '/Distanceerror/d' unzipped/*.csv
 
-# import sbicodes
-python /app/manage.py run_import --cbs_sbi || echo "Search failed, continuing anyway"
-
-# create geoviews
-python /app/manage.py run_import --geovestigingen
-
-# create dataselectie export
-python /app/manage.py run_import --dataselectie
+# load scan data into
+python manage.py run_import --scan

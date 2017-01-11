@@ -26,55 +26,51 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
 
         parser.add_argument(
-            '--scans',
-            action='store_true',
-            dest='scans',
-            default=False,
-            help='inladen scans')
-
-        parser.add_argument(
-            '--fixgeometrie',
-            action='store_true',
-            dest='scans',
-            default=False,
-            help='maken geometrie')
-
-        parser.add_argument(
-            '--fixbgt',
+            '--wegdelen',
             action='store_true',
             dest='wegdelen',
             default=False,
             help='link scans met wegdelen')
 
         parser.add_argument(
-            '--fixvakken',
+            '--vakken',
             action='store_true',
             dest='vakken',
             default=False,
             help='link scans met parkeerplaatsen')
 
-    @LogWith(log)
+        parser.add_argument(
+            '--mergewegdelen',
+            action='store_true',
+            dest='mergewegdelen',
+            default=False,
+            help='link wegdelen met parkeerplaatsen')
+
+        parser.add_argument(
+            '--mergevakken',
+            action='store_true',
+            dest='mergevakken',
+            default=False,
+            help='link parkeervakken met scans')
+
     def handle(self, *args, **options):
         """
         Validate and execute import task
         """
 
-        scan_csvs = glob.glob('unzipped/*.csv')
-        table = Scan._meta.db_table
-
-        if options['scans']:
-            print('Implemented in golang..')
-            return
-            # import csv
-            Scan.objects.all().delete()
-            for csv in scan_csvs:
-                import_scans.import_scans_csv(csv, table)
-        elif options['geometry']:
-                import_scans.set_geometry_field()
-        elif options['wegdelen']:
-                raise NotImplementedError
+        if options['wegdelen']:
+            import_scans.import_wegdelen()
         elif options['vakken']:
-                raise NotImplementedError
+            # Convert to wgs84
+            import_scans.import_parkeervakken()
+        elif options['mergewegdelen']:
+            import_scans.add_wegdeel_to_parkeervak()
+        elif options['mergevakken']:
+            import_scans.add_parkeervak_to_scans()
+        elif options['normalizescans']:
+            # Add vakken en wegdelen informatie aan scans
+            # import_scans.add_parkeervak_to_scans()
+            raise NotImplementedError
         else:
             log.error('Nothing imported.')
             sys.exit(1)

@@ -4,7 +4,7 @@ database:
     - "5434:5432"
   environment:
     POSTGRES_PASSWORD: insecure
-    POSTGRES_USER: predictiveparking 
+    POSTGRES_USER: predictiveparking
     POSTGRES_DB: predictiveparking
 
 #elasticsearch:
@@ -16,6 +16,9 @@ database:
 #  #volumes:
 #  #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
 
+logstash:
+  build: ./logstash
+
 parking:
   build: .
   links:
@@ -24,5 +27,5 @@ parking:
   ports:
     - "8080:8080"
   environment:
-    DATABASE_NAME: predictiveparking 
+    DATABASE_NAME: predictiveparking
     DATABASE_PASSWORD: insecure
