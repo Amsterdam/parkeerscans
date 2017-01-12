@@ -7,25 +7,31 @@ database:
     POSTGRES_USER: predictiveparking
     POSTGRES_DB: predictiveparking
 
-#elasticsearch:
-#  image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-#  command: elasticsearch -Des.network.host=0.0.0.0
-#  ports:
-#    - "9200:9200"
-#    - "9300:9300"
-#  #volumes:
-#  #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+# sudo sysctl -w vm.max_map_count=262144
+# if elasticsearch docker does not start..
+elasticsearch:
+  image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
+  command: elasticsearch -Enetwork.host=0.0.0.0
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+  #volumes:
+  #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
 
 logstash:
-  build: ./logstash
-
-parking:
-  build: .
   links:
     - database:database
-  #  - elasticsearch:elasticsearch
-  ports:
-    - "8080:8080"
-  environment:
-    DATABASE_NAME: predictiveparking
-    DATABASE_PASSWORD: insecure
+    - elasticsearch:elasticsearch
+  build: ./logstash
+  command: logstash -f readdb.conf
+
+#parking:
+  #  build: .
+  #  links:
+  #    - database:database
+  #    - elasticsearch:elasticsearch
+  #  ports:
+  #    - "8080:8080"
+  #  environment:
+  #    DATABASE_NAME: predictiveparking
+  #    DATABASE_PASSWORD: insecure
