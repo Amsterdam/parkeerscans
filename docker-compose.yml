@@ -25,6 +25,14 @@ logstash:
   build: ./logstash
   command: logstash -f readdb.conf
 
+kibana:
+  image: kibana
+  ports:
+    - "5601:5601"
+  links:
+    - elasticsearch:elasticsearch
+  command: kibana
+
 #parking:
   #  build: .
   #  links:
