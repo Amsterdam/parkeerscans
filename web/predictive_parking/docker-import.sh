@@ -12,14 +12,19 @@ echo 'Downloading latest parking scan data'
 
 
 # these commands do not overwirte existing files!!
-unzip -n 'data/*.zip' -d unzipped/
-unrar e -o- 'data/*.rar' unzipped/ || echo "nothing to unrar"
+#unzip -n 'data/*.zip' -d unzipped/
+#unrar e -o- 'data/*.rar' unzipped/ || echo "nothing to unrar"
 
-rm unzipped/*.xlsx
+#rm unzipped/*.xlsx
 
-echo 'Remove invalid rows'
+# run golang script voor het importeren van scans.
+# ./cvspgvoer
 
-# sed -i '/Distanceerror/d' unzipped/*.csv
-
-# load scan data into
-python manage.py run_import --scan
+# import wegdelen
+python manage.py run_import --wegdelen
+# import parkeervakken
+python manage.py run_import --vakken
+# plak wegdeel info aan parkeervakken
+python manage.py run_import --mergewegdelen
+# plak vakken aan scans
+python manage.py run_import --mergevakken

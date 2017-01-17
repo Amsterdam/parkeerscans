@@ -23,37 +23,6 @@ log = logging.getLogger(__name__)
 
 
 @LogWith(log)
-def set_geometrie_field():
-    """
-    Convert the lat - long fields to geometry
-
-    Done in golang.
-
-    takes 40 mins.
-    """
-
-    log.debug('Set field geometry..')
-    with connection.cursor() as c:
-        c.execute("""
-    UPDATE scans_scan
-    SET geometrie = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
-    """)
-
-
-#@LogWith(log)
-#def set_geometrie_rd_field():
-#    """
-#    NOT used. We convert Parkeervakken / Wegdelen naar 4326
-#    """
-#    log.debug('Convert field geometry RD')
-#    with connection.cursor() as c:
-#            c.execute("""
-#    UPDATE scans_scan
-#    SET geometrie_rd = ST_Transform(geometrie, 28992)
-#        """)
-
-
-@LogWith(log)
 def fix_pv_geometrie_field():
     """
     Add 4326 field to parkeervakken

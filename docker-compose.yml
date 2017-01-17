@@ -33,13 +33,20 @@ kibana:
     - elasticsearch:elasticsearch
   command: kibana
 
-#parking:
-  #  build: .
-  #  links:
-  #    - database:database
-  #    - elasticsearch:elasticsearch
-  #  ports:
-  #    - "8080:8080"
-  #  environment:
-  #    DATABASE_NAME: predictiveparking
-  #    DATABASE_PASSWORD: insecure
+# geoserver with elastic support
+#
+#geoserver:
+#  ports:
+#    - "8080:8080"
+#  links:
+#    - database:database
+#    - elasticsearch:elasticsearch
+#  image: eeacms/elasticgeo
+#
+#csvimporter:
+#  build: ./csvimporter/
+#  links:
+#   - database:database
+# environment:
+#   DATABASE_NAME: predictiveparking
+#   DATABASE_PASSWORD: insecure
