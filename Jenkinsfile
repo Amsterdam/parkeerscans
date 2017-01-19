@@ -23,14 +23,6 @@ node {
         checkout scm
     }
 
-    stage("Build develop logstash image") {
-        tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}", "logstash")
-            image.push()
-            image.push("acceptance")
-        }
-    }
-
     stage("Build develop image") {
             tryStep "build", {
                 def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}")
