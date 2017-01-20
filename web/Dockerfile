@@ -1,4 +1,4 @@
-FROM python:3.5
+FROM amsterdam/docker_python:latest
 MAINTAINER datapunt.ois@amsterdam.nl
 
 ENV PYTHONUNBUFFERED 1
@@ -11,7 +11,7 @@ RUN apt-get update \
 		gdal-bin \
 		libgeos-dev \
 		unzip \
-		postgresql-client-9.5 \
+		postgresql-client-9.4 \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
