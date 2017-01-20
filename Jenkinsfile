@@ -23,7 +23,7 @@ node {
         checkout scm
     }
 
-    stage("Build develop logstash image") {
+    stage("Build develop logstash") {
         tryStep "build", {
             def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}", "logstash")
             image.push()
@@ -31,7 +31,7 @@ node {
         }
     }
 
-    stage("Build develop csvimporter image") {
+    stage("Build develop csvimporter") {
         tryStep "build", {
             def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}", "csvimporter")
             image.push()
@@ -39,9 +39,9 @@ node {
         }
     }
 
-    stage("Build develop image web/python") {
+    stage("Build develop web/python") {
             tryStep "build", {
-                def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "web/predictive_parking")
+                def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "web")
                 image.push()
                 image.push("acceptance")
             }

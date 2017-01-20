@@ -40,7 +40,7 @@ services:
       - ./data:/app/data
 
   csvimporter:
-     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvimporter:${ENVIRONMENT}
      links:
       - database:database
     environment:
