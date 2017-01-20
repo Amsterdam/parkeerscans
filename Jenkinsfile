@@ -33,7 +33,7 @@ node {
 
     stage("Build develop csvimporter image") {
         tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}", "csvpgvoer")
+            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}", "csvimporter")
             image.push()
             image.push("acceptance")
         }
