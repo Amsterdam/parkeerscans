@@ -5,7 +5,6 @@ RUN logstash-plugin install logstash-input-jdbc
 
 RUN mkdir /app/
 
-WORKDIR /app/
 RUN wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
 
 # USER datapunt
@@ -13,5 +12,7 @@ RUN wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
 COPY readdb.conf /app/
 COPY geomapping.json /app/
 COPY docker-run.sh /app/
+
+WORKDIR /app/
 
 CMD ["/app/docker-run.sh"]
