@@ -7,7 +7,7 @@ set -e   # stop on any error
 
 #source docker-migrate.sh
 
-echo 'Downloading latest parking scan data'
+# echo 'Downloading latest parking scan data'
 # python get_os_data.py
 
 

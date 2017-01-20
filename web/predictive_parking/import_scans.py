@@ -13,6 +13,7 @@ from django.db import connection
 
 from scans.models import WegDeel
 from scans.models import Parkeervak
+from scans.models import Scan
 
 from logdecorator import LogWith
 
@@ -61,7 +62,11 @@ def add_parkeervak_to_scans():
     """
     Given scans pind nearest parking spot
     """
+    zonder_pv = Scan.objects.filter(parkeervak_id=None).count
     log.debug('Add parkeervak to each scan (40 mins)')
+    log.debug('Scans: %s', Scan.objects.all().count())
+    log.debug('Scans zonder pv: %s', zonder_pv())
+
     with connection.cursor() as c:
         c.execute("""
     UPDATE scans_scan s
@@ -73,6 +78,8 @@ def add_parkeervak_to_scans():
     FROM scans_parkeervak pv
     WHERE ST_DWithin(s.geometrie, pv.geometrie, 0.000015)
     """)
+    log.debug('Totaaal Scans: %s', Scan.objects.all().count())
+    log.debug('Scans zonder pv: %s', zonder_pv())
 
 
 @LogWith(log)
@@ -89,12 +96,16 @@ def add_wegdeel_to_parkeervak():
     WHERE ST_DWithin(wd.geometrie, pv.geometrie, 0.000049)
     """)
 
-    count = (
+    pv_no_wd_count = (
         Parkeervak.objects
         .filter(bgt_wegdeel=None)
         .filter(soort="FISCAAL")
         .count())
-    log.debug("Fiscale Parkeervakken zonder WegDeel %s", count)
+
+    log.debug(
+        "Fiscale Parkeervakken zonder WegDeel %s van %s",
+        pv_no_wd_count,
+        Parkeervak.objects.count())
 
 
 @LogWith(log)
@@ -119,6 +130,9 @@ def import_parkeervakken():
         ST_Transform(ST_SetSRID(geom, 28992), 4326)
     FROM bv.parkeervakken pv
     """)
+    log.debug("Alle    Vakken %s", Parkeervak.objects.all().count())
+    log.debug("Fiscale Vakken %s",
+              Parkeervak.objects.filter(soort='FISCAAL').count())
 
 
 @LogWith(log)
@@ -148,6 +162,7 @@ def import_wegdelen():
         wg.bgt_functie LIKE 'parkeervlak'
 
     """)
+    log.debug("Wegdelen %s", WegDeel.objects.all().count())
 
 
 @LogWith(log)

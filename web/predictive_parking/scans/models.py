@@ -25,7 +25,7 @@ class Scan(models.Model):
     """
 
     scan_id = models.IntegerField()
-    scan_moment = models.DateTimeField()
+    scan_moment = models.DateTimeField(db_index=True)
     scan_source = models.CharField(db_index=True, max_length=15)
 
     afstand = models.CharField(null=True, max_length=25)

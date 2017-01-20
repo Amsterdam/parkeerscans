@@ -1,52 +1,64 @@
-database:
-  image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-  ports:
-    - "5434:5432"
-  environment:
-    POSTGRES_PASSWORD: insecure
-    POSTGRES_USER: predictiveparking
-    POSTGRES_DB: predictiveparking
+version: '2.1'
+services:
+  database:
+    build: ./postgres
+    # image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_PASSWORD: insecure
+      POSTGRES_USER: predictiveparking
+      POSTGRES_DB: predictiveparking
 
-# sudo sysctl -w vm.max_map_count=262144
-# if elasticsearch docker does not start..
-elasticsearch:
-  image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-  command: elasticsearch -Enetwork.host=0.0.0.0
-  ports:
-    - "9200:9200"
-    - "9300:9300"
-  #volumes:
-  #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  # sudo sysctl -w vm.max_map_count=262144
+  # if elasticsearch docker does not start..
+  elasticsearch:
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
+    command: elasticsearch -Enetwork.host=0.0.0.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - /home/stephan/elk_okt:/tmp/backup
+    #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  logstash:
+    links:
+      - database:database
+      - elasticsearch:elasticsearch
+    build: ./logstash
+    environment:
+      START_DATE:
+      END_DATE:
 
-logstash:
-  links:
-    - database:database
-    - elasticsearch:elasticsearch
-  build: ./logstash
-  command: logstash -f readdb.conf
+  kibana:
+    image: kibana
+    ports:
+      - "5601:5601"
+    links:
+      - elasticsearch:elasticsearch
+    command: kibana
 
-kibana:
-  image: kibana
-  ports:
-    - "5601:5601"
-  links:
-    - elasticsearch:elasticsearch
-  command: kibana
+  csvimporter:
+     build: ./csvimporter/
+     links:
+      - database:database
+    environment:
+      DATABASE_NAME: predictiveparking
+      DATABASE_PASSWORD: insecure
+    volumes:
+      - datavolume:/app/data
 
-# geoserver with elastic support
-#
-#geoserver:
-#  ports:
-#    - "8080:8080"
-#  links:
-#    - database:database
-#    - elasticsearch:elasticsearch
-#  image: eeacms/elasticgeo
-#
-#csvimporter:
-#  build: ./csvimporter/
-#  links:
-#   - database:database
-# environment:
-#   DATABASE_NAME: predictiveparking
-#   DATABASE_PASSWORD: insecure
+ volumes:
+   datavolume: {}
+
+  # geoserver with elastic support
+  #
+  #geoserver:
+  #  ports:
+  #    - "8080:8080"
+  #  links:
+  #    - database:database
+  #    - elasticsearch:elasticsearch
+  #  image: eeacms/elasticgeo
+  #
+

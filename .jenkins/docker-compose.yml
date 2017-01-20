@@ -1,37 +1,83 @@
-database:
-  image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-  ports:
-    - "5434:5432"
-  environment:
-    POSTGRES_PASSWORD: insecure
-    POSTGRES_USER: predictiveparking
-    POSTGRES_DB: predictiveparking
+version: '2.1'
+services:
+  database:
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_PASSWORD: insecure
+      POSTGRES_USER: predictiveparking
+      POSTGRES_DB: predictiveparking
 
-# sudo sysctl -w vm.max_map_count=262144
-# if elasticsearch docker does not start..
-elasticsearch:
-  image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-  command: elasticsearch -Enetwork.host=0.0.0.0
-  ports:
-    - "9200:9200"
-    - "9300:9300"
-  #volumes:
-  #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  # sudo sysctl -w vm.max_map_count=262144
+  # if elasticsearch docker does not start..
+  elasticsearch:
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
+    command: elasticsearch -Enetwork.host=0.0.0.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
 
-logstash:
-  links:
-    - database:database
-    - elasticsearch:elasticsearch
-  build: ./logstash
-  command: logstash -f readdb.conf
+  logstash:
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
+    links:
+      - database:database
+      - elasticsearch:elasticsearch
 
-#parking:
-  #  build: .
-  #  links:
-  #    - database:database
-  #    - elasticsearch:elasticsearch
-  #  ports:
-  #    - "8080:8080"
-  #  environment:
-  #    DATABASE_NAME: predictiveparking
-  #    DATABASE_PASSWORD: insecure
+  importer:
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
+    links:
+      - database:database
+    environment:
+      DATABASE_NAME: predictiveparking
+      DATABASE_USER: predictiveparking
+      DATABASE_PASSWORD: insecure
+      PARKEREN_OBJECTSTORE_PASSWORD:
+      PGPASSWORD: insecure
+    command: >
+      bash -c "/app/docker-prepare.sh"
+    volumes:
+      - ./data:/app/data
+
+  csvimporter:
+     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+     links:
+      - database:database
+    environment:
+      DATABASE_NAME: predictiveparking
+      DATABASE_PASSWORD: insecure
+    volumes:
+      - ./data:/app/data
+
+
+  db-backup:
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    links:
+      - database
+    environment:
+      PGPASSWORD: insecure
+    volumes:
+      - ./backups:/tmp/backups
+    command: >
+      bash -c "echo database:5432:handelsregister:handelsregister:insecure > ~/.pgpass \
+              && chmod 600 ~/.pgpass \
+              && pg_dump --clean \
+                          -Fc \
+                          -t scans* \
+                          -t django_migrations  \
+                          -T auth*    \
+                          -U predictiveparking \
+                          -h database -p 5432 \
+                          predictiveparking > /tmp/backups/database.dump"
+
+  el-backup:
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
+    links:
+      - elasticsearch
+    volumes:
+      - ./backups/elasticsearch:/tmp/backups
+    user: root
+    command: >
+      bash -c "curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
+              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scans*\" }' \
+              && chown -R 997:997 /tmp/backups"
