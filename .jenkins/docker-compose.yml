@@ -40,15 +40,14 @@ services:
       - ./data:/app/data
 
   csvimporter:
-     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvimporter:${ENVIRONMENT}
-     links:
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvimporter:${ENVIRONMENT}
+    links:
       - database:database
     environment:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
     volumes:
       - ./data:/app/data
-
 
   db-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
@@ -59,7 +58,7 @@ services:
     volumes:
       - ./backups:/tmp/backups
     command: >
-      bash -c "echo database:5432:handelsregister:handelsregister:insecure > ~/.pgpass \
+      bash -c "echo database:5432:predictiveparking:predictiveparking:insecure > ~/.pgpass \
               && chmod 600 ~/.pgpass \
               && pg_dump --clean \
                           -Fc \

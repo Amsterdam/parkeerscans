@@ -1,0 +1,3 @@
+[submodule "kibana/geoJsonMapKibana"]
+	path = kibana/geoJsonMapKibana
+	url = git@github.com:Lytrix/geoJsonMapKibana.git

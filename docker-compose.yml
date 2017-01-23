@@ -31,7 +31,7 @@ services:
       END_DATE:
 
   kibana:
-    image: kibana
+    build: ./kibana
     ports:
       - "5601:5601"
     links:
@@ -39,17 +39,15 @@ services:
     command: kibana
 
   csvimporter:
-     build: ./csvimporter/
-     links:
+    build: ./csvimporter/
+    links:
       - database:database
     environment:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
     volumes:
-      - datavolume:/app/data
+      - ./unzipped:/tmp/unzipped
 
- volumes:
-   datavolume: {}
 
   # geoserver with elastic support
   #
