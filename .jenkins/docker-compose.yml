@@ -23,6 +23,9 @@ services:
     links:
       - database:database
       - elasticsearch:elasticsearch
+    environment:
+      START_DATE:
+      END_DATE:
 
   importer:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
@@ -47,7 +50,7 @@ services:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
     volumes:
-      - ./unzipped:/app/unzipped
+      - ./unzipped:/tmp/unzipped
 
   db-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres

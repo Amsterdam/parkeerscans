@@ -24,7 +24,7 @@ class Scan(models.Model):
     -'uitval_nachtrun'  # nachtelijke correctie
     """
 
-    scan_id = models.IntegerField()
+    scan_id = models.IntegerField()  # not unique!!
     scan_moment = models.DateTimeField(db_index=True)
     scan_source = models.CharField(db_index=True, max_length=15)
 

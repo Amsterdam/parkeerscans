@@ -27,14 +27,32 @@ dc up -d database
 
 # load latest bag into database
 echo "Load latest parkeervakken.."
-#dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
+dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
 echo "Load latest wegdelen.."
-#dc exec -T database update-table.sh basiskaart bgt_wegdeel bgt predictiveparking
+dc exec -T database update-table.sh basiskaart bgt_wegdeel bgt predictiveparking
 
 echo "create scan api database"
-# create the scan_database and reset elastic
+# create the scan_database
+# and download scans zipfiles and rars
 dc run --rm importer docker-prepare.sh
 
+
+echo "loading the unzipped scans into database"
+dc run csvimporter app
+
+# we have to chunck the importing otherwise the database
+# will take minutes to get data logstash needs
+START_DATE="2016-01-01" END_DATE="2016-02-01" dc run --rm logstash
+START_DATE="2016-02-01" END_DATE="2016-03-01" dc run --rm logstash
+START_DATE="2016-03-01" END_DATE="2016-04-01" dc run --rm logstash
+START_DATE="2016-04-01" END_DATE="2016-05-01" dc run --rm logstash
+START_DATE="2016-05-01" END_DATE="2016-06-01" dc run --rm logstash
+START_DATE="2016-06-01" END_DATE="2016-07-01" dc run --rm logstash
+START_DATE="2016-07-01" END_DATE="2016-08-01" dc run --rm logstash
+START_DATE="2016-09-01" END_DATE="2016-10-01" dc run --rm logstash
+START_DATE="2016-10-01" END_DATE="2016-11-01" dc run --rm logstash
+START_DATE="2016-11-01" END_DATE="2016-12-01" dc run --rm logstash
+START_DATE="2016-12-01" END_DATE="2017-01-01" dc run --rm logstash
 
 echo "DONE! importing scans into database"
 
@@ -42,7 +60,6 @@ echo "DONE! importing scans into database"
 ## run the backup shizzle
 #dc run --rm db-backup
 #
-#START_DATE="2016-01-01" END_DATE="2017-01-01" dc run --rm logstash
 #
 #dc run --rm el-backup
 #

@@ -31,5 +31,3 @@ echo "Indexing   end: $END_DATE"
 
 
 logstash -f readdb.conf --pipeline.workers 3
-
-
