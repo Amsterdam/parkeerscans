@@ -11,6 +11,9 @@ dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
 }
 
+dc stop
+dc rm -f
+
 trap 'dc kill ; dc rm -f' EXIT
 
 echo "Do we have OS password?"
@@ -19,7 +22,7 @@ echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 rm -rf ${DIR}/backups
 mkdir -p ${DIR}/backups
 
-dc build --pull
+dc pull
 
 dc up -d database
 dc up -d elasticsearch

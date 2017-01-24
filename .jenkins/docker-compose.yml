@@ -11,7 +11,7 @@ services:
   # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Enetwork.host=0.0.0.0
+    command: elasticsearch -Enetwork.host=elasticsearch
 
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
