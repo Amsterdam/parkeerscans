@@ -35,6 +35,13 @@ ALLOWED_HOSTS = ['*']
 
 INTERNAL_IPS = ('127.0.0.1', '0.0.0.0')
 
+OVERRIDE_HOST_ENV_VAR = 'DATABASE_HOST_OVERRIDE'
+OVERRIDE_PORT_ENV_VAR = 'DATABASE_PORT_OVERRIDE'
+
+OVERRIDE_EL_HOST_VAR = 'ELASTIC_HOST_OVERRIDE'
+OVERRIDE_EL_PORT_VAR = 'ELASTIC_PORT_OVERRIDE'
+
+
 SITE_ID = 1
 # Application definition
 
@@ -94,6 +101,51 @@ def get_docker_host():
     return 'localhost'
 
 
+# noinspection PyBroadException
+def in_docker():
+    """
+    Checks pid 1 cgroup settings to check with reasonable certainty we're in a
+    docker env.
+    :return: true when running in a docker container, false otherwise
+    """
+    try:
+        return ':/docker/' in open('/proc/1/cgroup', 'r').read()
+    except:
+        return False
+
+
+class LocationKey:
+    local = 'local'
+    docker = 'docker'
+    override = 'override'
+
+
+def get_database_key():
+    if os.getenv(OVERRIDE_HOST_ENV_VAR):
+        return LocationKey.override
+    elif in_docker():
+        return LocationKey.docker
+
+    return LocationKey.local
+
+
+DATABASE_OPTIONS = {
+    LocationKey.docker: {
+        'HOST': 'database',
+        'PORT': '5432'
+    },
+    LocationKey.local: {
+        'HOST': get_docker_host(),
+        'PORT': '5434'    # defined in compose file
+    },
+    LocationKey.override: {
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
+        'HOST': os.getenv(OVERRIDE_HOST_ENV_VAR),
+        'PORT': os.getenv(OVERRIDE_PORT_ENV_VAR, '5432')
+    }
+}
+
+
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
@@ -103,10 +155,10 @@ DATABASES = {
         'NAME': os.getenv('DATABASE_NAME', 'predictiveparking'),
         'USER': os.getenv('DATABASE_USER', 'predictiveparking'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
-        'HOST': os.getenv('DATABASE_PORT_5432_TCP_ADDR', get_docker_host()),
-        'PORT': os.getenv('DATABASE_PORT_5432_TCP_PORT', '5434'),
     }
 }
+
+DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
 
 
 # Password validation

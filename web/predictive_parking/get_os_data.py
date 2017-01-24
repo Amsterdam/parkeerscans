@@ -13,7 +13,7 @@ from dateutil import parser
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-assert os.getenv('OS_PASSWORD')
+assert os.getenv('PARKEERVAKKEN_OBJECTSTORE_PASSWORD')
 
 
 OBJECTSTORE = dict(
@@ -22,7 +22,7 @@ OBJECTSTORE = dict(
     TENANT_NAME='BGE000081_Parkeren',
     TENANT_ID='fd380ccb48444960837008800a453122',
     USER='parkeren',
-    PASSWORD=os.getenv('OS_PASSWORD'),
+    PASSWORD=os.getenv('PARKEERVAKKEN_OBJECTSTORE_PASSWORD'),
     REGION_NAME='NL',
 )
 
@@ -32,7 +32,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("swiftclient").setLevel(logging.WARNING)
 
 
-DATA_DIR = 'data/'
+DATA_DIR = '/app/data/'
 
 store = OBJECTSTORE
 
@@ -94,7 +94,7 @@ def get_latest_zipfile():
 
     for time, object_meta_data in zips_sorted_by_time:
         zipname = object_meta_data['name'].split('/')[-1]
-        file_location = 'data/{}'.format(zipname)
+        file_location = '{}/{}'.format(DATA_DIR, zipname)
 
         if file_exists(file_location):
             # Already downloaded
@@ -107,7 +107,7 @@ def get_latest_zipfile():
         latest_zip = get_store_object(object_meta_data)
 
         # save output to file!
-        with open('data/{}'.format(zipname), 'wb') as outputzip:
+        with open('{}/{}'.format(DATA_DIR, zipname), 'wb') as outputzip:
             outputzip.write(latest_zip)
 
 get_latest_zipfile()

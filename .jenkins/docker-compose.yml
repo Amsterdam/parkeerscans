@@ -26,18 +26,18 @@ services:
 
   importer:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
+    # build: ../web/
     links:
       - database:database
     environment:
       DATABASE_NAME: predictiveparking
       DATABASE_USER: predictiveparking
       DATABASE_PASSWORD: insecure
-      PARKEREN_OBJECTSTORE_PASSWORD:
+      PARKEERVAKKEN_OBJECTSTORE_PASSWORD:
       PGPASSWORD: insecure
-    command: >
-      bash -c "/app/docker-prepare.sh"
     volumes:
       - ./data:/app/data
+      - ./unzipped:/app/unzipped
 
   csvimporter:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvimporter:${ENVIRONMENT}
@@ -47,7 +47,7 @@ services:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
     volumes:
-      - ./data:/app/data
+      - ./unzipped:/app/unzipped
 
   db-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
