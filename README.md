@@ -1,4 +1,5 @@
-# predictive_parking
+# Predictive Parking
+
 This is a proof of concept for scan data analysis using a kibana dashboard.
 
 Het in kaart brengen van de parkeerdruk door middel van scan data.
