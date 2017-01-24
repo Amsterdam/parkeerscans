@@ -22,6 +22,7 @@ mkdir -p ${DIR}/backups
 dc build --pull
 
 dc up -d database
+dc up -d elasticsearch
 
 #dc run --rm tests
 # and download scans zipfiles and rars
