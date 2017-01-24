@@ -22,6 +22,7 @@ echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 rm -rf ${DIR}/backups
 mkdir -p ${DIR}/backups
 
+# get the latest and greatest
 dc pull
 
 dc up -d database
