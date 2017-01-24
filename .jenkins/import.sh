@@ -56,11 +56,11 @@ START_DATE="2016-12-01" END_DATE="2017-01-01" dc run --rm logstash
 
 echo "DONE! importing scans into database"
 
-#echo "create hr dump"
-## run the backup shizzle
-#dc run --rm db-backup
+echo "create scan db dump"
+# run the backup shizzle
+dc run --rm db-backup
 #
 #
-#dc run --rm el-backup
+dc run --rm el-backup
 #
-#echo "DONE! with everything! You are awesome! <3"
+echo "DONE! with everything! You are awesome! <3"

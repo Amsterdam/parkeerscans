@@ -20,6 +20,7 @@ services:
 
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
+    #build: ../logstash
     links:
       - database:database
       - elasticsearch:elasticsearch
@@ -44,6 +45,7 @@ services:
 
   csvimporter:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvimporter:${ENVIRONMENT}
+    # build: ../csvimporter/
     links:
       - database:database
     environment:
