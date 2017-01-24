@@ -24,6 +24,8 @@ dc build --pull
 dc up -d database
 
 #dc run --rm tests
+# and download scans zipfiles and rars
+dc run --rm importer docker-prepare.sh
 
 # load latest bag into database
 echo "Load latest parkeervakken.."
@@ -33,9 +35,6 @@ dc exec -T database update-table.sh basiskaart bgt_wegdeel bgt predictiveparking
 
 echo "create scan api database"
 # create the scan_database
-# and download scans zipfiles and rars
-dc run --rm importer docker-prepare.sh
-
 
 echo "loading the unzipped scans into database"
 dc run csvimporter app
