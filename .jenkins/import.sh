@@ -25,7 +25,7 @@ dc up -d database
 
 #dc run --rm tests
 # and download scans zipfiles and rars
-dc run importer docker-prepare.sh
+dc run importer ./docker-prepare.sh
 
 # load latest bag into database
 echo "Load latest parkeervakken.."
