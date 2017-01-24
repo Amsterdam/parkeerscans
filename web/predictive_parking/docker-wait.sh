@@ -5,7 +5,7 @@ set -e
 
 
 # wait for elastic
-while ! nc -z elasticsearch 9200
+while ! nc -z elasticsearch 9300
 do
  	echo "Waiting for elastic..."
  	sleep 1.5
