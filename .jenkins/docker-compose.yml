@@ -39,7 +39,7 @@ services:
       - ./unzipped:/app/unzipped
 
   csvimporter:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvimporter:${ENVIRONMENT}
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
     # build: ../csvimporter/
     links:
       - database:database
