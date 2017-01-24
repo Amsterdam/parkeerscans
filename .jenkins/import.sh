@@ -8,7 +8,7 @@ DIR="$(dirname $0)"
 echo $0
 
 dc() {
-	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
+	docker-compose -f ${DIR}/docker-compose.yml $*;
 }
 
 dc stop
@@ -25,11 +25,15 @@ mkdir -p ${DIR}/backups
 # get the latest and greatest
 dc pull
 
+
 dc up -d database
 dc up -d elasticsearch
 
+sleep 10
 #dc run --rm tests
 # and download scans zipfiles and rars
+dc run importer dig elasticsearch
+
 dc run importer ./docker-prepare.sh
 
 # load latest bag into database
