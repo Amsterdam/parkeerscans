@@ -57,5 +57,14 @@ node {
             }
     }
 
-    //TODO tests!!
-}
+    stage("Deploy to ACC") {
+        tryStep "deployment", {
+            build job: 'Subtask_Openstack_Playbook',
+                    parameters: [
+                            [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
+                            [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-predictive-parking.yml'],
+                            [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
+                    ]
+        }
+    }
+}    //TODO tests!!
