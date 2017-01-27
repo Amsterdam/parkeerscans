@@ -12,14 +12,14 @@
 	<link rel="stylesheet" href="geojsonmap.css" />
 	<!-- extension for SINGLE tile option in Leaflet for proper rendering of WMS labels -->
     <!--<script src="https://cdn.rawgit.com/heigeo/leaflet.wms/gh-pages/src/leaflet.wms.js"></script>-->
-  
+
   	<!-- Script to load geojson with one call -->
     <script src="choropleth.js"></script>
 
 </head>
 <body>
 <div ng-controller="geoJsonMapController" >
-	<div id="map" style="position:absolute;left:0px;right:0px;top:0px;bottom:0px;"></div>
+	<div id="mapJM" style="position:absolute;left:0px;right:0px;top:0px;bottom:0px;"></div>
 </div>
 <script>
 
@@ -65,30 +65,30 @@
                                 })
                            };
 		var overlays = {
-              "Stadsdelen": L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Stadsdelen": L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'stadsdeel,stadsdeel_label',
                                 format: 'image/png',
                                 transparent: true
                                 }),
-              "Gebieden":   L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Gebieden":   L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'gebiedsgerichtwerken,gebiedsgerichtwerken_label',
                                 format: 'image/png',
                                 transparent: true
                                 }),
-              "Wijken":     L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Wijken":     L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'buurtcombinatie,buurtcombinatie_label',
                                 format: 'image/png',
                                 transparent: true
                                 }),
-              "Buurten":    L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Buurten":    L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'buurt,buurt_label',
                                 format: 'image/png',
                                 transparent: true
                                 })
-              };             
-  		
-  		//Load control layers 
-    	L.control.layers(baseLayers,overlays).addTo(map); 
+              };
+
+  		//Load control layers
+    	L.control.layers(baseLayers,overlays).addTo(map);
     	// Load default baselayer
     	baseLayers['Topografie'].addTo(map);
     	// Load default overlay
@@ -97,7 +97,7 @@
 
 		// Add GeoJSON
 
-	
+
 		function onEachFeature(feature, layer) {
 		    // does this feature have a property named id?
 		    if (feature.properties && feature.properties.id) {
@@ -121,11 +121,11 @@
 		        layer.bindTooltip(toolTip);
 		        //layer.bindPopup(toolTip);
 		    }
-		    layer.on("mouseover", function (e) {		
+		    layer.on("mouseover", function (e) {
   					var layer = e.target;
 			    	layer.setStyle(highLightPolygon);
   				});
-		    layer.on("mouseout", function (e) {		
+		    layer.on("mouseout", function (e) {
   					var layer = e.target;
 			    	layer.setStyle(defaultPolygon);
   				});
@@ -144,7 +144,7 @@
 				        fillOpacity: 0.7
 				    	};
 
-		
+
 
 		function wfsQuery() {
 			var geoJsonUrl = geoJsonURL;
@@ -179,7 +179,7 @@
 		    	}
 		    	catch (e) {};
 		        wfsQuery();
-		   
+
 		    } else {
 		        alert("please zoom in to see the polygons!");
 		    	try { choroplethLayer.clearLayers();}
@@ -192,17 +192,17 @@
 		    //console.log(data);
 		    $("#total").html(dataGeoJson.features.length);
 		    //choroplethLayer.clearLayers();
-		 
+
 			$.when(
 			    	data,
 			    	dataGeoJson
 			    	//$.getJSON(geoJsonURL)
 				).done(function (a, b) {
-				   
+
 				    // First get the two objects from json
 				    var returnValues = a;
 				    //console.log(returnValues);
-				    
+
 				    var returnGeoJson = b;
 			    	console.log(returnGeoJson);
 			    	// Add value from hash table to geojson properties
@@ -211,10 +211,10 @@
 			      		item.properties.value = returnValues[item.properties[geoJsonIdField]] || 0;
 			    	});
 			    	console.log(returnGeoJson);
- 					
+
 				    //choroplethLayer.addData(returnGeoJson);
 				    //addLegend();
-				   	
+
 				   	choroplethLayer = L.choropleth(
 					returnGeoJson, {
 					valueProperty: 'value',
@@ -224,9 +224,9 @@
 					mode: 'k',
 					style: defaultPolygon,
 					onEachFeature: onEachFeature
-				}).addTo(map);	
+				}).addTo(map);
 				addLegend();
-		
+
 				   	//drawGeoJson(returnGeoJson);
 
 				});
@@ -251,12 +251,12 @@
 			    	});
 
 			    div.innerHTML += '<ul>' + labels.join('') + '</ul>';
-			   
+
 			    return div;
 			};
 
 		  	legend.addTo(map);
-			
+
 		 }
 		map.on('moveend', load_wfs);
 

@@ -57,7 +57,7 @@ module.controller('geoJsonMapController', function($scope, Private) {
 
 		// Draw Map
 
-		try { $('#map').map.remove(); }
+		try { $('#map_parking').map.remove(); }
 		catch(err) {}
 
 		var data={};
@@ -71,17 +71,21 @@ module.controller('geoJsonMapController', function($scope, Private) {
 		console.log(data);
 
 		//var geoJsonURL = 'https://map.datapunt.amsterdam.nl/maps/gebieden';
-		var geoJsonURL = 'https://map.datapunt.amsterdam.nl/maps/parkeervakken';
-		var geoJsonURL = $scope.vis.params.geoJsonURL
+		//var geoJsonURL = 'https://map.datapunt.amsterdam.nl/maps/parkeervakken';
+		var geoJsonURL = $scope.vis.params.geoJsonURL;
 		//var typeName = 'buurt';
 		var typeName = $scope.vis.params.typeName;
 		var start_at_zoom = $scope.vis.params.zoomLimitLevel;
 		var choroplethLayer;
-		//TODO add editor string "code" value to parameter field as code
+		//Add editor string "code" value to parameter field as code
 		var geoJsonIdField = $scope.vis.params.geoJsonIdField;
 		var toolTip;
 
-		var map = L.map('map', {
+		//TODO create unique id for div
+		//var d = document.createElement('div')
+   		//	.id = 'id'+new Date().getTime().toString();
+
+		var mapWfs = L.map('map_parking', {
 	                      maxBounds: [
 	                          [52.269470, 4.72876], //southWest
 	                          [52.4322, 5.07916] //northEast
@@ -107,39 +111,33 @@ module.controller('geoJsonMapController', function($scope, Private) {
                                 })
                            };
 		var overlays = {
-              "Stadsdelen": L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Stadsdelen": L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'stadsdeel,stadsdeel_label',
                                 format: 'image/png',
                                 transparent: true
                                 }),
-              "Gebieden":   L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Gebieden":   L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'gebiedsgerichtwerken,gebiedsgerichtwerken_label',
                                 format: 'image/png',
                                 transparent: true
                                 }),
-              "Wijken":     L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Wijken":     L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'buurtcombinatie,buurtcombinatie_label',
                                 format: 'image/png',
                                 transparent: true
                                 }),
-              "Buurten":    L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden', 
+              "Buurten":    L.tileLayer.wms('https://map.datapunt.amsterdam.nl/maps/gebieden',
                               { layers: 'buurt,buurt_label',
                                 format: 'image/png',
                                 transparent: true
                                 })
-              };             
-  		
-  		//Load control layers 
-    	L.control.layers(baseLayers,overlays).addTo(map); 
-    	// Load default baselayer
-    	baseLayers['Topografie'].addTo(map);
-    	// Load default overlay
-    	overlays['Buurten'].addTo(map);
+              };
 
+    	L.control.layers(baseLayers,overlays).addTo(mapWfs);
 
 		// Add GeoJSON
 
-	
+
 		function onEachFeature(feature, layer) {
 		    // does this feature have a property named id?
 		    if (feature.properties && feature.properties[geoJsonIdField]) {
@@ -163,11 +161,11 @@ module.controller('geoJsonMapController', function($scope, Private) {
 		        layer.bindTooltip(toolTip);
 		        //layer.bindPopup(toolTip);
 		    }
-		    layer.on("mouseover", function (e) {		
+		    layer.on("mouseover", function (e) {
   					var layer = e.target;
 			    	layer.setStyle(highLightPolygon);
   				});
-		    layer.on("mouseout", function (e) {		
+		    layer.on("mouseout", function (e) {
   					var layer = e.target;
 			    	layer.setStyle(defaultPolygon);
   				});
@@ -205,13 +203,12 @@ module.controller('geoJsonMapController', function($scope, Private) {
 			    	});
 
 			    div.innerHTML += '<ul>' + labels.join('') + '</ul>';
-			   
+
 			    return div;
 			};
+		  	legend.addTo(mapWfs);
 
-		  	legend.addTo(map);
-			
-		 }	
+		 }
 
 		function wfsQuery() {
 			var geoJsonURL = $scope.vis.params.geoJsonURL;
@@ -226,7 +223,7 @@ module.controller('geoJsonMapController', function($scope, Private) {
 			};
 
 		    var customParams = {
-		        bbox: map.getBounds().toBBoxString()
+		        bbox: mapWfs.getBounds().toBBoxString()
 	      		};
 	        var parameters = L.Util.extend(defaultParameters, customParams);
 	        console.log(geoJsonURL + L.Util.getParamString(parameters));
@@ -241,7 +238,7 @@ module.controller('geoJsonMapController', function($scope, Private) {
 			}
 
 		function load_wfs() {
-		    if (map.getZoom() > start_at_zoom && $scope.vis.params.zoomLimit === true) {
+		    if (mapWfs.getZoom() > start_at_zoom && $scope.vis.params.zoomLimit === true) {
 		    	try { choroplethLayer.clearLayers();
 		    		  $( ".legend" ).remove();
 		    	}
@@ -265,7 +262,7 @@ module.controller('geoJsonMapController', function($scope, Private) {
 		    //console.log(data);
 		    $("#total").html(dataGeoJson.features.length);
 		    //choroplethLayer.clearLayers();
-		 
+
 			$.when(
 			    	data,
 			    	dataGeoJson
@@ -274,7 +271,7 @@ module.controller('geoJsonMapController', function($scope, Private) {
 				    // First get the two objects from json
 				    var returnValues = a;
 				    //console.log(returnValues);
-				    
+
 				    var returnGeoJson = b;
 			    	console.log(returnValues);
 			    	console.log(returnGeoJson);
@@ -284,10 +281,10 @@ module.controller('geoJsonMapController', function($scope, Private) {
 			      		item.properties.value = returnValues[item.properties[geoJsonIdField]] || 0;
 			    	});
 			    	console.log('added values: ' + returnGeoJson);
- 					
+
 				    //choroplethLayer.addData(returnGeoJson);
 				    //addLegend();
-				   	
+
 				   	choroplethLayer = L.choropleth(
 					returnGeoJson, {
 					valueProperty: 'value',
@@ -297,17 +294,13 @@ module.controller('geoJsonMapController', function($scope, Private) {
 					mode: 'k',
 					style: defaultPolygon,
 					onEachFeature: onEachFeature
-				}).addTo(map);	
+				}).addTo(mapWfs);
 				addLegend();
-		
 				   	//drawGeoJson(returnGeoJson);
-
 				});
 		}
 
+		mapWfs.on('moveend', load_wfs);
 
-		map.on('moveend', load_wfs);
-
-	
 	});
 });
