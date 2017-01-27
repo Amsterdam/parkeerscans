@@ -12,3 +12,4 @@ WORKDIR /usr/share/kibana/plugins/
 
 COPY jVectorMapGebieden jVectorMapGebieden
 COPY enhanced_tilemap enhanced_tilemap
+COPY geoJsonMapKibana geoJsonMapKibana
