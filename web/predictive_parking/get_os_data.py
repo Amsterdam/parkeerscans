@@ -32,7 +32,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("swiftclient").setLevel(logging.WARNING)
 
 
-DATA_DIR = '/app/data/'
+DATA_DIR = '/app/data'
 
 store = OBJECTSTORE
 
