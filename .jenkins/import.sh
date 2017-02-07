@@ -27,6 +27,7 @@ dc pull
 
 
 dc up -d database
+sysctl -w vm.max_map_count=262144
 dc up elasticsearch
 
 sleep 10
