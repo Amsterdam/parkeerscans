@@ -27,7 +27,7 @@ dc pull
 
 
 dc up -d database
-dc up -d elasticsearch
+dc up elasticsearch
 
 sleep 10
 #dc run --rm tests
