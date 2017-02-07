@@ -27,12 +27,13 @@ dc pull
 
 
 dc up -d database
-sysctl -w vm.max_map_count=262144
-dc up elasticsearch
+dc up -d elasticsearch
 
 sleep 10
 #dc run --rm tests
 # and download scans zipfiles and rars
+
+echo "IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_count=262144'"
 dc run importer dig elasticsearch
 
 dc run importer ./docker-prepare.sh
