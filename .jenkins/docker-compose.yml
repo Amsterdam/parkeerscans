@@ -35,9 +35,10 @@ services:
       DATABASE_PASSWORD: insecure
       PARKEERVAKKEN_OBJECTSTORE_PASSWORD:
       PGPASSWORD: insecure
+    user: root
     volumes:
-      - ./data:/app/data
-      - ./unzipped:/app/unzipped
+      - data-volume:/app/data
+      - unzip-volume:/app/unzipped
 
   csvimporter:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
@@ -48,7 +49,7 @@ services:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
     volumes:
-      - ./unzipped:/tmp/unzipped
+      - unzip-volume:/tmp/unzipped
 
   db-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
@@ -81,3 +82,7 @@ services:
       bash -c "curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
               && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scans*\" }' \
               && chown -R 997:997 /tmp/backups"
+
+volumes:
+  data-volume:
+  unzip-volume:
