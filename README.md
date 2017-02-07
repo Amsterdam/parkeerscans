@@ -13,18 +13,24 @@ We take data from a few sources and create a dataset usable for predictive parki
 
 Source data:
  - all know parking spots.
- - all know roads. (wegdelen) / partial roads.
- - all know neigborhoods.
- - all 31+ milion cars scans of 2016.
- 
-We combine this data in a postgres database table in `scan_scans` which contains all scans
+ - all know roads. (wegdelen) / partial roads. (weddelen)
+ - all know neigborhoods. (buurten)
+ - all 31.5 milion cars scans of 2016.
+
+We combine all data sources in a postgres database table
+in `scan_scans` which contains all scans
 normalized with parkingspot, neighborhood and road information.
-All this data get's indexed in elasticsearch and that allows us to create a 
+All this data get's indexed in elasticsearch and that allows us to create a
 kibana dashboard.
- 
-The kibana project has one customized view with loads out vector data of roads, neighborhoos and 
+
+The kibana project has one customized view with loads out vector data of roads, neighborhoos and
 parkingspots and allows us to create dynamic maps.
- 
+
 In the `.jenkins` folder is the `import.sh` which triggers all the needed build steps.
- 
+
 Local development can be done using `docker-compose up database elasticsearch`.
+
+NOTE
+====
+
+   IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_count=262144'
