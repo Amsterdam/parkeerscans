@@ -14,6 +14,9 @@ services:
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
     command: elasticsearch -Enetwork.host=0.0.0.0
+    volumes:
+      - ./backups/elasticsearch:/tmp/backups
+
 
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
@@ -82,7 +85,7 @@ services:
     user: root
     command: >
       bash -c "curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
-              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scans*\" }' \
+              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }' \
               && chown -R 997:997 /tmp/backups"
 
 volumes:
