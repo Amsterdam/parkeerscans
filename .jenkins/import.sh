@@ -14,13 +14,13 @@ dc() {
 dc stop
 dc rm -f
 
-trap 'dc kill ; dc rm -f' EXIT
+#trap 'dc kill ; dc rm -f' EXIT
 
 echo "Do we have OS password?"
 echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 
 rm -rf ${DIR}/backups
-mkdir -p ${DIR}/backups
+mkdir -p ${DIR}/backups/elasticsearch
 
 # get the latest and greatest
 dc pull
@@ -70,9 +70,9 @@ echo "DONE! importing scans into database"
 
 echo "create scan db dump"
 # run the backup shizzle
-dc run --rm db-backup
+dc up db-backup
 #
 #
-dc run --rm el-backup
+dc up el-backup
 #
 echo "DONE! with everything! You are awesome! <3"
