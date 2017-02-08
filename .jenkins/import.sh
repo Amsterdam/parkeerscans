@@ -19,8 +19,8 @@ dc rm -f
 echo "Do we have OS password?"
 echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 
-rm -rf ${DIR}/backups
-mkdir -p ${DIR}/backups/elasticsearch
+rm -rf ${DIR}/backups/*.dump
+rm -rf ${DIR}/backups/elasticsearch/*
 
 # get the latest and greatest
 dc pull
