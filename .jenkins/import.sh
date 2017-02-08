@@ -50,21 +50,21 @@ echo "create scan api database"
 # create the scan_database
 
 echo "loading the unzipped scans into database"
-# dc run csvimporter app
+dc run csvimporter app
 
 # we have to chunk the importing otherwise the database
 # will take minutes to get data logstash needs
 START_DATE="2016-01-01" END_DATE="2016-02-01" dc run logstash
 START_DATE="2016-02-01" END_DATE="2016-03-01" dc run logstash
-#START_DATE="2016-03-01" END_DATE="2016-04-01" dc run logstash
-#START_DATE="2016-04-01" END_DATE="2016-05-01" dc run logstash
-#START_DATE="2016-05-01" END_DATE="2016-06-01" dc run logstash
-#START_DATE="2016-06-01" END_DATE="2016-07-01" dc run logstash
-#START_DATE="2016-07-01" END_DATE="2016-08-01" dc run logstash
-#START_DATE="2016-09-01" END_DATE="2016-10-01" dc run logstash
-#START_DATE="2016-10-01" END_DATE="2016-11-01" dc run logstash
-#START_DATE="2016-11-01" END_DATE="2016-12-01" dc run logstash
-#START_DATE="2016-12-01" END_DATE="2017-01-01" dc run logstash
+START_DATE="2016-03-01" END_DATE="2016-04-01" dc run logstash
+START_DATE="2016-04-01" END_DATE="2016-05-01" dc run logstash
+START_DATE="2016-05-01" END_DATE="2016-06-01" dc run logstash
+START_DATE="2016-06-01" END_DATE="2016-07-01" dc run logstash
+START_DATE="2016-07-01" END_DATE="2016-08-01" dc run logstash
+START_DATE="2016-09-01" END_DATE="2016-10-01" dc run logstash
+START_DATE="2016-10-01" END_DATE="2016-11-01" dc run logstash
+START_DATE="2016-11-01" END_DATE="2016-12-01" dc run logstash
+START_DATE="2016-12-01" END_DATE="2017-01-01" dc run logstash
 
 echo "DONE! importing scans into database"
 
