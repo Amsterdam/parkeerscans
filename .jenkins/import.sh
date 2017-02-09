@@ -19,6 +19,8 @@ dc rm -f
 echo "Do we have OS password?"
 echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 
+mkdir -p ${DIR}/backups/elasticsearch/
+
 rm -rf ${DIR}/backups/*.dump
 rm -rf ${DIR}/backups/elasticsearch/*
 
