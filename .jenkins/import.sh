@@ -8,7 +8,7 @@ DIR="$(dirname $0)"
 echo $0
 
 dc() {
-	docker-compose -f ${DIR}/docker-compose.yml $*;
+	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
 }
 
 dc stop
@@ -39,6 +39,7 @@ echo "IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_cou
 dc run importer dig elasticsearch
 
 dc run importer ./docker-prepare.sh
+dc run importer ./docker-imports.sh
 
 # load latest bag into database
 echo "Load latest parkeervakken.."
