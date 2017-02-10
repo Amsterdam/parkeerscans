@@ -246,9 +246,6 @@ func importScans() {
 	jobs := make(chan string, 100)
 
 	for i, file := range files {
-		if i >= 2 {
-			break
-		}
 		jobs <- file
 	}
 	close(jobs)

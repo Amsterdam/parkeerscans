@@ -80,4 +80,5 @@ dc up db-backup
 #
 dc up el-backup
 #
-echo "DONE! with everything! You are awesome! <3"
+echo "DONE! with import. You are awesome! <3"
+dc stop
