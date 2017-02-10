@@ -21,6 +21,8 @@ echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 
 mkdir -p ${DIR}/backups/elasticsearch/
 
+chmod 777 ${DIR}/backups/elasticsearch/
+
 rm -rf ${DIR}/backups/*.dump
 rm -rf ${DIR}/backups/elasticsearch/*
 
@@ -54,6 +56,7 @@ echo "loading the unzipped scans into database"
 dc run csvimporter app
 
 dc run importer ./docker-import.sh
+
 # we have to chunk the importing otherwise the database
 # will take minutes to get data logstash needs
 START_DATE="2016-01-01" END_DATE="2016-02-01" dc run logstash
