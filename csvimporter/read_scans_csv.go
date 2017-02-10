@@ -245,7 +245,7 @@ func importScans() {
 
 	jobs := make(chan string, 100)
 
-	for i, file := range files {
+	for _, file := range files {
 		jobs <- file
 	}
 	close(jobs)
