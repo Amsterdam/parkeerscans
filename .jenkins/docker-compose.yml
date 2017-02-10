@@ -13,7 +13,9 @@ services:
   # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Enetwork.host=0.0.0.0
+    command: elasticsearch -Enetwork.host=_site_ -Ebootstrap.memory_lock=true
+    environment:
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
     user: root
     volumes:
       - ./backups/elasticsearch:/tmp/backups
@@ -24,9 +26,9 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    mem_limit: 5g
     cap_add:
       - IPC_LOCK
-    mem_limit: 3g
 
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
