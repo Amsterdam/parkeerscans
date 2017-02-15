@@ -191,6 +191,7 @@ func printCols(cols []interface{}) {
 	}
 }
 
+//csvloader streams one csv and commit into database
 func csvloader(id int, jobs <-chan string) {
 
 	fmt.Println("worker", id)
@@ -245,9 +246,19 @@ func importScans() {
 
 	jobs := make(chan string, 100)
 
-	for _, file := range files {
+	test := os.Getenv("TESTING")
+
+	fmt.Println("\n TESTING: ", test)
+
+	for i, file := range files {
+		if test == "yes" {
+			if i > 3 {
+				break
+			}
+		}
 		jobs <- file
 	}
+
 	close(jobs)
 
 	go printStatus()

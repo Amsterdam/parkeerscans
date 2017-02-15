@@ -34,7 +34,7 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    mem_limit: 5g
+    mem_limit: 6g
     cap_add:
       - IPC_LOCK
 
@@ -66,13 +66,14 @@ services:
       - unzip-volume:/app/unzipped
 
   csvimporter:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
-    # build: ../csvimporter/
+    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+    build: ../csvimporter/
     links:
       - database:database
     environment:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
+      TESTING:
     volumes:
       - unzip-volume:/tmp/unzipped
 
