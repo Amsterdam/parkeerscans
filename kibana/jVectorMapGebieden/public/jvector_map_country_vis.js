@@ -41,7 +41,18 @@ function jVectorMapGebiedenProvider(Private) {
 					min: 1,
 					max: 1,
 					aggFilter: '!geohash_grid'
-				}
+				},
+
+				//{
+				//	group: 'buckets',
+				//	name: 'dagen',
+				//	title: 'Dagen',
+				//	min: 1,
+				//	max: 1,
+				//	aggFilter: 'date_histogram',
+                //    field: '@timestamp',
+                //    interval: "day"
+				//}
 			])
 	});
 }

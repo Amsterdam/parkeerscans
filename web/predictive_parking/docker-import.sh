@@ -8,12 +8,25 @@ source docker-wait.sh
 source docker-migrate.sh
 
 
-## import wegdelen
+## import wegdelen uit wegdeel project
 python manage.py run_import --wegdelen
-## import parkeervakken
+## import parkeervakken uit parkeervakken project
 python manage.py run_import --vakken
+
+## import buurten uit bag
+python manage.py run_import --buurten
+## plak buurt info aan parkeervakken
+
 ## plak wegdeel info aan parkeervakken
 python manage.py run_import --mergewegdelen
+python manage.py run_import --mergebuurten
+
+# set parkeervak counts op buurten en wegdelen
+# fiscaal en niet fiscaal
+python manage.py run_import --parkeervakcounts
+
+
 ## plak vakken aan scans
 python manage.py run_import --mergevakken
+
 #

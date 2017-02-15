@@ -1,11 +1,8 @@
 
 import logging
 import sys
-import glob
 
 from django.core.management import BaseCommand
-from scans.models import Scan
-from logdecorator import LogWith
 
 import import_scans
 
@@ -30,21 +27,42 @@ class Command(BaseCommand):
             action='store_true',
             dest='wegdelen',
             default=False,
-            help='link scans met wegdelen')
+            help='importeer wegdelen uit bgt')
 
         parser.add_argument(
             '--vakken',
             action='store_true',
             dest='vakken',
             default=False,
-            help='link scans met parkeerplaatsen')
+            help='importeer parkeervakken uit parkeervakken ')
+
+        parser.add_argument(
+            '--buurten',
+            action='store_true',
+            dest='buurten',
+            default=False,
+            help='importeer buurten uit bag')
+
+        parser.add_argument(
+            '--parkeervakcounts',
+            action='store_true',
+            default=False,
+            dest='setcounts',
+            help='add parkeervak counts aan buurten en wegdelen')
 
         parser.add_argument(
             '--mergewegdelen',
             action='store_true',
             dest='mergewegdelen',
             default=False,
-            help='link wegdelen met parkeerplaatsen')
+            help='merge wegdelen met parkeerplaatsen')
+
+        parser.add_argument(
+            '--mergebuurten',
+            action='store_true',
+            dest='mergebuurten',
+            default=False,
+            help='merge buurten met parkeerplaatsen')
 
         parser.add_argument(
             '--mergevakken',
@@ -63,8 +81,15 @@ class Command(BaseCommand):
         elif options['vakken']:
             # Convert to wgs84
             import_scans.import_parkeervakken()
+        elif options['buurten']:
+            import_scans.import_buurten()
         elif options['mergewegdelen']:
             import_scans.add_wegdeel_to_parkeervak()
+        elif options['mergebuurten']:
+            import_scans.add_buurt_to_parkeervak()
+        elif options['setcounts']:
+            import_scans.add_parkeervak_count_to_buurt()
+            import_scans.add_parkeervak_count_to_wegdeel()
         elif options['mergevakken']:
             import_scans.add_parkeervak_to_scans()
         elif options['normalizescans']:

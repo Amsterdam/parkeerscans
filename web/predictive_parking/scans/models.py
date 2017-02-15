@@ -85,6 +85,7 @@ class Parkeervak(models.Model):
     type = models.CharField(max_length=20)
     aantal = models.IntegerField()
     geometrie = geo.MultiPolygonField(srid=4326)
+    point = geo.PointField(srid=4326, null=True)
 
     # wegdelen
     bgt_wegdeel = models.CharField(
@@ -92,6 +93,9 @@ class Parkeervak(models.Model):
 
     bgt_wegdeel_functie = models.CharField(
        null=True, db_index=True, max_length=200)
+
+    buurt = models.CharField(
+        null=True, db_index=True, max_length=4)
 
 
 class WegDeel(models.Model):
@@ -102,3 +106,17 @@ class WegDeel(models.Model):
     id = models.CharField(primary_key=True, max_length=38)
     bgt_functie = models.CharField(max_length=200)
     geometrie = geo.PolygonField(srid=4326)
+    vakken = models.IntegerField(null=True)
+    fiscale_vakken = models.IntegerField(null=True)
+
+
+class Buurt(models.Model):
+    """
+    Buurt
+    """
+    id = models.CharField(primary_key=True, max_length=14)
+    code = models.CharField(db_index=True, max_length=4)
+    naam = models.CharField(max_length=40)
+    geometrie = geo.MultiPolygonField(srid=4326)
+    vakken = models.IntegerField(null=True)
+    fiscale_vakken = models.IntegerField(null=True)

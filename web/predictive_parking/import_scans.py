@@ -14,6 +14,7 @@ from django.db import connection
 from scans.models import WegDeel
 from scans.models import Parkeervak
 from scans.models import Scan
+from scans.models import Buurt
 
 from logdecorator import LogWith
 
@@ -120,14 +121,17 @@ def import_parkeervakken():
         soort,
         type,
         aantal,
-        geometrie)
+        geometrie,
+        point
+        )
     SELECT
         parkeer_id,
         straatnaam,
         soort,
         type,
         aantal,
-        ST_Transform(ST_SetSRID(geom, 28992), 4326)
+        ST_Transform(ST_SetSRID(geom, 28992), 4326),
+        ST_Centroid(ST_Transform(ST_SetSRID(geom, 28992), 4326))
     FROM bv.parkeervakken pv
     """)
     log.debug("Alle    Vakken %s", Parkeervak.objects.all().count())
@@ -158,24 +162,124 @@ def import_wegdelen():
         wg.bgt_functie LIKE 'rijbaan regionale weg' OR
         wg.bgt_functie LIKE 'transitie' OR
         wg.bgt_functie LIKE 'OV-baan' OR
-        wg.bgt_functie LIKE 'woonerf' OR
-        wg.bgt_functie LIKE 'parkeervlak'
+        wg.bgt_functie LIKE 'woonerf'
 
     """)
+
     log.debug("Wegdelen %s", WegDeel.objects.all().count())
 
 
 @LogWith(log)
-def add_wegdeel_to_scans():
+def import_buurten():
     """
-    Given scans find nearest parking spot
-    within 1.5 meters
+    Build buurt dataset where we can add parkeervak information
     """
-    log.debug('Add wegdeel to each parkeervak (1 min)')
+    Buurt.objects.all().delete()
+
+    log.debug('Create buurten dataset 1 min)')
     with connection.cursor() as c:
         c.execute("""
-    UPDATE  s
-    SET wegvak_id = wd.identificatie_lokaalid
-    FROM bgt.bgt_wegdeel wd
-    WHERE ST_DWithin(s.geometrie, pv.geomw, 0.000015)
+    INSERT INTO scans_buurt(
+        id,
+        code,
+        naam,
+        geometrie
+    )
+    SELECT
+        id,
+        vollcode,
+        naam,
+        ST_Transform(geometrie, 4326)
+    FROM bag_buurt
     """)
+
+
+@LogWith(log)
+def add_buurt_to_parkeervak():
+    """
+    Given parkeervakken find buurt of each pv
+    """
+    log.debug('Add buurtcode to each parkeervak (1 min)')
+    with connection.cursor() as c:
+        c.execute("""
+    UPDATE  scans_parkeervak pv
+    SET buurt = b.code
+    FROM scans_buurt b
+    WHERE ST_Contains(b.geometrie, pv.point)
+    """)
+
+    log.debug(
+        "Parkeeervak zonder buurt %s",
+        Parkeervak.objects.filter(buurt=None).count())
+
+
+@LogWith(log)
+def add_parkeervak_count_to_wegdeel():
+    """
+    Each wegdeel needs to have a count of parkeervakken.
+    """
+    log.debug('Add parkeervak count to each wegdeel (1 min)')
+    log.debug(
+        "Wegdelen zonder pv count %s",
+        WegDeel.objects.filter(vakken=None).count())
+
+    with connection.cursor() as c:
+        c.execute("""
+
+    UPDATE scans_wegdeel wd SET vakken=sq.vakken
+    FROM (
+        SELECT bgt_wegdeel, count(id) as vakken
+        FROM scans_parkeervak
+            GROUP BY bgt_wegdeel
+        )
+        AS sq
+        WHERE wd.id = bgt_wegdeel
+    """)
+
+    log.debug(
+        "Wegdelen zonder pv count %s",
+        WegDeel.objects.filter(vakken=None).count())
+
+    log.debug(
+        "Wegdelen zonder fiscale pv count %s",
+        WegDeel.objects.filter(fiscale_vakken=None).count())
+
+    with connection.cursor() as c:
+        c.execute("""
+    UPDATE scans_wegdeel wd SET fiscale_vakken=sq.vakken
+    FROM (
+        SELECT bgt_wegdeel, count(id) as vakken
+        FROM scans_parkeervak
+        WHERE soort = 'FISCAAL'
+            GROUP BY bgt_wegdeel
+        )
+        AS sq
+        WHERE wd.id = bgt_wegdeel
+    """)
+
+    log.debug(
+        "Wegdelen zonder fiscale pv count %s",
+        WegDeel.objects.filter(fiscale_vakken=None).count())
+
+
+@LogWith(log)
+def add_parkeervak_count_to_buurt():
+    """
+    Each buurt needs to have count of parkeervakken
+    """
+    log.debug('Add parkeervak count to each buurt (1 min)')
+    with connection.cursor() as c:
+        c.execute("""
+    UPDATE scans_buurt b SET vakken=sq.vakken
+    FROM (
+        SELECT buurt, count(id) as vakken
+        FROM scans_parkeervak
+            GROUP BY buurt
+        )
+        AS sq
+        WHERE id = buurt
+    """)
+
+    log.debug(
+        "Wegdelen zonder pv count %s",
+        WegDeel.objects.filter(vakken=None).count())
