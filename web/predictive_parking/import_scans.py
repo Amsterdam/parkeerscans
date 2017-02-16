@@ -64,6 +64,7 @@ def add_parkeervak_to_scans():
     Given scans pind nearest parking spot
     """
     zonder_pv = Scan.objects.filter(parkeervak_id=None).count
+
     log.debug('Add parkeervak to each scan (40 mins)')
     log.debug('Scans: %s', Scan.objects.all().count())
     log.debug('Scans zonder pv: %s', zonder_pv())
@@ -112,7 +113,9 @@ def add_wegdeel_to_parkeervak():
 @LogWith(log)
 def import_parkeervakken():
     log.debug('Import en Converteer parkeervakken naar WGS84')
+
     Parkeervak.objects.all().delete()
+
     with connection.cursor() as c:
         c.execute("""
     INSERT INTO scans_parkeervak(
@@ -134,6 +137,7 @@ def import_parkeervakken():
         ST_Centroid(ST_Transform(ST_SetSRID(geom, 28992), 4326))
     FROM bv.parkeervakken pv
     """)
+
     log.debug("Alle    Vakken %s", Parkeervak.objects.all().count())
     log.debug("Fiscale Vakken %s",
               Parkeervak.objects.filter(soort='FISCAAL').count())
@@ -200,6 +204,7 @@ def add_buurt_to_parkeervak():
     Given parkeervakken find buurt of each pv
     """
     log.debug('Add buurtcode to each parkeervak (1 min)')
+
     with connection.cursor() as c:
         c.execute("""
     UPDATE  scans_parkeervak pv
@@ -208,9 +213,8 @@ def add_buurt_to_parkeervak():
     WHERE ST_Contains(b.geometrie, pv.point)
     """)
 
-    log.debug(
-        "Parkeeervak zonder buurt %s",
-        Parkeervak.objects.filter(buurt=None).count())
+    log.debug("Parkeeervak zonder buurt %s",
+              Parkeervak.objects.filter(buurt=None).count())
 
 
 @LogWith(log)
@@ -219,9 +223,20 @@ def add_parkeervak_count_to_wegdeel():
     Each wegdeel needs to have a count of parkeervakken.
     """
     log.debug('Add parkeervak count to each wegdeel (1 min)')
-    log.debug(
-        "Wegdelen zonder pv count %s",
-        WegDeel.objects.filter(vakken=None).count())
+
+    def status(state):
+
+        log.debug(
+            "%6s Wegdelen met parkeervak count %s",
+            state,
+            WegDeel.objects.filter(vakken__gt=0).count())
+
+        log.debug(
+            "%6s Wegdelen met fiscale pv count %s",
+            state,
+            WegDeel.objects.filter(fiscale_vakken__gt=0).count())
+
+    status('before')
 
     with connection.cursor() as c:
         c.execute("""
@@ -236,14 +251,6 @@ def add_parkeervak_count_to_wegdeel():
         WHERE wd.id = bgt_wegdeel
     """)
 
-    log.debug(
-        "Wegdelen zonder pv count %s",
-        WegDeel.objects.filter(vakken=None).count())
-
-    log.debug(
-        "Wegdelen zonder fiscale pv count %s",
-        WegDeel.objects.filter(fiscale_vakken=None).count())
-
     with connection.cursor() as c:
         c.execute("""
     UPDATE scans_wegdeel wd SET fiscale_vakken=sq.vakken
@@ -257,9 +264,7 @@ def add_parkeervak_count_to_wegdeel():
         WHERE wd.id = bgt_wegdeel
     """)
 
-    log.debug(
-        "Wegdelen zonder fiscale pv count %s",
-        WegDeel.objects.filter(fiscale_vakken=None).count())
+    status('after')
 
 
 @LogWith(log)
@@ -268,6 +273,15 @@ def add_parkeervak_count_to_buurt():
     Each buurt needs to have count of parkeervakken
     """
     log.debug('Add parkeervak count to each buurt (1 min)')
+
+    def status(state):
+        log.debug(
+            "%6s: Buurt zonder pv count %s",
+            state,
+            WegDeel.objects.filter(vakken=None).count())
+
+    status('before')
+
     with connection.cursor() as c:
         c.execute("""
     UPDATE scans_buurt b SET vakken=sq.vakken
@@ -280,6 +294,4 @@ def add_parkeervak_count_to_buurt():
         WHERE id = buurt
     """)
 
-    log.debug(
-        "Wegdelen zonder pv count %s",
-        WegDeel.objects.filter(vakken=None).count())
+    status('after')

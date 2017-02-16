@@ -33,6 +33,7 @@ logging.getLogger("swiftclient").setLevel(logging.WARNING)
 
 
 DATA_DIR = '/app/data'
+# DATA_DIR = '/tmp/data'
 
 store = OBJECTSTORE
 

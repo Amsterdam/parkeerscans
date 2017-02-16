@@ -69,7 +69,7 @@ class Command(BaseCommand):
             action='store_true',
             dest='mergevakken',
             default=False,
-            help='link parkeervakken met scans')
+            help='merge scans met parkeervakken')
 
     def handle(self, *args, **options):
         """
