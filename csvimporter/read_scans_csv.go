@@ -148,7 +148,7 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		if field == "" {
 			continue
 		}
-
+		// normalize on dot notation
 		cleanedField = strings.Replace(field, ",", ".", 1)
 		cols[i] = cleanedField
 
@@ -252,7 +252,7 @@ func importScans() {
 
 	for i, file := range files {
 		if test == "yes" {
-			if i > 3 {
+			if i > 1 {
 				break
 			}
 		}
