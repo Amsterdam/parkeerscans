@@ -21,9 +21,9 @@ services:
   # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Enetwork.host=_site_ -Ebootstrap.memory_lock=true
+    command: elasticsearch -Ebootstrap.memory_lock=true -Enetwork.host=_site_ -Erepositories.url.allowed_urls=https://*.datapunt.amsterdam.nl/*
     environment:
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ES_JAVA_OPTS=-Xms3g -Xmx3g"
     user: root
     volumes:
       - ./backups/elasticsearch:/tmp/backups
