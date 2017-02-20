@@ -1,0 +1,53 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css">
+
+
+<style type="text/css">
+
+  .leaflet-map {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .legend {
+  	color: #555;
+  	padding: 5px 5px;
+  	font: 12px Arial, Helvetica, sans-serif;
+  	font-weight: bold;
+  	background: white;
+  	background: rgba(255,255,255,0.8);
+  	box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  }
+  .legend ul {
+  	list-style-type: none;
+  	padding: 0;
+  	margin: 0;
+  	clear: both;
+  }
+  .legend li {
+  	display: inline-block;
+  	width: 30px;
+  	height: 22px;
+  }
+  .legend .min {
+  	float: left;
+  	padding-bottom: 5px;
+  }
+  .type {
+	float: left;
+  	padding-bottom: 5px;
+	margin-left: 10px;
+  }
+  .legend .max {
+  	float: right;
+  	padding-bottom: 5px;
+  }
+
+</style>
+
+<div ng-controller="ParkeervakkenController">
+    <div class="leaflet-map js-leaflet-map"></div>
+</div>
+
