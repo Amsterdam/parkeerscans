@@ -97,6 +97,10 @@ def get_latest_zipfile():
         zipname = object_meta_data['name'].split('/')[-1]
         file_location = '{}/{}'.format(DATA_DIR, zipname)
 
+        if not zipname.startswith('export'):
+            log.debug('skiped %s', zipname)
+            continue
+
         if file_exists(file_location):
             # Already downloaded
             log.debug('skiped %s', file_location)
