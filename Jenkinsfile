@@ -33,7 +33,7 @@ node {
 
     stage("Build develop kibana wegdeel") {
         tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}", "-f kibana/Dockerfile-wegdeel")
+            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibanawegdeel:${env.BUILD_NUMBER}", "kibanawegdeel")
             image.push()
             image.push("acceptance")
         }
