@@ -32,8 +32,8 @@ services:
         soft: -1
         hard: -1
       nofile:
-        soft: 65536
-        hard: 65536
+        soft: 195536
+        hard: 195536
     mem_limit: 6g
     cap_add:
       - IPC_LOCK

@@ -38,6 +38,14 @@ services:
       - elasticsearch:elasticsearch
     command: kibana
 
+  kibanaWegdeel:
+    build: ./kibana
+    ports:
+      - "5602:5602"
+    links:
+      - elasticsearch:elasticsearch
+    command: kibana
+
   csvimporter:
     build: ./csvimporter/
     links:
