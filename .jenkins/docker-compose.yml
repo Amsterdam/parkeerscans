@@ -23,7 +23,7 @@ services:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
     command: elasticsearch -Ebootstrap.memory_lock=true -Enetwork.host=_site_ -Erepositories.url.allowed_urls=https://*.datapunt.amsterdam.nl/*
     environment:
-      - "ES_JAVA_OPTS=-Xms6g -Xmx6g"
+      - "ES_JAVA_OPTS=-Xms5g -Xmx5g"
     user: root
     volumes:
       - ./backups/elasticsearch:/tmp/backups
