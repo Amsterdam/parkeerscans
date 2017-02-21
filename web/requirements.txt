@@ -34,3 +34,4 @@ six==1.10.0
 stevedore==1.19.1
 websocket-client==0.40.0
 wrapt==1.10.8
+xlsx2csv==0.7.2
