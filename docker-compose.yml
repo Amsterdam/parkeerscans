@@ -39,9 +39,7 @@ services:
     command: kibana
 
   kibanawegdeel:
-    build:
-      context: ./kibana
-      dockerfile: Dockerfile-wegdeel
+    build: ./kibanawegdeel
     ports:
       - "5602:5601"
     links:
