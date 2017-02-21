@@ -38,10 +38,12 @@ services:
       - elasticsearch:elasticsearch
     command: kibana
 
-  kibanaWegdeel:
-    build: ./kibana
+  kibanawegdeel:
+    build:
+      context: ./kibana
+      dockerfile: Dockerfile-wegdeel
     ports:
-      - "5602:5602"
+      - "5602:5601"
     links:
       - elasticsearch:elasticsearch
     command: kibana

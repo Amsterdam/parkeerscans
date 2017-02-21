@@ -31,7 +31,13 @@ node {
         }
     }
 
-
+    stage("Build develop kibana wegdeel") {
+        tryStep "build", {
+            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibanawegdeel:${env.BUILD_NUMBER}", "kibanawegdeel")
+            image.push()
+            image.push("acceptance")
+        }
+    }
 
     stage("Build develop logstash") {
         tryStep "build", {
