@@ -23,6 +23,13 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
 
         parser.add_argument(
+            '--setunlogged',
+            action='store_true',
+            dest='unlogged',
+            default=False,
+            help='set scan tables unlogged decreases diskwrites')
+
+        parser.add_argument(
             '--wegdelen',
             action='store_true',
             dest='wegdelen',
@@ -71,6 +78,13 @@ class Command(BaseCommand):
             default=False,
             help='merge scans met parkeervakken')
 
+        parser.add_argument(
+            '--addwegdeeltowrongscans',
+            action='store_true',
+            dest='mergewegdelennopv',
+            default=False,
+            help='merge scans met wegdelen als deze geen parkeerid hebben')
+
     def handle(self, *args, **options):
         """
         Validate and execute import task
@@ -78,24 +92,27 @@ class Command(BaseCommand):
 
         if options['wegdelen']:
             import_scans.import_wegdelen()
+        elif options['unlogged']:
+            import_scans.make_scans_unlogged()
         elif options['vakken']:
             # Convert to wgs84
             import_scans.import_parkeervakken()
         elif options['buurten']:
             import_scans.import_buurten()
         elif options['mergewegdelen']:
-            import_scans.add_wegdeel_to_parkeervak()
+            import_scans.add_wegdeel_to_parkeervak(distance=0.00001)
         elif options['mergebuurten']:
             import_scans.add_buurt_to_parkeervak()
         elif options['setcounts']:
             import_scans.add_parkeervak_count_to_buurt()
             import_scans.add_parkeervak_count_to_wegdeel()
+        elif options['mergewegdelennopv']:
+            import_scans.add_wegdeel_to_scans()
         elif options['mergevakken']:
+            # merge scans within vakken
+            import_scans.add_parkeervak_to_scans(distance=0.000001)
+            # merge scans 1.5 meter around vakken
             import_scans.add_parkeervak_to_scans()
-        elif options['normalizescans']:
-            # Add vakken en wegdelen informatie aan scans
-            # import_scans.add_parkeervak_to_scans()
-            raise NotImplementedError
         else:
             log.error('Nothing imported.')
             sys.exit(1)

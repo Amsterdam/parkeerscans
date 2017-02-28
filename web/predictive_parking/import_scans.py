@@ -42,6 +42,22 @@ def fix_pv_geometrie_field():
 
 
 @LogWith(log)
+def make_scans_unlogged():
+    """
+    unlogged tables are faster!
+    """
+    log.debug('Alter table to UNLOGGED')
+    with connection.cursor() as c:
+            c.execute("""
+    ALTER TABLE scans_scan SET UNLOGGED
+    """)
+            c.execute("""
+
+    ALTER TABLE scans_scanraw SET UNLOGGED
+    """)
+
+
+@LogWith(log)
 def fix_bgt_geometrie_field():
     """
     Add 4326 field to parkeervakken
@@ -59,18 +75,18 @@ def fix_bgt_geometrie_field():
 
 
 @LogWith(log)
-def add_parkeervak_to_scans():
+def add_parkeervak_to_scans(distance=0.000015):
     """
     Given scans pind nearest parking spot
     """
     zonder_pv = Scan.objects.filter(parkeervak_id=None).count
 
-    log.debug('Add parkeervak to each scan (40 mins)')
+    log.debug('Add parkeervak to each scan = (a long time ( ~4 hours))')
     log.debug('Scans: %s', Scan.objects.all().count())
     log.debug('Scans zonder pv: %s', zonder_pv())
 
     with connection.cursor() as c:
-        c.execute("""
+        c.execute(f"""
     UPDATE scans_scan s
     SET
         parkeervak_id       = pv.id,
@@ -78,24 +94,24 @@ def add_parkeervak_to_scans():
         bgt_wegdeel         = pv.bgt_wegdeel,
         bgt_wegdeel_functie = pv.bgt_wegdeel_functie
     FROM scans_parkeervak pv
-    WHERE ST_DWithin(s.geometrie, pv.geometrie, 0.000015)
+    WHERE ST_DWithin(s.geometrie, pv.geometrie, {distance})
     """)
     log.debug('Totaaal Scans: %s', Scan.objects.all().count())
     log.debug('Scans zonder pv: %s', zonder_pv())
 
 
 @LogWith(log)
-def add_wegdeel_to_parkeervak():
+def add_wegdeel_to_parkeervak(distance=0.000049):
     """
     Each parking spot should have a wegdeel
     """
     log.debug('Add wegdeel to each parking spot')
     with connection.cursor() as c:
-        c.execute("""
+        c.execute(f"""
     UPDATE scans_parkeervak pv
     SET bgt_wegdeel = wd.id, bgt_wegdeel_functie = wd.bgt_functie
     FROM scans_wegdeel wd
-    WHERE ST_DWithin(wd.geometrie, pv.geometrie, 0.000049)
+    WHERE ST_DWithin(wd.geometrie, pv.geometrie, {distance})
     """)
 
     pv_no_wd_count = (
@@ -108,6 +124,38 @@ def add_wegdeel_to_parkeervak():
         "Fiscale Parkeervakken zonder WegDeel %s van %s",
         pv_no_wd_count,
         Parkeervak.objects.count())
+
+
+@LogWith(log)
+def add_wegdeel_to_scans(distance=0.000001):
+    """
+    Each scan spot should have a wegdeel if it does not have a parkeervlak
+    """
+    log.debug('Add wegdeel to each parking spot')
+
+    scans_no_wd_count = (
+        Scan.objects
+        .filter(bgt_wegdeel=None)
+        .count())
+
+    log.debug(
+        "Before: Scans zonder WegDeel %s van %s",
+        scans_no_wd_count,
+        Scan.objects.count())
+
+    with connection.cursor() as c:
+        c.execute(f"""
+    UPDATE scans s
+    SET bgt_wegdeel = wd.id, bgt_wegdeel_functie = wd.bgt_functie
+    FROM scans_wegdeel wd
+    WHERE parkeer_id is null
+    AND ST_DWithin(wd.geometrie, pv.geometrie, {distance})
+    """)
+
+    log.debug(
+        "After: Scans zonder WegDeel %s van %s",
+        scans_no_wd_count,
+        Scan.objects.count())
 
 
 @LogWith(log)
@@ -180,7 +228,7 @@ def import_buurten():
     """
     Buurt.objects.all().delete()
 
-    log.debug('Create buurten dataset 1 min)')
+    log.debug('Create buurten dataset < 1 min')
     with connection.cursor() as c:
         c.execute("""
     INSERT INTO scans_buurt(
@@ -203,7 +251,7 @@ def add_buurt_to_parkeervak():
     """
     Given parkeervakken find buurt of each pv
     """
-    log.debug('Add buurtcode to each parkeervak (1 min)')
+    log.debug('Add buurtcode to each parkeervak < 1 min')
 
     with connection.cursor() as c:
         c.execute("""
@@ -222,7 +270,7 @@ def add_parkeervak_count_to_wegdeel():
     """
     Each wegdeel needs to have a count of parkeervakken.
     """
-    log.debug('Add parkeervak count to each wegdeel (1 min)')
+    log.debug('Add parkeervak count to each wegdeel ~ 1 min')
 
     def status(state):
 
@@ -272,7 +320,7 @@ def add_parkeervak_count_to_buurt():
     """
     Each buurt needs to have count of parkeervakken
     """
-    log.debug('Add parkeervak count to each buurt (1 min)')
+    log.debug('Add parkeervak count to each buurt < (1 min)')
 
     def status(state):
         log.debug(

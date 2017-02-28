@@ -7,6 +7,8 @@ source docker-wait.sh
 
 source docker-migrate.sh
 
+# make scan table(s) unlogged
+python manage.py run_import --setunlogged
 
 ## import wegdelen uit wegdeel project
 python manage.py run_import --wegdelen
@@ -30,3 +32,4 @@ python manage.py run_import --parkeervakcounts
 python manage.py run_import --mergevakken
 
 #
+python manage.py run_import --mergewegdelennopv

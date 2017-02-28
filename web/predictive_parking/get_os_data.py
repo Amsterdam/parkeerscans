@@ -76,9 +76,9 @@ def file_exists(target):
     return target.is_file()
 
 
-def get_latest_zipfile():
+def get_latest_rarfile():
     """
-    Get latest zipfile uploaded by mks
+    Get latest rarfile
     """
     zip_list = []
 
@@ -87,18 +87,18 @@ def get_latest_zipfile():
 
     for o_info in meta_data:
         if o_info['content_type'] in [
-                'application/rar', 'application/zip']:
+                'application/rar']:
             dt = parser.parse(o_info['last_modified'])
             zip_list.append((dt, o_info))
 
     zips_sorted_by_time = sorted(zip_list)
 
     for time, object_meta_data in zips_sorted_by_time:
-        zipname = object_meta_data['name'].split('/')[-1]
-        file_location = '{}/{}'.format(DATA_DIR, zipname)
+        rarname = object_meta_data['name'].split('/')[-1]
+        file_location = '{}/{}'.format(DATA_DIR, rarname)
 
-        if not zipname.startswith('export'):
-            log.debug('skiped %s', zipname)
+        if 'totaal' not in rarname:
+            log.debug('skiped %s', rarname)
             continue
 
         if file_exists(file_location):
@@ -107,12 +107,13 @@ def get_latest_zipfile():
             continue
 
         # Download all not missing data
-        zipname = object_meta_data['name'].split('/')[-1]
-        log.info('Downloading: %s %s', time, zipname)
+        rarname = object_meta_data['name'].split('/')[-1]
+        log.info('Downloading: %s %s', time, rarname)
         latest_zip = get_store_object(object_meta_data)
 
         # save output to file!
-        with open('{}/{}'.format(DATA_DIR, zipname), 'wb') as outputzip:
+        with open('{}/{}'.format(DATA_DIR, rarname), 'wb') as outputzip:
             outputzip.write(latest_zip)
 
-get_latest_zipfile()
+
+get_latest_rarfile()

@@ -25,7 +25,6 @@ echo $TESTING
 # get the latest and greatest
 dc pull
 
-
 dc up -d database
 dc up -d elasticsearch
 

@@ -101,6 +101,7 @@ func init() {
 	}
 
 	idxMap = make(map[string]int)
+	//targetTable = "scans_scanraw"
 	targetTable = "scans_scan"
 	workers = 3
 	ignoreErrors = false
@@ -128,8 +129,6 @@ func setLatLong(cols []interface{}) error {
 	if cols[idxMap["latitude"]] == nil {
 		return errors.New("latitude field value wrong")
 	}
-
-	if cols[idxMap["longitude"]] == nil {
 
 	if str, ok := cols[idxMap["longitude"]].(string); ok {
 		long, err = strconv.ParseFloat(str, 64)
@@ -224,7 +223,7 @@ func csvloader(id int, jobs <-chan string) {
 		}
 
 		pgTable, err := NewImport(
-			db, "public", "scans_scan", columns)
+			db, "public", targetTable, columns)
 
 		LoadSingleCSV(csvfile, pgTable)
 		//finalize csv file import in db
