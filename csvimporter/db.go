@@ -47,6 +47,8 @@ func CleanTargetTable(db *sql.DB, target string) {
 
 }
 
+// add vakken / wegdelen to scans
+
 //NewImport setup a new import struct
 func NewImport(db *sql.DB, schema string, tableName string, columns []string) (*SQLImport, error) {
 
@@ -140,22 +142,12 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 		if err == io.EOF {
 			break
 		}
+
 		if err != nil {
 			csvError.Printf("%s: %s \n", err, record)
 			failed++
 			continue
 		}
-
-		//skip alles niet in zuid
-		//if record != nil {
-		//	if len(record) > 5 {
-		//		if record[5] != "" {
-		//			if string(record[5][0]) != "K" {
-		//				continue
-		//			}
-		//		}
-		//	}
-		//}
 
 		rowCount++
 
@@ -167,6 +159,9 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 			failed++
 			continue
 		}
+
+		//printRecord(&record)
+		//printCols(cols)
 
 		err = pgTable.AddRow(cols...)
 

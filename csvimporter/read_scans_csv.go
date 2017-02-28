@@ -28,6 +28,7 @@ var (
 	last         int
 	workers      int
 	failed       int
+	idxMap       map[string]int
 	ignoreErrors bool
 	targetTable  string
 	targetCSVdir string
@@ -79,30 +80,37 @@ ScanId;scnMoment;scan_source;scnLongitude;scnLatitude;buurtcode;afstand;spersCod
 
 func init() {
 	columns = []string{
-		"scan_id",         // 0  ScanId;
-		"scan_moment",     // 1  scnMoment;
-		"scan_source",     // 2  scan_source;
-		"longitude",       // 3  scnLongitude;
-		"latitude",        // 4  scnLatitude;
-		"buurtcode",       // 5  buurtcode;
-		"afstand",         // 6  aftand to pvak?
-		"sperscode",       // 7  spersCode;
-		"qualcode",        // 8  qualCode;
-		"ff_df",           // 9  FF_DF;
-		"nha_nr",          // 10 NHA_nr;
-		"nha_hoogte",      // 11 NHA_hoogte;
-		"uitval_nachtrun", // 12 uitval_nachtrun;
+		"scan_id",         //  ScanId;
+		"scan_moment",     //  scnMoment;
+		"device_id",       //  device id
+		"scan_source",     //  scan_source;
+		"longitude",       //  scnLongitude;
+		"latitude",        //  scnLatitude;
+		"buurtcode",       //  buurtcode;
+		"afstand",         //  aftand to pvak?
+		"sperscode",       //  spersCode;
+		"qualcode",        //  qualCode;
+		"ff_df",           //   FF_DF;
+		"nha_nr",          //  NHA_nr;
+		"nha_hoogte",      //  NHA_hoogte;
+		"uitval_nachtrun", //  uitval_nachtrun;
 
-		"stadsdeel",       // 13  stadsdeel;
-		"buurtcombinatie", // 14  buurtcombinatie;
-		"geometrie",       // 15 geometrie
+		"stadsdeel",       //  stadsdeel;
+		"buurtcombinatie", //  buurtcombinatie;
+		"geometrie",       //  geometrie
 	}
 
+	idxMap = make(map[string]int)
 	targetTable = "scans_scan"
 	workers = 3
 	ignoreErrors = false
 	//TODO make environment variable
-	targetCSVdir = "/tmp/unzipped"
+	targetCSVdir = "/app/unzipped"
+
+	// fill map
+	for i, field := range columns {
+		idxMap[field] = i
+	}
 }
 
 //setLatLon create wgs84 point for postgres
@@ -113,17 +121,30 @@ func setLatLong(cols []interface{}) error {
 	var err error
 	var point string
 
-	if str, ok := cols[3].(string); ok {
-		long, err = strconv.ParseFloat(str, 64)
-	} else {
-		return errors.New("long field value wrong")
+	if cols[idxMap["longitude"]] == nil {
+		return errors.New("longitude field value wrong")
 	}
 
-	if str, ok := cols[4].(string); ok {
+	if cols[idxMap["latitude"]] == nil {
+		return errors.New("latitude field value wrong")
+	}
+
+	if cols[idxMap["longitude"]] == nil {
+
+	if str, ok := cols[idxMap["longitude"]].(string); ok {
+		long, err = strconv.ParseFloat(str, 64)
+	} else {
+		return errors.New("longitude field value wrong")
+	}
+
+	if str, ok := cols[idxMap["latitude"]].(string); ok {
 		lat, err = strconv.ParseFloat(str, 64)
 	} else {
-		return errors.New("lat field value wrong")
+		return errors.New("latitude field value wrong")
 	}
+
+	//bbox amsterdam
+	//precision
 
 	if err != nil {
 		return err
@@ -131,7 +152,8 @@ func setLatLong(cols []interface{}) error {
 
 	point = geo.NewPointFromLatLng(lat, long).ToWKT()
 	point = fmt.Sprintf("SRID=4326;%s", point)
-	cols[15] = point
+
+	cols[idxMap["geometrie"]] = point
 
 	return nil
 
@@ -148,18 +170,20 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		if field == "" {
 			continue
 		}
+
 		// normalize on dot notation
 		cleanedField = strings.Replace(field, ",", ".", 1)
 		cols[i] = cleanedField
 
-		if i == 5 {
-			cols[13] = string(field[0]) //stadsdeel
-			cols[14] = field[:3]        //buurtcombinatie
+		if i == idxMap["buurtcode"] {
+			cols[idxMap["stadsdeel"]] = string(field[0])
+			cols[idxMap["buurtcombinatie"]] = field[:3]
 		}
-	}
 
-	if cols[8] == "Distanceerror" {
-		return nil, errors.New("Distanceerror in 'afstand'")
+		//ignore afstand
+		if i == idxMap["afstand"] {
+			cols[i] = ""
+		}
 	}
 
 	err := setLatLong(cols)
@@ -168,26 +192,21 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		return nil, err
 	}
 
-	if err != nil {
-		//not a valid point
-		return nil, errors.New("invalid lat long")
-	}
-
 	return cols, nil
 }
 
 func printRecord(record *[]string) {
 	log.Println("\n source record:")
 	for i, field := range *record {
-		log.Println(columns[i], field)
-		csvError.Printf("%10s %s", field, columns[i])
+		log.Printf("%2d %20s %32s", i, field, columns[i])
+		csvError.Printf("%d %10s %22s", i, field, columns[i])
 	}
 }
 
 func printCols(cols []interface{}) {
 	log.Println("\ncolumns:")
 	for i, field := range columns {
-		log.Printf("%10s %s", field, cols[i])
+		log.Printf("%2d %20s %32s", i, field, cols[i])
 	}
 }
 
@@ -234,7 +253,7 @@ func importScans() {
 	//find all csv files
 	start := time.Now()
 
-	files, err := filepath.Glob(fmt.Sprintf("%s/*week*.csv", targetCSVdir))
+	files, err := filepath.Glob(fmt.Sprintf("%s/*stad*.csv", targetCSVdir))
 
 	if err != nil {
 		panic(err)
