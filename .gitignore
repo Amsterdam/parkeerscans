@@ -172,3 +172,6 @@ web/web.iml
 reports/junit.xml
 data/
 .jenkins/unzipped/
+unzipped/
+csvimporter/csvimporter
+
