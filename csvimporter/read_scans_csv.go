@@ -259,6 +259,7 @@ func importScans() {
 	}
 
 	if len(files) == 0 {
+		fmt.Printf(targetCSVdir)
 		panic(errors.New("Missing csv files"))
 	}
 
