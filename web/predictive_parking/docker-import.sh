@@ -31,5 +31,5 @@ python manage.py run_import --parkeervakcounts
 ## plak vakken aan scans
 python manage.py run_import --mergevakken
 
-#
+# scans zonder parkeervak hebben wel een wegdeel
 python manage.py run_import --mergewegdelennopv
