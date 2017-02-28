@@ -12,6 +12,7 @@ python manage.py run_import --setunlogged
 
 ## import wegdelen uit wegdeel project
 python manage.py run_import --wegdelen
+
 ## import parkeervakken uit parkeervakken project
 python manage.py run_import --vakken
 
