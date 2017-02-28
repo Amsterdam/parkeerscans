@@ -80,20 +80,21 @@ def get_latest_rarfile():
     """
     Get latest rarfile
     """
-    zip_list = []
+    rar_list = []
 
     meta_data = get_full_container_list(
         parkeren_conn, 'predictive')
 
     for o_info in meta_data:
         if o_info['content_type'] in [
+                'application/octet-stream',
                 'application/rar']:
             dt = parser.parse(o_info['last_modified'])
-            zip_list.append((dt, o_info))
+            rar_list.append((dt, o_info))
 
-    zips_sorted_by_time = sorted(zip_list)
+    rars_sorted_by_time = sorted(rar_list)
 
-    for time, object_meta_data in zips_sorted_by_time:
+    for time, object_meta_data in rars_sorted_by_time:
         rarname = object_meta_data['name'].split('/')[-1]
         file_location = '{}/{}'.format(DATA_DIR, rarname)
 

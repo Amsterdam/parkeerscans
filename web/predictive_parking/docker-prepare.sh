@@ -12,13 +12,8 @@ python get_os_data.py
 
 
 # these commands do not overwirte existing files!!
-unzip -n '/app/data/*.zip' -d /app/unzipped/
+# unzip -n '/app/data/*.zip' -d /app/unzipped/
 ls /app/data/*.rar | xargs -I rarfile unrar --extract-newer -x rarfile /app/unzipped/  || true
 
-
-
-
-# convert those xlsx files
-ls unzipped/*.xlsx | xargs -I xlsx xlsx2csv xlsx xlsx.csv
 
 echo "Database and Raw csv files are ready"
