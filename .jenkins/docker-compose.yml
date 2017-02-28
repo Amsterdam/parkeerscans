@@ -87,8 +87,8 @@ services:
       - unzip-volume:/app/unzipped
 
   csvimporter:
-    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
-    build: ../csvimporter/
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+    #build: ../csvimporter/
     links:
       - database:database
     environment:
