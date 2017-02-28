@@ -25,6 +25,9 @@ services:
     environment:
       - "ES_JAVA_OPTS=-Xms5g -Xmx5g"
     user: root
+    #ports:
+    #  - "9200:9200"
+    #  - "9300:9300"
     volumes:
       - ./backups/elasticsearch:/tmp/backups
     ulimits:
@@ -38,23 +41,23 @@ services:
     cap_add:
       - IPC_LOCK
 
-  kibana:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${ENVIRONMENT}
-    # build: ../kibana
-    ports:
-      - "5601:5601"
-    links:
-      - elasticsearch:elasticsearch
-    command: kibana
-
-  kibanawegdeel:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibanawegdeel:${ENVIRONMENT}
-    # build: ../kibanawegdeel
-    ports:
-      - "5602:5601"
-    links:
-      - elasticsearch:elasticsearch
-    command: kibana
+  #  kibana:
+  #    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${ENVIRONMENT}
+  #    # build: ../kibana
+  #    ports:
+  #      - "5601:5601"
+  #    links:
+  #      - elasticsearch:elasticsearch
+  #    command: kibana
+  #
+  #  kibanawegdeel:
+  #    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibanawegdeel:${ENVIRONMENT}
+  #    build: ../kibanawegdeel
+  #    ports:
+  #      - "5602:5601"
+  #    links:
+  #      - elasticsearch:elasticsearch
+  #    command: kibana
 
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
@@ -93,7 +96,7 @@ services:
       DATABASE_PASSWORD: insecure
       TESTING:
     volumes:
-      - unzip-volume:/tmp/unzipped
+      - unzip-volume:/app/unzipped
 
   db-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
