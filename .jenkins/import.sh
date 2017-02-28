@@ -18,13 +18,13 @@ dc rm -f
 
 echo "Do we have OS password?"
 echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
-
+#
 echo "Testing import? if (yes)"
 echo $TESTING
-
-# get the latest and greatest
+#
+## get the latest and greatest
 dc pull
-
+#
 dc up -d database
 dc up -d elasticsearch
 
@@ -36,16 +36,15 @@ echo "IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_cou
 dc run importer dig elasticsearch
 
 echo "create scan api database"
-# create the scan_database
 dc run importer ./docker-prepare.sh
-#
+##
 echo "Load latest parkeervakken.."
 dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
 echo "Load latest wegdelen.."
 dc exec -T database update-table.sh basiskaart bgt_wegdeel bgt predictiveparking
 echo "Load buurt / buurtcombinatie"
 dc exec -T database update-table.sh bag bag_buurt public predictiveparking
-
+#
 echo "loading the unzipped scans into database"
 dc run csvimporter app
 
@@ -57,9 +56,9 @@ dc run importer ./docker-import.sh
 # will take minutes to get data logstash needs
 if [ $TESTING = "yes" ] ;
 then
-  START_DATE="2016-10-01" END_DATE="2016-11-01" dc run logstash
-else
   START_DATE="2016-01-01" END_DATE="2016-02-01" dc run logstash
+  START_DATE="2016-02-01" END_DATE="2016-03-01" dc run logstash
+else
   START_DATE="2016-02-01" END_DATE="2016-03-01" dc run logstash
   START_DATE="2016-03-01" END_DATE="2016-04-01" dc run logstash
   START_DATE="2016-04-01" END_DATE="2016-05-01" dc run logstash
