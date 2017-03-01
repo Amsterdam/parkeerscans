@@ -12,7 +12,7 @@ python get_os_data.py
 
 #[ "$(ls -A /app/unzipped/)" ] && echo "Not Empty" || echo "Empty"
 
-if ["$(ls -A /app/unzipped/)" ]
+if [ "$(ls -A /app/unzipped/)" ]
 then
 	echo "lets unzip csvs!"
 	# these commands do not overwirte existing files!!

@@ -23,9 +23,12 @@ echo "Testing import? if (yes)"
 echo $TESTING
 #
 ## get the latest and greatest
+
 dc pull
+
 dc rm importer
 dc rm csvimporter
+
 dc build
 #
 dc up -d database
