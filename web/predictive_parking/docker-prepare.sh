@@ -10,7 +10,7 @@ source docker-migrate.sh
 # echo 'Downloading latest parking scan data'
 python get_os_data.py
 
-[ "$(ls -A /app/unzipped/)" ] && echo "Not Empty" || echo "Empty"
+#[ "$(ls -A /app/unzipped/)" ] && echo "Not Empty" || echo "Empty"
 
 if ["$(ls -A /app/unzipped/)" ]
 then
