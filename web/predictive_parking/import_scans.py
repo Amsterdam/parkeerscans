@@ -111,7 +111,12 @@ def add_wegdeel_to_parkeervak(distance=0.000049):
     UPDATE scans_parkeervak pv
     SET bgt_wegdeel = wd.id, bgt_wegdeel_functie = wd.bgt_functie
     FROM scans_wegdeel wd
-    WHERE ST_DWithin(wd.geometrie, pv.geometrie, {distance})
+    WHERE (
+        wd.bgt_functie LIKE 'rijbaan lokale weg'
+        OR wd.bgt_functie LIKE 'rijbaan regionale weg'
+        OR wd.bgt_functie LIKE 'transitie')
+    AND
+    ST_DWithin(wd.geometrie, pv.geometrie, {distance})
     """)
 
     pv_no_wd_count = (
@@ -145,11 +150,12 @@ def add_wegdeel_to_scans(distance=0.000001):
 
     with connection.cursor() as c:
         c.execute(f"""
-    UPDATE scans s
-    SET bgt_wegdeel = wd.id, bgt_wegdeel_functie = wd.bgt_functie
+    UPDATE scans_scan s
+    SET bgt_wegdeel = wd.id,
+        bgt_wegdeel_functie = wd.bgt_functie
     FROM scans_wegdeel wd
-    WHERE parkeer_id is null
-    AND ST_DWithin(wd.geometrie, pv.geometrie, {distance})
+    WHERE s.parkeervak_id is null
+    AND ST_DWithin(wd.geometrie, s.geometrie, {distance})
     """)
 
     log.debug(
@@ -191,14 +197,12 @@ def import_parkeervakken():
               Parkeervak.objects.filter(soort='FISCAAL').count())
 
 
-@LogWith(log)
-def import_wegdelen():
-    log.debug('Import en Converteer wegdelen naar WGS84 Polygonen')
-
-    WegDeel.objects.all().delete()
-
+def import_bgt_wegdelen_from(bron, functie):
+    """
+    Importeerd data uit verschillende bronnen
+    """
     with connection.cursor() as c:
-        c.execute("""
+        c.execute(f"""
     INSERT INTO scans_wegdeel(
         id,
         bgt_functie,
@@ -206,19 +210,34 @@ def import_wegdelen():
     )
     SELECT
         identificatie_lokaalid,
-        bgt_functie,
+        wd."{functie}",
         ST_CurveToLine(ST_Transform(ST_SetSRID(geometrie, 28992), 4326))
-    FROM bgt.bgt_wegdeel wg
-    WHERE
-        wg.bgt_functie LIKE 'rijbaan lokale weg' OR
-        wg.bgt_functie LIKE 'rijbaan regionale weg' OR
-        wg.bgt_functie LIKE 'transitie' OR
-        wg.bgt_functie LIKE 'OV-baan' OR
-        wg.bgt_functie LIKE 'woonerf'
-
+    FROM bgt."{bron}" wd
     """)
 
-    log.debug("Wegdelen %s", WegDeel.objects.all().count())
+    log.debug("Wegdelen %s %s", WegDeel.objects.all().count(), bron)
+
+
+@LogWith(log)
+def import_wegdelen():
+    log.debug('Importeer en Converteer wegdelen naar WGS84 Polygonen')
+
+    WegDeel.objects.all().delete()
+
+    bronnen = [
+        ('BGT_OWGL_verkeerseiland', 'bgt_functie'),
+        ('BGT_OWGL_berm', 'bgt_fysiekvoorkomen'),
+        ('BGT_OTRN_open_verharding', 'bgt_fysiekvoorkomen'),
+        ('BGT_OTRN_transitie', 'bgt_fysiekvoorkomen'),
+        ('BGT_WGL_fietspad', 'bgt_functie'),
+        ('BGT_WGL_voetgangersgebied', 'bgt_functie'),
+        ('BGT_WGL_voetpad', 'bgt_functie'),
+        ('BGT_WGL_parkeervlak', 'bgt_functie'),
+        ('BGT_WGL_rijbaan_lokale_weg', 'bgt_functie'),
+        ('BGT_WGL_rijbaan_regionale_weg', 'bgt_functie'),
+    ]
+    for bron, functie in bronnen:
+        import_bgt_wegdelen_from(bron, functie)
 
 
 @LogWith(log)

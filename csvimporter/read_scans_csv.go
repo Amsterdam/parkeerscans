@@ -191,6 +191,14 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		return nil, err
 	}
 
+	if str, ok := cols[idxMap["scan_id"]].(string); ok {
+		if str == "" {
+			return nil, errors.New("scan_id field missing")
+		}
+	} else {
+		return nil, errors.New("scan_id field missing")
+	}
+
 	return cols, nil
 }
 
@@ -265,16 +273,7 @@ func importScans() {
 
 	jobs := make(chan string, 100)
 
-	test := os.Getenv("TESTING")
-
-	fmt.Println("\n TESTING: ", test)
-
-	for i, file := range files {
-		if test == "yes" {
-			if i > 1 {
-				break
-			}
-		}
+	for _, file := range files {
 		jobs <- file
 	}
 

@@ -24,30 +24,46 @@ echo $TESTING
 #
 ## get the latest and greatest
 dc pull
+dc rm importer
+dc rm csvimporter
+dc build
 #
 dc up -d database
 dc up -d elasticsearch
-
-sleep 10
-#dc run --rm tests
-# and download scans zipfiles and rars
-
+#
+# sleep 15
+##dc run --rm tests
+## and download scans zipfiles and rars
+#
 echo "IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_count=262144'"
 dc run importer dig elasticsearch
-
+#
 echo "create scan api database"
 dc run importer ./docker-prepare.sh
 ##
 echo "Load latest parkeervakken.."
 dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
 echo "Load latest wegdelen.."
-dc exec -T database update-table.sh basiskaart bgt_wegdeel bgt predictiveparking
+
+# foutparkeerders / scans niet in vakken
+dc exec -T database update-table.sh basiskaart BGT_OWGL_verkeerseiland bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_OWGL_berm bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_OTRN_open_verharding bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_OTRN_transitie bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_fietspad bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_voetgangersgebied bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_voetpad bgt predictiveparking
+
+# scans op wegen en vakken
+dc exec -T database update-table.sh basiskaart BGT_WGL_parkeervlak bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_lokale_weg bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_regionale_weg bgt predictiveparking
+
 echo "Load buurt / buurtcombinatie"
 dc exec -T database update-table.sh bag bag_buurt public predictiveparking
 #
 echo "loading the unzipped scans into database"
 dc run csvimporter app
-
 
 echo "create wegdelen / buurten and complete the scans data"
 dc run importer ./docker-import.sh

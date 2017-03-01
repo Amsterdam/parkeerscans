@@ -81,7 +81,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--addwegdeeltowrongscans',
             action='store_true',
-            dest='mergewegdelennopv',
+            dest='mergewegdelennzonderpv',
             default=False,
             help='merge scans met wegdelen als deze geen parkeerid hebben')
 
@@ -106,7 +106,7 @@ class Command(BaseCommand):
         elif options['setcounts']:
             import_scans.add_parkeervak_count_to_buurt()
             import_scans.add_parkeervak_count_to_wegdeel()
-        elif options['mergewegdelennopv']:
+        elif options['mergewegdelennzonderpv']:
             import_scans.add_wegdeel_to_scans()
         elif options['mergevakken']:
             # merge scans within vakken

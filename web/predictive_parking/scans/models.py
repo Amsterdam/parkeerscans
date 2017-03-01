@@ -170,7 +170,7 @@ class WegDeel(models.Model):
     """
     id = models.CharField(primary_key=True, max_length=38)
     bgt_functie = models.CharField(max_length=200)
-    geometrie = geo.PolygonField(srid=4326)
+    geometrie = geo.MultiPolygonField(srid=4326)
     vakken = models.IntegerField(null=True)
     fiscale_vakken = models.IntegerField(null=True)
 
