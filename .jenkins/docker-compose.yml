@@ -81,6 +81,7 @@ services:
       DATABASE_PASSWORD: insecure
       PARKEERVAKKEN_OBJECTSTORE_PASSWORD:
       PGPASSWORD: insecure
+      TESTING:
     user: root
     volumes:
       - data-volume:/app/data
