@@ -81,7 +81,8 @@ def add_parkeervak_to_scans(distance=0.000015):
     """
     zonder_pv = Scan.objects.filter(parkeervak_id=None).count
 
-    log.debug('Add parkeervak to each scan = (a long time ( ~4 hours))')
+    log.debug('Add parkeervak to each scan = (a long time ( ~5 hours))')
+    log.debug('Distance: %.9f', distance)
     log.debug('Scans: %s', Scan.objects.all().count())
     log.debug('Scans zonder pv: %s', zonder_pv())
 
@@ -106,7 +107,8 @@ def add_wegdeel_to_parkeervak(distance=0.000049):
     """
     Each parking spot should have a wegdeel
     """
-    log.debug('Add wegdeel to each parking spot')
+    log.debug('Add wegdeel to each parking spot %.9f', distance)
+
     with connection.cursor() as c:
         c.execute(f"""
     UPDATE scans_parkeervak pv

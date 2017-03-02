@@ -12,15 +12,20 @@ dc() {
 }
 
 dc stop
-dc rm -f
+dc rm -f -v
 
-#trap 'dc kill ; dc rm -f' EXIT
+#trap 'dc kill ; dc rm -f -v' EXIT
 
 echo "Do we have OS password?"
 echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 #
 echo "Testing import? if (yes)"
 echo $TESTING
+
+if [ $TESTING != "yes" ]
+then
+	docker volume rm -f pp_unzip-volume
+fi
 #
 ## get the latest and greatest
 
