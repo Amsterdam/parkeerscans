@@ -94,7 +94,8 @@ def add_parkeervak_to_scans(distance=0.000015):
         bgt_wegdeel         = pv.bgt_wegdeel,
         bgt_wegdeel_functie = pv.bgt_wegdeel_functie
     FROM scans_parkeervak pv
-    WHERE ST_DWithin(s.geometrie, pv.geometrie, {distance})
+    WHERE parkeervak_id is null
+    AND ST_DWithin(s.geometrie, pv.geometrie, {distance})
     """)
     log.debug('Totaaal Scans: %s', Scan.objects.all().count())
     log.debug('Scans zonder pv: %s', zonder_pv())

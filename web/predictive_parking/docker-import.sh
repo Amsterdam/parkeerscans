@@ -22,6 +22,7 @@ python manage.py run_import --buurten
 
 ## plak wegdeel info aan parkeervakken
 python manage.py run_import --mergewegdelen
+
 python manage.py run_import --mergebuurten
 
 # set parkeervak counts op buurten en wegdelen

@@ -27,7 +27,7 @@ class Scan(models.Model):
     scan_id = models.IntegerField()  # not unique!!
     scan_moment = models.DateTimeField(db_index=True)
     device_id = models.IntegerField(null=True)
-    scan_source = models.CharField(db_index=True, max_length=15)
+    scan_source = models.CharField(max_length=15)
 
     afstand = models.CharField(null=True, max_length=25)
 
@@ -37,12 +37,9 @@ class Scan(models.Model):
         max_digits=13, decimal_places=8, null=False)
 
     # Helaas niet alles heeft een buurtcode..?
-    stadsdeel = models.CharField(
-            db_index=True, null=True, max_length=1)
-    buurtcombinatie = models.CharField(
-            db_index=True, null=True, max_length=3)
-    buurtcode = models.CharField(
-            db_index=True, null=True, max_length=4)
+    stadsdeel = models.CharField(null=True, max_length=1)
+    buurtcombinatie = models.CharField(null=True, max_length=3)
+    buurtcode = models.CharField(null=True, max_length=4)
 
     sperscode = models.CharField(max_length=15)
 
@@ -60,18 +57,15 @@ class Scan(models.Model):
     geometrie_rd = geo.PointField(null=True, srid=28992)
 
     # parkeervak id ( rd coordinaten xy)
-    parkeervak_id = models.CharField(
-        null=True, db_index=True, max_length=15)
+    parkeervak_id = models.CharField(null=True, max_length=15)
     # mulder / fiscaal / vrij
     parkeervak_soort = models.CharField(
         null=True, max_length=15)
 
     # wegdelen
-    bgt_wegdeel = models.CharField(
-        null=True, db_index=True, max_length=38)
+    bgt_wegdeel = models.CharField(null=True, max_length=38)
 
-    bgt_wegdeel_functie = models.CharField(
-       null=True, db_index=True, max_length=200)
+    bgt_wegdeel_functie = models.CharField(null=True, max_length=200)
 
     objects = geo.GeoManager()
 
