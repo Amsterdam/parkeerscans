@@ -57,7 +57,7 @@ class Scan(models.Model):
     geometrie_rd = geo.PointField(null=True, srid=28992)
 
     # parkeervak id ( rd coordinaten xy)
-    parkeervak_id = models.CharField(null=True, max_length=15)
+    parkeervak_id = models.CharField(db_index=True, null=True, max_length=15)
     # mulder / fiscaal / vrij
     parkeervak_soort = models.CharField(
         null=True, max_length=15)
