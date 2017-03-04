@@ -88,15 +88,55 @@ def add_parkeervak_to_scans(distance=0.000015):
 
     with connection.cursor() as c:
         c.execute(f"""
-    UPDATE scans_scan s
-    SET
-        parkeervak_id       = pv.id,
-        parkeervak_soort    = pv.soort,
-        bgt_wegdeel         = pv.bgt_wegdeel,
-        bgt_wegdeel_functie = pv.bgt_wegdeel_functie
-    FROM scans_parkeervak pv
-    WHERE parkeervak_id is null
-    AND ST_DWithin(s.geometrie, pv.geometrie, {distance})
+    WITH moved_scans AS (
+    DELETE FROM scans_scanraw s
+    USING scans_parkeervak pv
+    WHERE ST_DWithin(s.geometrie, pv.geometrie, {distance})
+    RETURNING
+        s.id,
+        s.scan_id,
+        s.scan_moment,
+        s.device_id,
+        s.scan_source,
+        s.longitude,
+        s.buurtcode,
+        s.afstand,
+        s.sperscode,
+        s.qualcode,
+        s.ff_df,
+        s.nha_nr,
+        s.nha_hoogte,
+        s.uitval_nachtrun,
+
+        pv.id,
+        pv.soort,
+        pv.bgt_wegdeel,
+        pv.bgt_wegdeel_functie
+    )
+    INSERT INTO scans_scan(
+        id,
+        scan_id,
+        scan_moment,
+        device_id,
+        scan_source,
+        longitude,
+        buurtcode,
+        afstand,
+        sperscode,
+        qualcode,
+        ff_df,
+        nha_nr,
+        nha_hoogte,
+        uitval_nachtrun,
+
+        parkeervak_id,
+        parkeervak_soort,
+        bgt_wegdeel,
+        bgt_wegdeel_functie
+
+        )
+    SELECT * FROM moved_scans;
+
     """)
     log.debug('Totaaal Scans: %s', Scan.objects.all().count())
     log.debug('Scans zonder pv: %s', zonder_pv())
