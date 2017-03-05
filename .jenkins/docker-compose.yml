@@ -74,7 +74,7 @@ services:
     # build: ../web/
     links:
       - database:database
-      - elasticsearch:elasticsearch
+      #- elasticsearch:elasticsearch
     environment:
       DATABASE_NAME: predictiveparking
       DATABASE_USER: predictiveparking

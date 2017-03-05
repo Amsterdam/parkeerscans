@@ -20,6 +20,10 @@ python manage.py run_import --vakken
 python manage.py run_import --buurten
 ## plak buurt info aan parkeervakken
 
+
+## cluster geoindexen
+python manage.py run_import --cluster
+
 ## plak wegdeel info aan parkeervakken
 python manage.py run_import --mergewegdelen
 
