@@ -76,6 +76,10 @@ echo " DONE loading csv"
 echo "create wegdelen / buurten and complete the scans data"
 dc run importer ./docker-import.sh
 
+echo "create scan db dump"
+# run the DB backup shizzle
+dc up db-backup
+
 # now we need elastic to start up.
 dc up -d elasticsearch
 

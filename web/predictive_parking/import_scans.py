@@ -77,6 +77,7 @@ def fix_bgt_geometrie_field():
 
 @LogWith(log)
 def cluster_geometrieindexen():
+    log.debug('CLUSTER takes ~30m saves about 2 hours')
     with connection.cursor() as c:
         c.execute(f"""
         CLUSTER scans_parkeervak_geometrie_id on scans_parkeervak;
