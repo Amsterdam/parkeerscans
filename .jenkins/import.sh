@@ -24,7 +24,7 @@ echo $TESTING
 
 if [ $TESTING != "yes" ]
 then
-	docker volume rm -f pp_unzip-volume
+	docker volume rm pp_unzip-volume || true
 fi
 #
 ## get the latest and greatest
@@ -37,7 +37,6 @@ dc rm csvimporter
 dc build
 #
 dc up -d database
-dc up -d elasticsearch
 #
 # sleep 15
 ##dc run --rm tests
@@ -72,9 +71,13 @@ dc exec -T database update-table.sh bag bag_buurt public predictiveparking
 #
 echo "loading the unzipped scans into database"
 dc run csvimporter app
+echo " DONE loading csv"
 
 echo "create wegdelen / buurten and complete the scans data"
 dc run importer ./docker-import.sh
+
+# now we need elastic to start up.
+dc up -d elasticsearch
 
 # we have to chunk the importing otherwise the database
 # will take minutes to get data logstash needs
@@ -83,12 +86,14 @@ then
   START_DATE="2016-01-01" END_DATE="2016-02-01" dc run logstash
   START_DATE="2016-02-01" END_DATE="2016-03-01" dc run logstash
 else
+  START_DATE="2016-01-01" END_DATE="2016-02-01" dc run logstash
   START_DATE="2016-02-01" END_DATE="2016-03-01" dc run logstash
   START_DATE="2016-03-01" END_DATE="2016-04-01" dc run logstash
   START_DATE="2016-04-01" END_DATE="2016-05-01" dc run logstash
   START_DATE="2016-05-01" END_DATE="2016-06-01" dc run logstash
   START_DATE="2016-06-01" END_DATE="2016-07-01" dc run logstash
   START_DATE="2016-07-01" END_DATE="2016-08-01" dc run logstash
+  START_DATE="2016-08-01" END_DATE="2016-09-01" dc run logstash
   START_DATE="2016-09-01" END_DATE="2016-10-01" dc run logstash
   START_DATE="2016-10-01" END_DATE="2016-11-01" dc run logstash
   START_DATE="2016-11-01" END_DATE="2016-12-01" dc run logstash
