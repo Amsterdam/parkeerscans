@@ -98,7 +98,7 @@ def get_latest_rarfile():
         rarname = object_meta_data['name'].split('/')[-1]
         file_location = '{}/{}'.format(DATA_DIR, rarname)
 
-        if 'totaal' not in rarname:
+        if 'totaal' not in rarname and '2017' not in rarname:
             log.debug('skiped %s', rarname)
             continue
 
