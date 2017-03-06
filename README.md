@@ -30,7 +30,7 @@ normalized with parkingspot, neighborhood and road information.
 All this data is indexed in elasticsearch and that allows us to create a
 kibana dashboard.
 
-The kibana project has one customized view with loads out vector data of roads, neighborhoos and
+The kibana project has one customized view with loads out vector data of roads, neighborhood and
 parkingspots and allows us to create dynamic maps.
 
 In the `.jenkins` folder is the `import.sh` which triggers all the needed build steps.
@@ -77,11 +77,12 @@ Development
 Tips.
 
   - Downloads are cached in named volumes. Database downloads, zips and csv's are saved.
-    forcefulle remove them if the contain wrong data.
+    forcefull remove the named volume (pp_unzip-volume) if it contains the wrong data.
     When TESTING = no the `unziped` will be deleted
 
 
- Step2, Visualization
+
+Step2, Visualization
 ----------------------------
 
    There is a `normal` kibana and a special `kibanawegdeel`
