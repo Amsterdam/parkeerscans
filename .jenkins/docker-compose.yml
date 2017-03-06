@@ -40,25 +40,6 @@ services:
     mem_limit: 6g
     cap_add:
       - IPC_LOCK
-
-  #  kibana:
-  #    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${ENVIRONMENT}
-  #    # build: ../kibana
-  #    ports:
-  #      - "5601:5601"
-  #    links:
-  #      - elasticsearch:elasticsearch
-  #    command: kibana
-  #
-  #  kibanawegdeel:
-  #    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibanawegdeel:${ENVIRONMENT}
-  #    build: ../kibanawegdeel
-  #    ports:
-  #      - "5602:5601"
-  #    links:
-  #      - elasticsearch:elasticsearch
-  #    command: kibana
-
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
     #build: ../logstash
