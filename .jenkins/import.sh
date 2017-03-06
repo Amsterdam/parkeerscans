@@ -102,6 +102,8 @@ else
   START_DATE="2016-10-01" END_DATE="2016-11-01" dc run logstash
   START_DATE="2016-11-01" END_DATE="2016-12-01" dc run logstash
   START_DATE="2016-12-01" END_DATE="2017-01-01" dc run logstash
+  START_DATE="2017-01-01" END_DATE="2017-02-01" dc run logstash
+  START_DATE="2017-02-01" END_DATE="2017-03-01" dc run logstash
 fi
 
 echo "DONE! importing scans into database"
