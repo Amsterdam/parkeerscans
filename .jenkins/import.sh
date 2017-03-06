@@ -38,7 +38,7 @@ dc build
 #
 dc up -d database
 #
-# sleep 15
+
 ##dc run --rm tests
 ## and download scans zipfiles and rars
 #
@@ -69,8 +69,10 @@ dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_regionale_weg bgt
 echo "Load buurt / buurtcombinatie"
 dc exec -T database update-table.sh bag bag_buurt public predictiveparking
 #
+
 echo "loading the unzipped scans into database"
 dc run csvimporter app
+
 echo " DONE loading csv"
 
 echo "create wegdelen / buurten and complete the scans data"
@@ -84,7 +86,7 @@ dc up db-backup
 dc up -d elasticsearch
 sleep 20
 
-# we have to chunk the importing otherwise the database
+# We have to chunk the importing otherwise the database
 # will take minutes to get data logstash needs
 if [ $TESTING = "yes" ] ;
 then

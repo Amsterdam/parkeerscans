@@ -87,6 +87,14 @@ def cluster_geometrieindexen():
 
 
 @LogWith(log)
+def scan_moment_index():
+    with connection.cursor() as c:
+        c.execute(f"""
+        CREATE INDEX ON scans_scan (scan_moment);
+        """)
+
+
+@LogWith(log)
 def add_parkeervak_to_scans(distance=0.000015):
     """
     Given scans pind nearest parking spot

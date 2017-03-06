@@ -8,6 +8,13 @@ WORKDIR /app/
 
 RUN wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
 
+RUN apt-get update \
+	&& apt-get install -y \
+		netcat \
+	&& apt-get clean \
+	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
 # USER datapunt
 RUN apt-get update \
 	&& apt-get install -y \

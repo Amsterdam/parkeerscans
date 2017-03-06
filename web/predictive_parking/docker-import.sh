@@ -39,3 +39,8 @@ python manage.py run_import --mergevakken
 
 # scans zonder parkeervak hebben wel een wegdeel
 python manage.py run_import --addwegdeeltowrongscans
+
+# create scanmoment index for logstash
+python manage.py run_import --scanmomnetindex
+
+

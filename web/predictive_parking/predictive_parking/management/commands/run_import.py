@@ -69,6 +69,13 @@ class Command(BaseCommand):
             help='cluster geoindexen')
 
         parser.add_argument(
+            '--scanmoment',
+            action='store_true',
+            dest='scanmoment',
+            default=False,
+            help='scanmoment index')
+
+        parser.add_argument(
             '--mergewegdelen',
             action='store_true',
             dest='mergewegdelen',
@@ -112,6 +119,8 @@ class Command(BaseCommand):
             import_scans.import_buurten()
         elif options['cluster']:
             import_scans.cluster_geometrieindexen()
+        elif options['scanmoment']:
+            import_scans.scan_moment_index()
         elif options['mergewegdelen']:
             import_scans.add_wegdeel_to_parkeervak(distance=0.00001)
         elif options['mergebuurten']:
