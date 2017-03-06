@@ -7,7 +7,7 @@ set -e   # stop on any error
 # we need to put in manual elk point
 
 # wait for elastic
-while ! nc -z elasticsearch 9300
+while ! nc -z elasticsearch 9200
 do
  	echo "Waiting for elastic..."
  	sleep 1.5

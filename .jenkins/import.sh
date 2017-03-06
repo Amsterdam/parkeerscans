@@ -82,6 +82,7 @@ dc up db-backup
 
 # now we need elastic to start up.
 dc up -d elasticsearch
+sleep 20
 
 # we have to chunk the importing otherwise the database
 # will take minutes to get data logstash needs
