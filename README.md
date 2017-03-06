@@ -19,15 +19,15 @@ https://dokuwiki.datapunt.amsterdam.nl/doku.php?id=start:pparking:architectuur
 We take data from a few sources and create a dataset usable for predictive parking analysis.
 
 Source data:
- - all know parking spots.
- - all know roads. (wegdelen) / partial roads. (weddelen)
- - all know neigborhoods. (buurten)
+ - all known parking spots.
+ - all known roads. (wegdelen) / partial roads. (weddelen)
+ - all known neigborhoods. (buurten)
  - all 39.5 milion cars scans of 2016.
 
 We combine all data sources in a postgres database table
 in `scan_scans` which contains all scans
 normalized with parkingspot, neighborhood and road information.
-All this data get's indexed in elasticsearch and that allows us to create a
+All this data is indexed in elasticsearch and that allows us to create a
 kibana dashboard.
 
 The kibana project has one customized view with loads out vector data of roads, neighborhoos and
@@ -38,8 +38,6 @@ In the `.jenkins` folder is the `import.sh` which triggers all the needed build 
 Local development can be done using `docker-compose up database elasticsearch`.
 
 
-
-
  Step 2. Visualizing the data
 =============================
 
@@ -48,8 +46,9 @@ To get quick results and vast visualizations we choose kibana on top of elastic 
 
 We use a dockerized logstash instance to load the postgres database `scans_scan` into
 elastic index.
+
 The visuallizations are done with 2 different kibana instances. We use 2 because the plugins
-`enhanced_tilemap` does not play well together with other map plugins.
+`enhanced_tilemap` does not play well together with other custom map plugins. `kibana-plugin-parkeren`
 
 
 
