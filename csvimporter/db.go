@@ -41,7 +41,9 @@ func (i *SQLImport) Commit() error {
 //CleanTargetTable the table we are importing to
 func CleanTargetTable(db *sql.DB, target string) {
 
-	if _, err := db.Exec(`TRUNCATE TABLE scans_scan`); err != nil {
+	sql := fmt.Sprintf("TRUNCATE TABLESRID %s;", target)
+
+	if _, err := db.Exec(sql); err != nil {
 		panic(err)
 	}
 

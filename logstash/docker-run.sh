@@ -6,6 +6,13 @@ set -e   # stop on any error
 # prepare elastic templates for scan documents
 # we need to put in manual elk point
 
+# wait for elastic
+while ! nc -z elasticsearch 9300
+do
+ 	echo "Waiting for elastic..."
+ 	sleep 1.5
+done
+
 
 # curl -s -v -f -XDELETE http://${ELKHOST:-elasticsearch}:9200/_template/scan || echo 'OK'
 curl -s -v -f -XPUT http://${ELKHOST:-elasticsearch}:9200/_template/scan -d '

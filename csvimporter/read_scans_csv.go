@@ -101,8 +101,8 @@ func init() {
 	}
 
 	idxMap = make(map[string]int)
-	//targetTable = "scans_scanraw"
-	targetTable = "scans_scan"
+	targetTable = "scans_scanraw"
+	//targetTable = "scans_scan"
 	workers = 3
 	ignoreErrors = false
 	//TODO make environment variable

@@ -1,3 +1,6 @@
+"""
+Import commands
+"""
 
 import logging
 import sys
@@ -5,6 +8,7 @@ import sys
 from django.core.management import BaseCommand
 
 import import_scans
+from scans.models import Scan
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +62,13 @@ class Command(BaseCommand):
             help='add parkeervak counts aan buurten en wegdelen')
 
         parser.add_argument(
+            '--cluster',
+            action='store_true',
+            dest='cluster',
+            default=False,
+            help='cluster geoindexen')
+
+        parser.add_argument(
             '--mergewegdelen',
             action='store_true',
             dest='mergewegdelen',
@@ -99,6 +110,8 @@ class Command(BaseCommand):
             import_scans.import_parkeervakken()
         elif options['buurten']:
             import_scans.import_buurten()
+        elif options['cluster']:
+            import_scans.cluster_geometrieindexen()
         elif options['mergewegdelen']:
             import_scans.add_wegdeel_to_parkeervak(distance=0.00001)
         elif options['mergebuurten']:
@@ -108,6 +121,7 @@ class Command(BaseCommand):
             import_scans.add_parkeervak_count_to_wegdeel()
         elif options['mergewegdelennzonderpv']:
             import_scans.add_wegdeel_to_scans()
+            import_scans.copy_leftover()
         elif options['mergevakken']:
             # merge scans within vakken
             import_scans.add_parkeervak_to_scans(distance=0.000001)
