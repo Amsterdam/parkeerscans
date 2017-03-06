@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
                 ('point', django.contrib.gis.db.models.fields.PointField(null=True, srid=4326)),
                 ('bgt_wegdeel', models.CharField(db_index=True, max_length=38, null=True)),
-                ('bgt_wegdeel_functie', models.CharField(db_index=True, max_length=200, null=True)),
+                ('bgt_wegdeel_functie', models.CharField(db_index=True, max_length=25, null=True)),
                 ('buurt', models.CharField(db_index=True, max_length=4, null=True)),
             ],
         ),
@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
                 ('parkeervak_id', models.CharField(db_index=True, max_length=15, null=True)),
                 ('parkeervak_soort', models.CharField(max_length=15, null=True)),
                 ('bgt_wegdeel', models.CharField(max_length=38, null=True)),
-                ('bgt_wegdeel_functie', models.CharField(max_length=200, null=True)),
+                ('bgt_wegdeel_functie', models.CharField(max_length=25, null=True)),
             ],
         ),
         migrations.CreateModel(
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
                 ('parkeervak_id', models.CharField(max_length=15, null=True)),
                 ('parkeervak_soort', models.CharField(max_length=15, null=True)),
                 ('bgt_wegdeel', models.CharField(max_length=38, null=True)),
-                ('bgt_wegdeel_functie', models.CharField(max_length=200, null=True)),
+                ('bgt_wegdeel_functie', models.CharField(max_length=25, null=True)),
             ],
         ),
         migrations.CreateModel(

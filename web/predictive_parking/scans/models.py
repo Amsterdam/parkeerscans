@@ -29,7 +29,7 @@ class Scan(models.Model):
     device_id = models.IntegerField(null=True)
     scan_source = models.CharField(max_length=15)
 
-    afstand = models.CharField(null=True, max_length=25)
+    afstand = models.CharField(null=True, max_length=1)
 
     latitude = models.DecimalField(max_digits=13, decimal_places=8, null=False)
 
@@ -65,7 +65,7 @@ class Scan(models.Model):
     # wegdelen
     bgt_wegdeel = models.CharField(null=True, max_length=38)
 
-    bgt_wegdeel_functie = models.CharField(null=True, max_length=200)
+    bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
 
     objects = geo.GeoManager()
 
@@ -129,7 +129,7 @@ class ScanRaw(models.Model):
     # wegdelen
     bgt_wegdeel = models.CharField(null=True, max_length=38)
 
-    bgt_wegdeel_functie = models.CharField(null=True, max_length=200)
+    bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
 
     objects = geo.GeoManager()
 
@@ -151,7 +151,7 @@ class Parkeervak(models.Model):
         null=True, db_index=True, max_length=38)
 
     bgt_wegdeel_functie = models.CharField(
-       null=True, db_index=True, max_length=200)
+       null=True, db_index=True, max_length=25)
 
     buurt = models.CharField(
         null=True, db_index=True, max_length=4)
