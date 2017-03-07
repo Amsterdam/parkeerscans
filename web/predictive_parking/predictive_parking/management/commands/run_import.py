@@ -69,7 +69,7 @@ class Command(BaseCommand):
             help='cluster geoindexen')
 
         parser.add_argument(
-            '--scanmoment',
+            '--scanmomentindex',
             action='store_true',
             dest='scanmoment',
             default=False,

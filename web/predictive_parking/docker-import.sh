@@ -41,6 +41,6 @@ python manage.py run_import --mergevakken
 python manage.py run_import --addwegdeeltowrongscans
 
 # create scanmoment index for logstash
-python manage.py run_import --scanmomnetindex
+python manage.py run_import --scanmomentindex
 
 
