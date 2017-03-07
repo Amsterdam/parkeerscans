@@ -8,14 +8,7 @@ services:
       POSTGRES_DB: predictiveparking
     volumes:
       - databasevolume:/tmp
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    mem_limit: 6g
+    # mem_limit: 14g
 
   # sudo sysctl -w vm.max_map_count=262144
   # if elasticsearch docker does not start..
