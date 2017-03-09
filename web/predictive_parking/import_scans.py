@@ -82,8 +82,8 @@ def cluster_geometrieindexen():
         c.execute(f"""
         CLUSTER scans_parkeervak_geometrie_id on scans_parkeervak;
         CLUSTER scans_wegdeel_geometrie_id on scans_wegdeel;
-        CLUSTER scans_scanraw_geometrie_id on scans_scanraw;
         """)
+        # CLUSTER scans_scanraw_geometrie_id on scans_scanraw;
 
 
 @LogWith(log)

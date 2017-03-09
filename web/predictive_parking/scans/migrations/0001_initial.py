@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                 ('scan_moment', models.DateTimeField(db_index=True)),
                 ('device_id', models.IntegerField(null=True)),
                 ('scan_source', models.CharField(max_length=15)),
-                ('afstand', models.CharField(max_length=25, null=True)),
+                ('afstand', models.CharField(max_length=1, null=True)),
                 ('latitude', models.DecimalField(decimal_places=8, max_digits=13)),
                 ('longitude', models.DecimalField(decimal_places=8, max_digits=13)),
                 ('stadsdeel', models.CharField(max_length=1, null=True)),
