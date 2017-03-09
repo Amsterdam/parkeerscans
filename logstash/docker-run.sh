@@ -7,11 +7,12 @@ set -e   # stop on any error
 # we need to put in manual elk point
 
 # wait for elastic
-while ! nc -z elasticsearch 9200
-do
- 	echo "Waiting for elastic..."
- 	sleep 1.5
-done
+#while ! nc -z elasticsearch 9200
+#do
+# 	echo "Waiting for elastic..."
+# 	sleep 1.5
+#done
+export ELKHOST='http://es01-acc.datapunt.amsterdam.nl'
 
 
 # curl -s -v -f -XDELETE http://${ELKHOST:-elasticsearch}:9200/_template/scan || echo 'OK'

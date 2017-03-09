@@ -83,8 +83,9 @@ echo "create scan db dump"
 dc up db-backup
 
 # now we need elastic to start up.
-dc up -d elasticsearch
-sleep 20
+# RECONFIGURE LOGSTASH !!
+#dc up -d elasticsearch
+#sleep 20
 
 # We have to chunk the importing otherwise the database
 # will take minutes to get data logstash needs
@@ -113,10 +114,10 @@ echo "DONE! importing scans into database"
 
 echo "create scan db dump"
 # run the backup shizzle
-dc up db-backup
+# dc up db-backup
 #
 #
-dc up el-backup
+# dc up el-backup
 #
 echo "DONE! with import. You are awesome! <3"
 dc stop
