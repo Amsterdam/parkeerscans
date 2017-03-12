@@ -30,7 +30,7 @@ services:
       nofile:
         soft: 195536
         hard: 195536
-    mem_limit: 2g
+    # mem_limit: 6g
     cap_add:
       - IPC_LOCK
   logstash:
@@ -102,6 +102,7 @@ services:
     user: root
     command: >
       bash -c "chmod -R 777 /tmp/backups  \
+              && rm -f /tmp/backups/* \
               && curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
               && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }'"
 

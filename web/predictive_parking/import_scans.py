@@ -79,7 +79,7 @@ def fix_bgt_geometrie_field():
 def cluster_geometrieindexen():
     log.debug('CLUSTER takes ~30m saves about 2 hours')
     with connection.cursor() as c:
-        c.execute(f"""
+        c.execute("""
         CLUSTER scans_parkeervak_geometrie_id on scans_parkeervak;
         CLUSTER scans_wegdeel_geometrie_id on scans_wegdeel;
         """)
@@ -89,7 +89,7 @@ def cluster_geometrieindexen():
 @LogWith(log)
 def scan_moment_index():
     with connection.cursor() as c:
-        c.execute(f"""
+        c.execute("""
         CREATE INDEX ON scans_scan (scan_moment);
         """)
 
@@ -115,11 +115,18 @@ def add_parkeervak_to_scans(distance=0.000015):
     RETURNING
         s.scan_id,
         s.scan_moment,
+
         s.device_id,
         s.scan_source,
+
         s.longitude,
         s.latitude,
+        s.geometrie,
+        
+        s.stadsdeel,
+        s.buurtcombinatie,
         s.buurtcode,
+
         s.afstand,
         s.sperscode,
         s.qualcode,
@@ -136,11 +143,18 @@ def add_parkeervak_to_scans(distance=0.000015):
     INSERT INTO scans_scan(
         scan_id,
         scan_moment,
+
         device_id,
         scan_source,
+
         longitude,
         latitude,
+        geometrie,
+
+        stadsdeel,
+        buurtcombinatie,
         buurtcode,
+
         afstand,
         sperscode,
         qualcode,
@@ -156,7 +170,6 @@ def add_parkeervak_to_scans(distance=0.000015):
 
         )
     SELECT * FROM matched_scans;
-
     """)
 
     log.debug('Processed Scans: %s', Scan.objects.all().count())
@@ -222,6 +235,9 @@ def add_wegdeel_to_scans(distance=0.000001):
         s.scan_source,
         s.longitude,
         s.latitude,
+        s.geometrie,
+        s.stadsdeel,
+        s.buurtcombinatie,
         s.buurtcode,
         s.afstand,
         s.sperscode,
@@ -241,6 +257,9 @@ def add_wegdeel_to_scans(distance=0.000001):
         scan_source,
         longitude,
         latitude,
+        geometrie,
+        stadsdeel,
+        buurtcombinatie,
         buurtcode,
         afstand,
         sperscode,
@@ -280,6 +299,9 @@ def copy_leftover():
             scan_source,
             longitude,
             latitude,
+            geometrie,
+            stadsdeel,
+            buurtcombinatie,
             buurtcode,
             afstand,
             sperscode,
@@ -297,6 +319,9 @@ def copy_leftover():
             scan_source,
             longitude,
             latitude,
+            geometrie,
+            stadsdeel,
+            buurtcombinatie,
             buurtcode,
             afstand,
             sperscode,
