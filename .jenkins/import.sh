@@ -42,7 +42,7 @@ dc up -d database
 ##dc run --rm tests
 ## and download scans zipfiles and rars
 #
-echo "IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_count=262144'"
+echo "IF ELK5 fails to start"
 dc run importer dig elasticsearch
 #
 echo "create scan api database"
@@ -70,13 +70,13 @@ echo "Load buurt / buurtcombinatie"
 dc exec -T database update-table.sh bag bag_buurt public predictiveparking
 #
 
-echo "loading the unzipped scans into database"
+echo "create wegdelen / buurten and complete the scans data"
+dc run importer ./docker-import.sh
+
+echo "loading the unzipped scans into database, add wegdelen / pv to scans"
 dc run csvimporter app
 
 echo " DONE loading csv"
-
-echo "create wegdelen / buurten and complete the scans data"
-dc run importer ./docker-import.sh
 
 echo "create scan db dump"
 # run the DB backup shizzle

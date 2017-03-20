@@ -215,6 +215,8 @@ def add_wegdeel_to_scans(distance=0.000001):
     DELETE FROM scans_scanraw s
     USING scans_wegdeel wd
     WHERE ST_DWithin(s.geometrie, wd.geometrie, {distance})
+    ORDER BY s.scan_id,
+    LIMIT 100000
     RETURNING
         s.scan_id,
         s.scan_moment,

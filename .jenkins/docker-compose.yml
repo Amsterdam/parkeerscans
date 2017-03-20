@@ -8,38 +8,18 @@ services:
       POSTGRES_DB: predictiveparking
     volumes:
       - databasevolume:/tmp
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    # mem_limit: 12g
 
-  # sudo sysctl -w vm.max_map_count=262144
-  # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Ebootstrap.memory_lock=true -Enetwork.host=_site_
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
     environment:
       - "ES_JAVA_OPTS=-Xms8g -Xmx8g"
-    user: root
     #ports:
     #  - "9200:9200"
     #  - "9300:9300"
     volumes:
       - ./backups/elasticsearch:/tmp/backups
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 195536
-        hard: 195536
-    # mem_limit: 9g
-    cap_add:
-      - IPC_LOCK
+
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
     #build: ../logstash
