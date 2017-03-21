@@ -11,11 +11,11 @@ import logging
 from django.db import connection
 # rom django.db.utils import DataError
 
-from scans.models import WegDeel
-from scans.models import Parkeervak
-from scans.models import Scan     # Processed scans
-from scans.models import ScanRaw  # Input scans
-from scans.models import Buurt
+from wegdelen.models import WegDeel
+from wegdelen.models import Parkeervak
+# from scans.models import Scan     # Processed scans
+# from scans.models import ScanRaw  # Input scans
+from wegdelen.models import Buurt
 
 from logdecorator import LogWith
 
@@ -50,11 +50,11 @@ def make_scans_unlogged():
     log.debug('Alter table to UNLOGGED')
     with connection.cursor() as c:
             c.execute("""
-    ALTER TABLE scans_scan SET UNLOGGED
+    ALTER TABLE metingen_scan SET UNLOGGED
     """)
             c.execute("""
 
-    ALTER TABLE scans_scanraw SET UNLOGGED
+    ALTER TABLE metingen_scanraw SET UNLOGGED
     """)
 
 
@@ -79,101 +79,88 @@ def fix_bgt_geometrie_field():
 def cluster_geometrieindexen():
     log.debug('CLUSTER takes ~30m saves about 2 hours')
     with connection.cursor() as c:
-        c.execute("""
-        CLUSTER scans_parkeervak_geometrie_id on scans_parkeervak;
-        CLUSTER scans_wegdeel_geometrie_id on scans_wegdeel;
+        c.execute(f"""
+        CLUSTER wegdelen_parkeervak_geometrie_id on wegdelen_parkeervak;
+        CLUSTER wegdelen_wegdeel_geometrie_id on wegdelen_wegdeel;
+        CLUSTER wegdelen_scanraw_geometrie_id on wegdelen_scanraw;
         """)
-        # CLUSTER scans_scanraw_geometrie_id on scans_scanraw;
 
 
 @LogWith(log)
 def scan_moment_index():
     with connection.cursor() as c:
-        c.execute("""
-        CREATE INDEX ON scans_scan (scan_moment);
+        c.execute(f"""
+        CREATE INDEX ON metingen_scan (scan_moment);
         """)
 
 
-@LogWith(log)
-def add_parkeervak_to_scans(distance=0.000015):
-    """
-    Given scans pind nearest parking spot
-    """
-    without_parkspot = ScanRaw.objects.filter(parkeervak_id=None).count
-
-    log.debug('Add parkeervak to each scan = (a long time ( ~5 hours))')
-    log.debug('Distance: %.9f', distance)
-    log.debug('Scans: %s', Scan.objects.all().count())
-    log.debug('Scans without parkingspot: %s', without_parkspot())
-
-    with connection.cursor() as c:
-        c.execute(f"""
-    WITH matched_scans AS (
-    DELETE FROM scans_scanraw s
-    USING scans_parkeervak pv
-    WHERE ST_DWithin(s.geometrie, pv.geometrie, {distance})
-    RETURNING
-        s.scan_id,
-        s.scan_moment,
-
-        s.device_id,
-        s.scan_source,
-
-        s.longitude,
-        s.latitude,
-        s.geometrie,
-        
-        s.stadsdeel,
-        s.buurtcombinatie,
-        s.buurtcode,
-
-        s.afstand,
-        s.sperscode,
-        s.qualcode,
-        s.ff_df,
-        s.nha_nr,
-        s.nha_hoogte,
-        s.uitval_nachtrun,
-
-        pv.id,
-        pv.soort,
-        pv.bgt_wegdeel,
-        pv.bgt_wegdeel_functie
-    )
-    INSERT INTO scans_scan(
-        scan_id,
-        scan_moment,
-
-        device_id,
-        scan_source,
-
-        longitude,
-        latitude,
-        geometrie,
-
-        stadsdeel,
-        buurtcombinatie,
-        buurtcode,
-
-        afstand,
-        sperscode,
-        qualcode,
-        ff_df,
-        nha_nr,
-        nha_hoogte,
-        uitval_nachtrun,
-
-        parkeervak_id,
-        parkeervak_soort,
-        bgt_wegdeel,
-        bgt_wegdeel_functie
-
-        )
-    SELECT * FROM matched_scans;
-    """)
-
-    log.debug('Processed Scans: %s', Scan.objects.all().count())
-    log.debug('Scans without parkspot: %s', without_parkspot())
+# @LogWith(log)
+# def add_parkeervak_to_scans(distance=0.000015):
+#    """
+#    Given scans pind nearest parking spot
+#    """
+#    without_parkspot = ScanRaw.objects.filter(parkeervak_id=None).count
+#
+#    log.debug('Add parkeervak to each scan = (a long time ( ~5 hours))')
+#    log.debug('Distance: %.9f', distance)
+#    log.debug('Scans: %s', Scan.objects.all().count())
+#    log.debug('Scans without parkingspot: %s', without_parkspot())
+#
+#    with connection.cursor() as c:
+#        c.execute(f"""
+#    WITH matched_scans AS (
+#    DELETE FROM scans_scanraw s
+#    USING scans_parkeervak pv
+#    WHERE ST_DWithin(s.geometrie, pv.geometrie, {distance})
+#    RETURNING
+#        s.scan_id,
+#        s.scan_moment,
+#        s.device_id,
+#        s.scan_source,
+#        s.longitude,
+#        s.latitude,
+#        s.buurtcode,
+#        s.afstand,
+#        s.sperscode,
+#        s.qualcode,
+#        s.ff_df,
+#        s.nha_nr,
+#        s.nha_hoogte,
+#        s.uitval_nachtrun,
+#
+#        pv.id,
+#        pv.soort,
+#        pv.bgt_wegdeel,
+#        pv.bgt_wegdeel_functie
+#    )
+#    INSERT INTO scans_scan(
+#        scan_id,
+#        scan_moment,
+#        device_id,
+#        scan_source,
+#        longitude,
+#        latitude,
+#        buurtcode,
+#        afstand,
+#        sperscode,
+#        qualcode,
+#        ff_df,
+#        nha_nr,
+#        nha_hoogte,
+#        uitval_nachtrun,
+#
+#        parkeervak_id,
+#        parkeervak_soort,
+#        bgt_wegdeel,
+#        bgt_wegdeel_functie
+#
+#        )
+#    SELECT * FROM matched_scans;
+#
+#    """)
+#
+#    log.debug('Processed Scans: %s', Scan.objects.all().count())
+#    log.debug('Scans without parkspot: %s', without_parkspot())
 
 
 @LogWith(log)
@@ -185,9 +172,9 @@ def add_wegdeel_to_parkeervak(distance=0.000049):
 
     with connection.cursor() as c:
         c.execute(f"""
-    UPDATE scans_parkeervak pv
+    UPDATE wegdelen_parkeervak pv
     SET bgt_wegdeel = wd.id, bgt_wegdeel_functie = wd.bgt_functie
-    FROM scans_wegdeel wd
+    FROM wegdelen_wegdeel wd
     WHERE (
         wd.bgt_functie LIKE 'rijbaan lokale weg'
         OR wd.bgt_functie LIKE 'rijbaan regionale weg'
@@ -208,135 +195,125 @@ def add_wegdeel_to_parkeervak(distance=0.000049):
         Parkeervak.objects.count())
 
 
-@LogWith(log)
-def add_wegdeel_to_scans(distance=0.000001):
-    """
-    Each scan spot should have a wegdeel if it does not have a parkeervlak
-    """
-    log.debug('Add roadpart to each parking spot')
-
-    scans_no_road_count = ScanRaw.objects.count
-
-    log.debug(
-        "Before: Scans zonder WegDeel %s Scans %s",
-        scans_no_road_count(),
-        Scan.objects.count())
-
-    with connection.cursor() as c:
-        c.execute(f"""
-    WITH matched_scans AS (
-    DELETE FROM scans_scanraw s
-    USING scans_wegdeel wd
-    WHERE ST_DWithin(s.geometrie, wd.geometrie, {distance})
-    RETURNING
-        s.scan_id,
-        s.scan_moment,
-        s.device_id,
-        s.scan_source,
-        s.longitude,
-        s.latitude,
-        s.geometrie,
-        s.stadsdeel,
-        s.buurtcombinatie,
-        s.buurtcode,
-        s.afstand,
-        s.sperscode,
-        s.qualcode,
-        s.ff_df,
-        s.nha_nr,
-        s.nha_hoogte,
-        s.uitval_nachtrun,
-
-        wd.id,
-        wd.bgt_functie
-    )
-    INSERT INTO scans_scan(
-        scan_id,
-        scan_moment,
-        device_id,
-        scan_source,
-        longitude,
-        latitude,
-        geometrie,
-        stadsdeel,
-        buurtcombinatie,
-        buurtcode,
-        afstand,
-        sperscode,
-        qualcode,
-        ff_df,
-        nha_nr,
-        nha_hoogte,
-        uitval_nachtrun,
-
-        bgt_wegdeel,
-        bgt_wegdeel_functie
-        )
-    SELECT * FROM matched_scans;
-    """)
-
-    log.debug(
-        "After: Scans zonder WegDeel: %s Scans %s",
-        scans_no_road_count(),
-        Scan.objects.count())
+# @LogWith(log)
+# def add_wegdeel_to_scans(distance=0.000001):
+#    """
+#    Each scan spot should have a wegdeel if it does not have a parkeervlak
+#    """
+#    log.debug('Add roadpart to each parking spot')
+#
+#    scans_no_road_count = ScanRaw.objects.count
+#
+#    log.debug(
+#        "Before: Scans zonder WegDeel %s Scans %s",
+#        scans_no_road_count(),
+#        Scan.objects.count())
+#
+#    with connection.cursor() as c:
+#        c.execute(f"""
+#    WITH matched_scans AS (
+#    DELETE FROM scans_scanraw s
+#    USING wegdelen_wegdeel wd
+#    WHERE ST_DWithin(s.geometrie, wd.geometrie, {distance})
+#    ORDER BY s.scan_id,
+#    LIMIT 100000
+#    RETURNING
+#        s.scan_id,
+#        s.scan_moment,
+#        s.device_id,
+#        s.scan_source,
+#        s.longitude,
+#        s.latitude,
+#        s.buurtcode,
+#        s.afstand,
+#        s.sperscode,
+#        s.qualcode,
+#        s.ff_df,
+#        s.nha_nr,
+#        s.nha_hoogte,
+#        s.uitval_nachtrun,
+#
+#        wd.id,
+#        wd.bgt_functie
+#    )
+#    INSERT INTO scans_scan(
+#        scan_id,
+#        scan_moment,
+#        device_id,
+#        scan_source,
+#        longitude,
+#        latitude,
+#        buurtcode,
+#        afstand,
+#        sperscode,
+#        qualcode,
+#        ff_df,
+#        nha_nr,
+#        nha_hoogte,
+#        uitval_nachtrun,
+#
+#        bgt_wegdeel,
+#        bgt_wegdeel_functie
+#        )
+#    SELECT * FROM matched_scans;
+#    """)
+#
+#    log.debug(
+#        "After: Scans zonder WegDeel: %s Scans %s",
+#        scans_no_road_count(),
+#        Scan.objects.count())
 
 
-def copy_leftover():
-    """
-    Copy scans leftover also into the final dataset
-    """
-
-    log.debug(
-        "Scans without roadpart or parkspot %s",
-        ScanRaw.objects.count())
-
-    with connection.cursor() as c:
-        c.execute("""
-        INSERT INTO scans_scan(
-            scan_id,
-            scan_moment,
-            device_id,
-            scan_source,
-            longitude,
-            latitude,
-            geometrie,
-            stadsdeel,
-            buurtcombinatie,
-            buurtcode,
-            afstand,
-            sperscode,
-            qualcode,
-            ff_df,
-            nha_nr,
-            nha_hoogte,
-            uitval_nachtrun,
-            bgt_wegdeel_functie
-        )
-        SELECT
-            scan_id,
-            scan_moment,
-            device_id,
-            scan_source,
-            longitude,
-            latitude,
-            geometrie,
-            stadsdeel,
-            buurtcombinatie,
-            buurtcode,
-            afstand,
-            sperscode,
-            qualcode,
-            ff_df,
-            nha_nr,
-            nha_hoogte,
-            uitval_nachtrun,
-            'unknown' AS bgt_wegdeel_functie
-        FROM scans_scanraw;
-        """)
-
-    log.debug("Scans %s", Scan.objects.count())
-    log.debug("Scans Raw %s", ScanRaw.objects.count())
-
+# def copy_leftover():
+#    """
+#    Copy scans leftover also into the final dataset
+#    """
+#
+#    log.debug(
+#        "Scans without roadpart or parkspot %s",
+#        ScanRaw.objects.count())
+#
+#    with connection.cursor() as c:
+#        c.execute("""
+#        INSERT INTO scans_scan(
+#            scan_id,
+#            scan_moment,
+#            device_id,
+#            scan_source,
+#            longitude,
+#            latitude,
+#            buurtcode,
+#            afstand,
+#            sperscode,
+#            qualcode,
+#            ff_df,
+#            nha_nr,
+#            nha_hoogte,
+#            uitval_nachtrun,
+#            bgt_wegdeel_functie
+#        )
+#        SELECT
+#            scan_id,
+#            scan_moment,
+#            device_id,
+#            scan_source,
+#            longitude,
+#            latitude,
+#            buurtcode,
+#            afstand,
+#            sperscode,
+#            qualcode,
+#            ff_df,
+#            nha_nr,
+#            nha_hoogte,
+#            uitval_nachtrun,
+#            'unknown' AS bgt_wegdeel_functie
+#        FROM scans_scanraw;
+#        """)
+#
+#    log.debug("Scans %s", Scan.objects.count())
+#    log.debug("Scans Raw %s", ScanRaw.objects.count())
+#
 
 @LogWith(log)
 def import_parkeervakken():
@@ -346,7 +323,7 @@ def import_parkeervakken():
 
     with connection.cursor() as c:
         c.execute("""
-    INSERT INTO scans_parkeervak(
+    INSERT INTO wegdelen_parkeervak(
         id,
         straatnaam,
         soort,
@@ -377,7 +354,7 @@ def import_bgt_wegdelen_from(bron, functie):
     """
     with connection.cursor() as c:
         c.execute(f"""
-    INSERT INTO scans_wegdeel(
+    INSERT INTO wegdelen_wegdeel(
         id,
         bgt_functie,
         geometrie
@@ -424,7 +401,7 @@ def import_buurten():
     log.debug('Create buurten dataset < 1 min')
     with connection.cursor() as c:
         c.execute("""
-    INSERT INTO scans_buurt(
+    INSERT INTO wegdelen_buurt(
         id,
         code,
         naam,
@@ -448,9 +425,9 @@ def add_buurt_to_parkeervak():
 
     with connection.cursor() as c:
         c.execute("""
-    UPDATE  scans_parkeervak pv
+    UPDATE  wegdelen_parkeervak pv
     SET buurt = b.code
-    FROM scans_buurt b
+    FROM wegdelen_buurt b
     WHERE ST_Contains(b.geometrie, pv.point)
     """)
 
@@ -482,10 +459,10 @@ def add_parkeervak_count_to_wegdeel():
     with connection.cursor() as c:
         c.execute("""
 
-    UPDATE scans_wegdeel wd SET vakken=sq.vakken
+    UPDATE wegdelen_wegdeel wd SET vakken=sq.vakken
     FROM (
         SELECT bgt_wegdeel, count(id) as vakken
-        FROM scans_parkeervak
+        FROM wegdelen_parkeervak
             GROUP BY bgt_wegdeel
         )
         AS sq
@@ -494,10 +471,10 @@ def add_parkeervak_count_to_wegdeel():
 
     with connection.cursor() as c:
         c.execute("""
-    UPDATE scans_wegdeel wd SET fiscale_vakken=sq.vakken
+    UPDATE wegdelen_wegdeel wd SET fiscale_vakken=sq.vakken
     FROM (
         SELECT bgt_wegdeel, count(id) as vakken
-        FROM scans_parkeervak
+        FROM wegdelen_parkeervak
         WHERE soort = 'FISCAAL'
             GROUP BY bgt_wegdeel
         )
@@ -525,10 +502,10 @@ def add_parkeervak_count_to_buurt():
 
     with connection.cursor() as c:
         c.execute("""
-    UPDATE scans_buurt b SET vakken=sq.vakken
+    UPDATE wegdelen_buurt b SET vakken=sq.vakken
     FROM (
         SELECT buurt, count(id) as vakken
-        FROM scans_parkeervak
+        FROM wegdelen_parkeervak
             GROUP BY buurt
         )
         AS sq

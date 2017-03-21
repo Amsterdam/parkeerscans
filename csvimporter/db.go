@@ -3,12 +3,14 @@ package main
 import (
 	"database/sql"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	//"github.com/cheggaaa/pb"
 	"github.com/lib/pq"
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 //SQLImport import structure
@@ -46,7 +48,6 @@ func CleanTargetTable(db *sql.DB, target string) {
 	if _, err := db.Exec(sql); err != nil {
 		panic(err)
 	}
-
 }
 
 // add vakken / wegdelen to scans
@@ -121,19 +122,61 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 	reader := csv.NewReader(csvfile)
 	//bar.Start()
 	//stream contents of csv into postgres
-	importCSV(pgTable, reader)
+	startDate, endDate := importCSV(pgTable, reader)
+	endDate = endDate.AddDate(0, 0, 1)
+	if startDate.After(endDate) {
+		panic("Dates wrong!")
+	}
 	//bar.Finish()
+	startEnd := DatePair{}
+	format := "2006-01-02"
+	startEnd.start = startDate.Format(format)
+	startEnd.end = endDate.Format(format)
+	//update DateMap
+	DateMap[filename] = startEnd
+	fmt.Printf("Batch: %s %s < %s", filename, startEnd.start, startEnd.end)
 }
 
-func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
+//procesDate update startDate and endDate
+func procesDate(cols []interface{},
+	startDate time.Time, endDate time.Time) (time.Time, time.Time, error) {
+
+	//2016-04-11 09:11:2
+	type timetest string
+
+	if str, ok := cols[IdxMap["scan_moment"]].(string); ok {
+		timetest, err := time.Parse("2006-01-02 15:04:05", str)
+
+		if err != nil {
+			return startDate, endDate, errors.New("date string wrong")
+		}
+
+		if timetest.After(endDate) {
+			endDate = timetest
+		} else if timetest.Before(startDate) {
+			startDate = timetest
+		}
+
+	} else {
+		return startDate, endDate, errors.New("date string wrong")
+	}
+
+	return startDate, endDate, nil
+}
+
+func importCSV(pgTable *SQLImport, reader *csv.Reader) (time.Time, time.Time) {
 
 	reader.FieldsPerRecord = 0
 	reader.Comma = ';'
 	//Ignore first header line
 	_, err := reader.Read()
+
 	if err != nil {
 		panic(err)
 	}
+
+	startDate := time.Now()
+	endDate := time.Now().AddDate(-3, 0, 0)
 
 	delimiter := ";"
 	rowCount := 0
@@ -164,6 +207,13 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 
 		//printRecord(&record)
 		//printCols(cols)
+		//Determine startDate / endDate in stream
+		startDate, endDate, err = procesDate(cols, startDate, endDate)
+
+		if err != nil {
+			failed++
+			continue
+		}
 
 		err = pgTable.AddRow(cols...)
 
@@ -187,5 +237,5 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 
 	}
 
-	return nil
+	return startDate, endDate
 }

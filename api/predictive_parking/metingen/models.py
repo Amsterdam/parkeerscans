@@ -12,6 +12,7 @@ class Scan(models.Model):
 
     -'scan_id'          # niet altijd uniek..
     -'scan_moment',
+    -'device_id',       # unieke device id / auto id
     -'scan_source',     # auto of pda
     -'longitude', 'latitude',
     -'buurtcode',       # GGW code
@@ -89,11 +90,11 @@ class ScanRaw(models.Model):
     """
 
     scan_id = models.IntegerField()  # not unique!!
-    scan_moment = models.DateTimeField()
+    scan_moment = models.DateTimeField(db_index=True)
     device_id = models.IntegerField(null=True)
     scan_source = models.CharField(max_length=15)
 
-    afstand = models.CharField(null=True, max_length=25)
+    afstand = models.CharField(null=True, max_length=1)
 
     latitude = models.DecimalField(max_digits=13, decimal_places=8, null=False)
 
@@ -132,50 +133,3 @@ class ScanRaw(models.Model):
     bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
 
     objects = geo.GeoManager()
-
-
-class Parkeervak(models.Model):
-    """
-    Een parkeervak met relatie naar wegdeel WGS84
-    """
-    id = models.CharField(primary_key=True, max_length=30)
-    straatnaam = models.CharField(db_index=True, max_length=300)
-    soort = models.CharField(max_length=20)
-    type = models.CharField(max_length=20)
-    aantal = models.IntegerField()
-    geometrie = geo.MultiPolygonField(srid=4326)
-    point = geo.PointField(srid=4326, null=True)
-
-    # wegdelen
-    bgt_wegdeel = models.CharField(
-        null=True, db_index=True, max_length=38)
-
-    bgt_wegdeel_functie = models.CharField(
-       null=True, db_index=True, max_length=25)
-
-    buurt = models.CharField(
-        null=True, db_index=True, max_length=4)
-
-
-class WegDeel(models.Model):
-    """
-    Valide wegdelen die mogelijk een link kunnen hebben met een parkeervak
-    geometrie in WGS84
-    """
-    id = models.CharField(primary_key=True, max_length=38)
-    bgt_functie = models.CharField(max_length=200)
-    geometrie = geo.MultiPolygonField(srid=4326)
-    vakken = models.IntegerField(null=True)
-    fiscale_vakken = models.IntegerField(null=True)
-
-
-class Buurt(models.Model):
-    """
-    Buurt
-    """
-    id = models.CharField(primary_key=True, max_length=14)
-    code = models.CharField(db_index=True, max_length=4)
-    naam = models.CharField(max_length=40)
-    geometrie = geo.MultiPolygonField(srid=4326)
-    vakken = models.IntegerField(null=True)
-    fiscale_vakken = models.IntegerField(null=True)

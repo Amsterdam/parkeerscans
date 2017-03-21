@@ -42,7 +42,7 @@ dc up -d database
 ##dc run --rm tests
 ## and download scans zipfiles and rars
 #
-echo "IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_count=262144'"
+echo "IF ELK5 fails to start"
 dc run importer dig elasticsearch
 #
 echo "create scan api database"
@@ -70,21 +70,22 @@ echo "Load buurt / buurtcombinatie"
 dc exec -T database update-table.sh bag bag_buurt public predictiveparking
 #
 
-echo "loading the unzipped scans into database"
+echo "create wegdelen / buurten and complete the scans data"
+dc run importer ./docker-import.sh
+
+echo "loading the unzipped scans into database, add wegdelen / pv to scans"
 dc run csvimporter app
 
 echo " DONE loading csv"
-
-echo "create wegdelen / buurten and complete the scans data"
-dc run importer ./docker-import.sh
 
 echo "create scan db dump"
 # run the DB backup shizzle
 dc up db-backup
 
 # now we need elastic to start up.
-dc up -d elasticsearch
-sleep 20
+# RECONFIGURE LOGSTASH !!
+#dc up -d elasticsearch
+#sleep 20
 
 # We have to chunk the importing otherwise the database
 # will take minutes to get data logstash needs
@@ -113,10 +114,10 @@ echo "DONE! importing scans into database"
 
 echo "create scan db dump"
 # run the backup shizzle
-dc up db-backup
+# dc up db-backup
 #
 #
-dc up el-backup
+# dc up el-backup
 #
 echo "DONE! with import. You are awesome! <3"
 dc stop

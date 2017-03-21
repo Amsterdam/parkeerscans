@@ -10,11 +10,9 @@ services:
       POSTGRES_USER: predictiveparking
       POSTGRES_DB: predictiveparking
 
-  # sudo sysctl -w vm.max_map_count=262144
-  # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Enetwork.host=0.0.0.0
+    command: elasticsearch  -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
     ports:
       - "9200:9200"
       - "9300:9300"

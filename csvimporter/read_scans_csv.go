@@ -21,19 +21,30 @@ import (
 	"time"
 )
 
+//DatePair start and end data string values
+type DatePair struct {
+	start string
+	end   string
+}
+
 var (
-	csvError     *log.Logger
-	columns      []string
-	success      int
-	last         int
-	workers      int
-	failed       int
-	idxMap       map[string]int
+	csvError *log.Logger
+	columns  []string
+	success  int
+	last     int
+	workers  int
+	failed   int
+
+	//IdxMap columnname index mapping
+	IdxMap       map[string]int
 	ignoreErrors bool
 	targetTable  string
 	targetCSVdir string
 	wg           sync.WaitGroup
 	start        time.Time
+
+	//DateMap store per filename the start and end date
+	DateMap map[string]DatePair
 )
 
 //set up logging..
@@ -100,8 +111,10 @@ func init() {
 		"geometrie",       //  geometrie
 	}
 
-	idxMap = make(map[string]int)
-	targetTable = "scans_scanraw"
+	IdxMap = make(map[string]int)
+	DateMap = make(map[string]DatePair)
+
+	targetTable = "metingen_scanraw"
 	//targetTable = "scans_scan"
 	workers = 3
 	ignoreErrors = false
@@ -110,7 +123,7 @@ func init() {
 
 	// fill map
 	for i, field := range columns {
-		idxMap[field] = i
+		IdxMap[field] = i
 	}
 }
 
@@ -122,21 +135,21 @@ func setLatLong(cols []interface{}) error {
 	var err error
 	var point string
 
-	if cols[idxMap["longitude"]] == nil {
+	if cols[IdxMap["longitude"]] == nil {
 		return errors.New("longitude field value wrong")
 	}
 
-	if cols[idxMap["latitude"]] == nil {
+	if cols[IdxMap["latitude"]] == nil {
 		return errors.New("latitude field value wrong")
 	}
 
-	if str, ok := cols[idxMap["longitude"]].(string); ok {
+	if str, ok := cols[IdxMap["longitude"]].(string); ok {
 		long, err = strconv.ParseFloat(str, 64)
 	} else {
 		return errors.New("longitude field value wrong")
 	}
 
-	if str, ok := cols[idxMap["latitude"]].(string); ok {
+	if str, ok := cols[IdxMap["latitude"]].(string); ok {
 		lat, err = strconv.ParseFloat(str, 64)
 	} else {
 		return errors.New("latitude field value wrong")
@@ -152,7 +165,7 @@ func setLatLong(cols []interface{}) error {
 	point = geo.NewPointFromLatLng(lat, long).ToWKT()
 	point = fmt.Sprintf("SRID=4326;%s", point)
 
-	cols[idxMap["geometrie"]] = point
+	cols[IdxMap["geometrie"]] = point
 
 	return nil
 
@@ -174,13 +187,13 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		cleanedField = strings.Replace(field, ",", ".", 1)
 		cols[i] = cleanedField
 
-		if i == idxMap["buurtcode"] {
-			cols[idxMap["stadsdeel"]] = string(field[0])
-			cols[idxMap["buurtcombinatie"]] = field[:3]
+		if i == IdxMap["buurtcode"] {
+			cols[IdxMap["stadsdeel"]] = string(field[0])
+			cols[IdxMap["buurtcombinatie"]] = field[:3]
 		}
 
 		//ignore afstand
-		if i == idxMap["afstand"] {
+		if i == IdxMap["afstand"] {
 			cols[i] = ""
 		}
 	}
@@ -191,7 +204,7 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		return nil, err
 	}
 
-	if str, ok := cols[idxMap["scan_id"]].(string); ok {
+	if str, ok := cols[IdxMap["scan_id"]].(string); ok {
 		if str == "" {
 			return nil, errors.New("scan_id field missing")
 		}
@@ -221,6 +234,8 @@ func printCols(cols []interface{}) {
 func csvloader(id int, jobs <-chan string) {
 
 	fmt.Println("worker", id)
+	start := ""
+	end := ""
 
 	for csvfile := range jobs {
 
@@ -234,9 +249,18 @@ func csvloader(id int, jobs <-chan string) {
 			db, "public", targetTable, columns)
 
 		LoadSingleCSV(csvfile, pgTable)
+
+		datePair := DateMap[csvfile]
+		start = datePair.start
+		end = datePair.end
+
+		// within 0.1 meter from parkeervak
+		MergeScansParkeervakWegdelen(db, start, end, 0.000001)
+		// within 1.5 meters from parkeervak
+		MergeScansParkeervakWegdelen(db, start, end, 0.000015)
+
 		//finalize csv file import in db
 		pgTable.Commit()
-
 	}
 	fmt.Println("Done", id)
 	defer wg.Done()

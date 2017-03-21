@@ -7,8 +7,7 @@ import sys
 
 from django.core.management import BaseCommand
 
-import import_scans
-from scans.models import Scan
+import import_wegdelen
 
 log = logging.getLogger(__name__)
 
@@ -109,33 +108,25 @@ class Command(BaseCommand):
         """
 
         if options['wegdelen']:
-            import_scans.import_wegdelen()
+            import_wegdelen.import_wegdelen()
         elif options['unlogged']:
-            import_scans.make_scans_unlogged()
+            import_wegdelen.make_scans_unlogged()
         elif options['vakken']:
             # Convert to wgs84
-            import_scans.import_parkeervakken()
+            import_wegdelen.import_parkeervakken()
         elif options['buurten']:
-            import_scans.import_buurten()
+            import_wegdelen.import_buurten()
         elif options['cluster']:
-            import_scans.cluster_geometrieindexen()
+            import_wegdelen.cluster_geometrieindexen()
         elif options['scanmoment']:
-            import_scans.scan_moment_index()
+            import_wegdelen.scan_moment_index()
         elif options['mergewegdelen']:
-            import_scans.add_wegdeel_to_parkeervak(distance=0.00001)
+            import_wegdelen.add_wegdeel_to_parkeervak(distance=0.00001)
         elif options['mergebuurten']:
-            import_scans.add_buurt_to_parkeervak()
+            import_wegdelen.add_buurt_to_parkeervak()
         elif options['setcounts']:
-            import_scans.add_parkeervak_count_to_buurt()
-            import_scans.add_parkeervak_count_to_wegdeel()
-        elif options['mergewegdelennzonderpv']:
-            import_scans.add_wegdeel_to_scans()
-            import_scans.copy_leftover()
-        elif options['mergevakken']:
-            # merge scans within vakken
-            import_scans.add_parkeervak_to_scans(distance=0.000001)
-            # merge scans 1.5 meter around vakken
-            import_scans.add_parkeervak_to_scans()
+            import_wegdelen.add_parkeervak_count_to_buurt()
+            import_wegdelen.add_parkeervak_count_to_wegdeel()
         else:
             log.error('Nothing imported.')
             sys.exit(1)

@@ -55,9 +55,9 @@ node {
         }
     }
 
-    stage("Build develop web/python") {
+    stage("Build develop api/python") {
             tryStep "build", {
-                def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "web")
+                def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "api")
                 image.push()
                 image.push("acceptance")
             }

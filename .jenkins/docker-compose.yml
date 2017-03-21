@@ -1,41 +1,28 @@
 version: '2.1'
 services:
   database:
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    build: ../postgres
+    ports:
+      - "5434:5432"
     environment:
       POSTGRES_PASSWORD: insecure
       POSTGRES_USER: predictiveparking
       POSTGRES_DB: predictiveparking
     volumes:
       - databasevolume:/tmp
-    # mem_limit: 14g
 
-  # sudo sysctl -w vm.max_map_count=262144
-  # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Ebootstrap.memory_lock=true -Enetwork.host=_site_
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
     environment:
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    #user: root
-    #ports:
-    #  - "9200:9200"
-    #  - "9300:9300"
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
     volumes:
       - ./backups/elasticsearch:/tmp/backups
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 195536
-        hard: 195536
-    # mem_limit: 6g
-    cap_add:
-      - IPC_LOCK
+
   logstash:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
-    #build: ../logstash
+    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
+    build: ../logstash
     links:
       - database:database
       - elasticsearch:elasticsearch
@@ -44,8 +31,8 @@ services:
       END_DATE:
 
   importer:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
-    # build: ../web/
+    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
+    build: ../api/
     links:
       - database:database
       #- elasticsearch:elasticsearch
@@ -62,8 +49,8 @@ services:
       - unzip-volume:/app/unzipped
 
   csvimporter:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
-    #build: ../csvimporter/
+    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+    build: ../csvimporter/
     links:
       - database:database
     environment:
@@ -74,7 +61,8 @@ services:
       - unzip-volume:/app/unzipped
 
   db-backup:
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    build: ../postgres
     links:
       - database
     environment:
@@ -86,9 +74,25 @@ services:
               && chmod 600 ~/.pgpass \
               && pg_dump --clean \
                           -Fc \
-                          -t scans* \
+                          -t metingen_scans \
                           -t django_migrations  \
                           -T auth*    \
+                          -U predictiveparking \
+                          -h database -p 5432 \
+                          predictiveparking > /tmp/backups/database.dump"
+
+  db-backup-scans:
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    links:
+      - database
+    environment:
+      PGPASSWORD: insecure
+    volumes:
+      - ./backups:/tmp/backups
+    command: >
+      bash -c "echo database:5432:predictiveparking:predictiveparking:insecure > ~/.pgpass \
+              && chmod 600 ~/.pgpass \
+              && pg_dump -t metingen_scans \
                           -U predictiveparking \
                           -h database -p 5432 \
                           predictiveparking > /tmp/backups/database.dump"
