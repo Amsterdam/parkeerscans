@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"regexp"
 	//"github.com/cheggaaa/pb"
 	"github.com/lib/pq"
 	"io"
@@ -43,11 +44,12 @@ func (i *SQLImport) Commit() error {
 //CleanTargetTable the table we are importing to
 func CleanTargetTable(db *sql.DB, target string) {
 
-	sql := fmt.Sprintf("TRUNCATE TABLESRID %s;", target)
+	sql := fmt.Sprintf("TRUNCATE TABLE %s;", target)
 
 	if _, err := db.Exec(sql); err != nil {
 		panic(err)
 	}
+
 }
 
 // add vakken / wegdelen to scans
@@ -100,7 +102,7 @@ func dbConnect(connStr string) (*sql.DB, error) {
 //}
 
 //LoadSingleCSV import single csv file into  database with progresbar
-func LoadSingleCSV(filename string, pgTable *SQLImport) {
+func LoadSingleCSV(filename string, pgTable *SQLImport) DatePair {
 
 	//var bar *pb.ProgressBar
 	// load file
@@ -123,7 +125,9 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 	//bar.Start()
 	//stream contents of csv into postgres
 	startDate, endDate := importCSV(pgTable, reader)
-	endDate = endDate.AddDate(0, 0, 1)
+	//take a little larger time period
+	endDate = endDate.AddDate(0, 0, +1)
+	startDate = startDate.AddDate(0, 0, -1)
 	if startDate.After(endDate) {
 		panic("Dates wrong!")
 	}
@@ -133,8 +137,9 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 	startEnd.start = startDate.Format(format)
 	startEnd.end = endDate.Format(format)
 	//update DateMap
-	DateMap[filename] = startEnd
-	fmt.Printf("Batch: %s %s < %s", filename, startEnd.start, startEnd.end)
+	//DateMap[filename] = startEnd
+	fmt.Printf("\nBatch: %s %s < %s\n\n", filename, startEnd.start, startEnd.end)
+	return startEnd
 }
 
 //procesDate update startDate and endDate
@@ -162,6 +167,39 @@ func procesDate(cols []interface{},
 	}
 
 	return startDate, endDate, nil
+}
+
+//CreateTable  table to put csv data in
+func CreateTable(db *sql.DB, csvfile string) string {
+
+	validTableName := regexp.MustCompile("201([a-z_0-9]*)")
+
+	tableName := validTableName.FindString(csvfile)
+
+	if tableName == "" {
+		panic(errors.New("filename no regexmatch"))
+	}
+
+	tableName = fmt.Sprintf("scans_%s", tableName)
+
+	fmt.Println("Tablename", tableName)
+
+	sql := fmt.Sprintf(`CREATE UNLOGGED TABLE IF NOT EXISTS %s (
+		LIKE metingen_scanraw
+		);`, tableName)
+
+	if _, err := db.Exec(sql); err != nil {
+		panic(err)
+	}
+
+	sql = fmt.Sprintf(`ALTER TABLE %s DROP COLUMN id;`, tableName)
+
+	if _, err := db.Exec(sql); err != nil {
+		fmt.Println("Tablename already there", tableName)
+	}
+
+	return tableName
+
 }
 
 func importCSV(pgTable *SQLImport, reader *csv.Reader) (time.Time, time.Time) {
