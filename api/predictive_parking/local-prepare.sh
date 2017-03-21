@@ -3,12 +3,9 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-# echo 'Downloading latest parking scan data'
-python get_os_data.py
+#echo 'Downloading latest parking scan data'
+#python get_os_data.py
 
-
-# these commands do not overwirte existing files!!
-#ls /app/data/*.rar | xargs -I rarfile unrar -x rarfile /app/unzipped/ || true
 
 echo "split files in 500.000 chunks"
 
