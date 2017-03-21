@@ -8,6 +8,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -35,9 +36,13 @@ var (
 	workers  int
 	failed   int
 
+	//Db object we use all over the place
+	Db *sql.DB
+
 	//IdxMap columnname index mapping
 	IdxMap       map[string]int
 	ignoreErrors bool
+	resultTable  string
 	targetTable  string
 	targetCSVdir string
 	wg           sync.WaitGroup
@@ -114,9 +119,10 @@ func init() {
 	IdxMap = make(map[string]int)
 	DateMap = make(map[string]DatePair)
 
+	resultTable = "metingen_scan"
 	targetTable = "metingen_scanraw"
 	//targetTable = "scans_scan"
-	workers = 3
+	workers = 2
 	ignoreErrors = false
 	//TODO make environment variable
 	targetCSVdir = "/app/unzipped"
@@ -125,6 +131,12 @@ func init() {
 	for i, field := range columns {
 		IdxMap[field] = i
 	}
+
+	db, err := dbConnect(connectStr())
+	Db = db
+
+	CheckErr(err)
+
 }
 
 //setLatLon create wgs84 point for postgres
@@ -200,9 +212,7 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 
 	err := setLatLong(cols)
 
-	if err != nil {
-		return nil, err
-	}
+	CheckErr(err)
 
 	if str, ok := cols[IdxMap["scan_id"]].(string); ok {
 		if str == "" {
@@ -234,33 +244,30 @@ func printCols(cols []interface{}) {
 func csvloader(id int, jobs <-chan string) {
 
 	fmt.Println("worker", id)
-	start := ""
-	end := ""
 
 	for csvfile := range jobs {
 
-		db, err := dbConnect(connectStr())
+		target := CreateTable(Db, csvfile)
+		CleanTargetTable(Db, target)
+		pgTable, err := NewImport(Db, "public", target, columns)
+		CheckErr(err)
 
-		if err != nil {
-			log.Fatalln(err)
-		}
+		datePair := LoadSingleCSV(csvfile, pgTable)
 
-		pgTable, err := NewImport(
-			db, "public", targetTable, columns)
+		start := datePair.start
+		end := datePair.end
 
-		LoadSingleCSV(csvfile, pgTable)
-
-		datePair := DateMap[csvfile]
-		start = datePair.start
-		end = datePair.end
-
-		// within 0.1 meter from parkeervak
-		MergeScansParkeervakWegdelen(db, start, end, 0.000001)
-		// within 1.5 meters from parkeervak
-		MergeScansParkeervakWegdelen(db, start, end, 0.000015)
-
-		//finalize csv file import in db
 		pgTable.Commit()
+
+		MergeScansWegdelen(Db, target, start, end, 0.000001)
+		// within 0.1 meter from parkeervak
+		MergeScansParkeervakWegdelen(Db, target, start, end, 0.000001)
+		// within 1.5 meters from parkeervak
+		MergeScansParkeervakWegdelen(Db, target, start, end, 0.000015)
+
+		//Clean import table
+		CleanTargetTable(Db, target)
+		//finalize csv file import in db
 	}
 	fmt.Println("Done", id)
 	defer wg.Done()
@@ -284,18 +291,18 @@ func importScans() {
 	//find all csv files
 	start := time.Now()
 
-	files, err := filepath.Glob(fmt.Sprintf("%s/*stad*.csv", targetCSVdir))
+	files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", targetCSVdir))
 
-	if err != nil {
-		panic(err)
-	}
+	//fmt.Println(files)
+
+	CheckErr(err)
 
 	if len(files) == 0 {
 		fmt.Printf(targetCSVdir)
 		panic(errors.New("Missing csv files"))
 	}
 
-	jobs := make(chan string, 100)
+	jobs := make(chan string, 500)
 
 	for _, file := range files {
 		jobs <- file
@@ -320,9 +327,17 @@ func main() {
 
 	setLogging()
 
-	// CleanTargetTable(db, targetTable)
+	CleanTargetTable(Db, targetTable)
+	CleanTargetTable(Db, resultTable)
 
 	importScans()
 
 	fmt.Printf("csv loading done succes: %d failed: %d", success, failed)
+}
+
+//CheckErr default crash hard error handling
+func CheckErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

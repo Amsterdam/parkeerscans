@@ -8,7 +8,19 @@ python get_os_data.py
 
 
 # these commands do not overwirte existing files!!
-unzip -n '/tmp/data/*.zip' -d /tmp/unzipped/
-ls /tmp/data/*.rar | xargs -I rarfile unrar -x rarfile /tmp/unzipped/
+#ls /app/data/*.rar | xargs -I rarfile unrar -x rarfile /app/unzipped/ || true
+
+echo "split files in 500.000 chunks"
+
+#ls /app/unzipped/*stad*.csv | xargs -I csvsource -x tail -n +2 csvsource |  split -l 500000 - /app/unzipped/split_csvsource_
+
+for file in /app/unzipped/*stad*.csv
+do
+	echo $file
+	lala=`basename $file .csv`
+	echo $lala
+	tail -n +2 $file | split --additional-suffix=.csv -l 500000 - "/app/unzipped/split$lala"
+
+done
 
 echo "Database and Raw CSV files are ready"
