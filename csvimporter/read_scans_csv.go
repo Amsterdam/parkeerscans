@@ -39,8 +39,8 @@ var (
 	//Db object we use all over the place
 	Db *sql.DB
 
-	//IdxMap columnname index mapping
-	IdxMap       map[string]int
+	//idxMap columnname index mapping
+	idxMap       map[string]int
 	resultTable  string
 	targetTable  string
 	targetCSVdir string
@@ -121,7 +121,7 @@ func init() {
 		"geometrie",       //  geometrie
 	}
 
-	IdxMap = make(map[string]int)
+	idxMap = make(map[string]int)
 	DateMap = make(map[string]DatePair)
 	success = 1
 	indb = 0
@@ -135,7 +135,7 @@ func init() {
 
 	// fill map
 	for i, field := range columns {
-		IdxMap[field] = i
+		idxMap[field] = i
 	}
 
 	db, err := dbConnect(connectStr())
@@ -153,21 +153,21 @@ func setLatLong(cols []interface{}) error {
 	var err error
 	var point string
 
-	if cols[IdxMap["longitude"]] == nil {
+	if cols[idxMap["longitude"]] == nil {
 		return errors.New("longitude field value wrong")
 	}
 
-	if cols[IdxMap["latitude"]] == nil {
+	if cols[idxMap["latitude"]] == nil {
 		return errors.New("latitude field value wrong")
 	}
 
-	if str, ok := cols[IdxMap["longitude"]].(string); ok {
+	if str, ok := cols[idxMap["longitude"]].(string); ok {
 		long, err = strconv.ParseFloat(str, 64)
 	} else {
 		return errors.New("longitude field value wrong")
 	}
 
-	if str, ok := cols[IdxMap["latitude"]].(string); ok {
+	if str, ok := cols[idxMap["latitude"]].(string); ok {
 		lat, err = strconv.ParseFloat(str, 64)
 	} else {
 		return errors.New("latitude field value wrong")
@@ -183,7 +183,7 @@ func setLatLong(cols []interface{}) error {
 	point = geo.NewPointFromLatLng(lat, long).ToWKT()
 	point = fmt.Sprintf("SRID=4326;%s", point)
 
-	cols[IdxMap["geometrie"]] = point
+	cols[idxMap["geometrie"]] = point
 
 	return nil
 
@@ -205,13 +205,13 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		cleanedField = strings.Replace(field, ",", ".", 1)
 		cols[i] = cleanedField
 
-		if i == IdxMap["buurtcode"] {
-			cols[IdxMap["stadsdeel"]] = string(field[0])
-			cols[IdxMap["buurtcombinatie"]] = field[:3]
+		if i == idxMap["buurtcode"] {
+			cols[idxMap["stadsdeel"]] = string(field[0])
+			cols[idxMap["buurtcombinatie"]] = field[:3]
 		}
 
 		//ignore afstand
-		if i == IdxMap["afstand"] {
+		if i == idxMap["afstand"] {
 			cols[i] = ""
 		}
 	}
@@ -225,7 +225,7 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		//return nil, errors.New("lat long field failure")
 	}
 
-	if str, ok := cols[IdxMap["scan_id"]].(string); ok {
+	if str, ok := cols[idxMap["scan_id"]].(string); ok {
 		if str == "" {
 			return nil, errors.New("scan_id field missing")
 		}

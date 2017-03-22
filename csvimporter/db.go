@@ -153,7 +153,7 @@ func procesDate(cols []interface{},
 	//2016-04-11 09:11:2
 	type timetest string
 
-	if str, ok := cols[IdxMap["scan_moment"]].(string); ok {
+	if str, ok := cols[idxMap["scan_moment"]].(string); ok {
 		timetest, err := time.Parse("2006-01-02 15:04:05", str)
 
 		if err != nil {
