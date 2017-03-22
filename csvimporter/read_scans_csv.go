@@ -41,8 +41,6 @@ var (
 
 	//idxMap columnname index mapping
 	idxMap       map[string]int
-	resultTable  string
-	targetTable  string
 	targetCSVdir string
 	wg           sync.WaitGroup
 	start        time.Time
@@ -126,8 +124,6 @@ func init() {
 	success = 1
 	indb = 0
 
-	resultTable = "metingen_scan"
-	targetTable = "metingen_scanraw"
 	workers = 2
 
 	//TODO make environment variable

@@ -7,6 +7,13 @@ DIR="$(dirname $0)"
 
 echo $0
 
+echo "Do we have OS password?"
+echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
+#
+echo "Testing import? if (yes)"
+echo $TESTING
+
+
 dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
 }
