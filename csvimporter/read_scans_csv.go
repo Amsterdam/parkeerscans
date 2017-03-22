@@ -126,8 +126,7 @@ func init() {
 	resultTable = "metingen_scan"
 	targetTable = "metingen_scanraw"
 	//targetTable = "scans_scan"
-	workers = 2
-	ignoreErrors = false
+	workers = 1
 	//TODO make environment variable
 	targetCSVdir = "/app/unzipped"
 
