@@ -5,8 +5,3 @@ set -e   # stop on any error
 
 source docker-wait.sh
 yes yes | python manage.py migrate --noinput
-
-# make scan table(s) unlogged
-python manage.py run_import --setunlogged
-
-

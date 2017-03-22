@@ -31,6 +31,7 @@ var (
 	csvError *log.Logger
 	columns  []string
 	success  int
+	indb     int
 	last     int
 	workers  int
 	failed   int
@@ -122,6 +123,7 @@ func init() {
 
 	IdxMap = make(map[string]int)
 	DateMap = make(map[string]DatePair)
+	success = 1
 
 	resultTable = "metingen_scan"
 	targetTable = "metingen_scanraw"
@@ -253,6 +255,7 @@ func csvloader(id int, jobs <-chan string) {
 		source, target := CreateTables(Db, csvfile)
 		cleanTable(Db, target)
 		cleanTable(Db, source)
+
 		pgTable, err := NewImport(Db, "public", source, columns)
 		checkErr(err)
 
@@ -263,8 +266,10 @@ func csvloader(id int, jobs <-chan string) {
 		count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
 		// within 1.5 meters from parkeervak
 		count15 := mergeScansParkeervakWegdelen(Db, source, target, 0.000015)
-
+		// scans op bgt wegdeel
 		countW := mergeScansWegdelen(Db, source, target, 0.000001)
+
+		indb += countW
 
 		log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d\n\n",
 			target,
@@ -278,11 +283,19 @@ func csvloader(id int, jobs <-chan string) {
 }
 
 func printStatus() {
+	i := 1
+	delta := 10
+	duration := 0
+	speed := 0
+
 	for {
-		time.Sleep(10 * time.Second)
-		log.Printf("STATUS: %10d:imported %10d:failed  %10d rows/s",
-			success, failed, success-last)
-		last = success
+		time.Sleep(time.Duration(delta) * time.Second)
+
+		log.Printf("STATUS: rows:%-10ds inDB: %-10d failed %-10d  - %10d rows/s",
+			success, indb, failed, speed)
+		duration = i * delta
+		speed = success / duration
+		i++
 	}
 }
 
@@ -321,6 +334,7 @@ func importScans() {
 	}
 
 	wg.Wait()
+
 	log.Print("\n Duration:", time.Now().Sub(start))
 
 }
@@ -332,7 +346,9 @@ func main() {
 
 	importScans()
 
-	log.Printf("csv loading done rows: %d failed: %d", success, failed)
+	log.Printf("\nCOUNTS: rows:%-10ds inDB: %-10d failed %-10d s\n",
+		success, indb, failed)
+
 }
 
 //checkErr default crash hard error handling

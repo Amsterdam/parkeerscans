@@ -6,6 +6,7 @@ set -e   # stop on any error
 echo 'Downloading latest parking scan data'
 python get_os_data.py
 
+echo 'start extracting..'
 #[ "$(ls -A /app/unzipped/)" ] && echo "Not Empty" || echo "Empty"
 
 ls -A /app/unzipped/

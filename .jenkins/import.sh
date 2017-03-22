@@ -31,8 +31,8 @@ fi
 
 dc pull
 
-dc rm importer
-dc rm csvimporter
+dc rm -f importer
+dc rm -f csvimporter
 
 dc build
 #
