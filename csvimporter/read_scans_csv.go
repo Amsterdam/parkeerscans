@@ -84,10 +84,10 @@ func connectStr() string {
 		"predictiveparking",
 		"predictiveparking",
 		"insecure",
-		//"database",
-		//"5432",
-		"127.0.0.1",
-		"5434",
+		"database",
+		"5432",
+		//"127.0.0.1",
+		//"5434",
 		otherParams,
 	)
 }

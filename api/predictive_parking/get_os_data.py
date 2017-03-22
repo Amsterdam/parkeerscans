@@ -11,7 +11,7 @@ from swiftclient.client import Connection
 from dateutil import parser
 
 logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger(__name__)
+log = logging.getLogger(__file__)
 
 assert os.getenv('PARKEERVAKKEN_OBJECTSTORE_PASSWORD')
 
