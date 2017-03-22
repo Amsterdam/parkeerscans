@@ -124,11 +124,12 @@ func init() {
 	IdxMap = make(map[string]int)
 	DateMap = make(map[string]DatePair)
 	success = 1
+	indb = 0
 
 	resultTable = "metingen_scan"
 	targetTable = "metingen_scanraw"
-	//targetTable = "scans_scan"
-	workers = 1
+	workers = 2
+
 	//TODO make environment variable
 	targetCSVdir = "/app/unzipped"
 
@@ -253,6 +254,7 @@ func csvloader(id int, jobs <-chan string) {
 	for csvfile := range jobs {
 
 		source, target := CreateTables(Db, csvfile)
+
 		cleanTable(Db, target)
 		cleanTable(Db, source)
 
@@ -346,8 +348,7 @@ func main() {
 
 	importScans()
 
-	log.Printf("\nCOUNTS: rows:%-10ds inDB: %-10d failed %-10d s\n",
-		success, indb, failed)
+	log.Printf("COUNTS: rows:%-10ds inDB: %-10d failed %-10d", success, indb, failed)
 
 }
 
