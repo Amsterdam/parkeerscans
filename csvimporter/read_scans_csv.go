@@ -218,7 +218,12 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 
 	err := setLatLong(cols)
 
-	checkErr(err)
+	if err != nil {
+		printRecord(record)
+		printCols(cols)
+		panic(err)
+		//return nil, errors.New("lat long field failure")
+	}
 
 	if str, ok := cols[IdxMap["scan_id"]].(string); ok {
 		if str == "" {
@@ -323,6 +328,7 @@ func importScans() {
 	jobs := make(chan string, 500)
 
 	for _, file := range files {
+		log.Println(file)
 		jobs <- file
 	}
 
