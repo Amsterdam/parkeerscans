@@ -266,7 +266,7 @@ func csvloader(id int, jobs <-chan string) {
 
 		countW := mergeScansWegdelen(Db, source, target, 0.000001)
 
-		log.Printf("%s pv 0.1m:%d  pv1.5m:%d  w:%d",
+		log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d\n\n",
 			target,
 			count1, count15, countW)
 		// Drop import table

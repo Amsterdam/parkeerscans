@@ -132,9 +132,6 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) DatePair {
 	//bar.Start()
 	//stream contents of csv into postgres
 	startDate, endDate := importCSV(pgTable, reader)
-	//take a little larger time period
-	endDate = endDate.AddDate(0, 0, +1)
-	startDate = startDate.AddDate(0, 0, -1)
 	if startDate.After(endDate) {
 		panic("Dates wrong!")
 	}
