@@ -247,7 +247,7 @@ func printCols(cols []interface{}) {
 //csvloader streams one csv and commit into database
 func csvloader(id int, jobs <-chan string) {
 
-	fmt.Println("worker", id)
+	log.Print("worker", id)
 
 	for csvfile := range jobs {
 
@@ -261,25 +261,27 @@ func csvloader(id int, jobs <-chan string) {
 
 		pgTable.Commit()
 		// within 0.1 meter from parkeervak
-		mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
+		count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
 		// within 1.5 meters from parkeervak
-		mergeScansParkeervakWegdelen(Db, source, target, 0.000015)
+		count15 := mergeScansParkeervakWegdelen(Db, source, target, 0.000015)
 
-		mergeScansWegdelen(Db, source, target, 0.000001)
+		countW := mergeScansWegdelen(Db, source, target, 0.000001)
 
+		log.Printf("%s pv 0.1m:%d  pv1.5m:%d  w:%d",
+			target,
+			count1, count15, countW)
 		// Drop import table
 		//dropTargetTable(Db, source)
 		// finalize csv file import in db
 	}
-	fmt.Println("Done", id)
+	log.Print("Done:", id)
 	defer wg.Done()
 }
 
 func printStatus() {
 	for {
-		time.Sleep(1 * time.Second)
-		fmt.Printf(
-			"\r STATUS: %10d:imported %10d:failed  %10d rows/s",
+		time.Sleep(10 * time.Second)
+		log.Printf("STATUS: %10d:imported %10d:failed  %10d rows/s",
 			success, failed, success-last)
 		last = success
 	}
@@ -300,7 +302,7 @@ func importScans() {
 	checkErr(err)
 
 	if len(files) == 0 {
-		fmt.Printf(targetCSVdir)
+		log.Printf(targetCSVdir)
 		panic(errors.New("Missing csv files"))
 	}
 
@@ -320,21 +322,18 @@ func importScans() {
 	}
 
 	wg.Wait()
-	fmt.Println("\n Duration:", time.Now().Sub(start))
+	log.Print("\n Duration:", time.Now().Sub(start))
 
 }
 
 func main() {
-	fmt.Println("Reading scans..")
+	log.Print("Importing scans..")
 
 	setLogging()
 
-	CleanTargetTable(Db, targetTable)
-	CleanTargetTable(Db, resultTable)
-
 	importScans()
 
-	fmt.Printf("csv loading done succes: %d failed: %d", success, failed)
+	log.Printf("csv loading done rows: %d failed: %d", success, failed)
 }
 
 //checkErr default crash hard error handling

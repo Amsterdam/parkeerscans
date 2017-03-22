@@ -9,6 +9,7 @@ import (
 	//"github.com/cheggaaa/pb"
 	"github.com/lib/pq"
 	"io"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -122,13 +123,9 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) DatePair {
 	//bar = NewProgressBar(csvfile)
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		panic(err)
 	}
-
-	msg := fmt.Sprintf("\nReading %s", filename)
-	fmt.Println(msg)
-	csvError.Println(msg)
 
 	//reader := csv.NewReader(io.TeeReader(csvfile, bar))
 	reader := csv.NewReader(csvfile)
@@ -148,7 +145,7 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) DatePair {
 	startEnd.end = endDate.Format(format)
 	//update DateMap
 	//DateMap[filename] = startEnd
-	fmt.Printf("\nBatch: %s %s < %s\n\n", filename, startEnd.start, startEnd.end)
+	log.Printf("Batch: %s %s < %s", filename, startEnd.start, startEnd.end)
 	return startEnd
 }
 
@@ -193,7 +190,7 @@ func CreateTables(db *sql.DB, csvfile string) (string, string) {
 	targetTable := fmt.Sprintf("scans_%s", tableName)
 	importTable := fmt.Sprintf("import_%s", tableName)
 
-	fmt.Println("Tablename", targetTable)
+	log.Println("Tablename", targetTable)
 
 	makeTable(db, targetTable)
 	makeTable(db, importTable)
@@ -215,7 +212,7 @@ func makeTable(db *sql.DB, tableName string) {
 	sql = fmt.Sprintf(`ALTER TABLE %s DROP COLUMN id;`, tableName)
 
 	if _, err := db.Exec(sql); err != nil {
-		fmt.Println("Tablename already there", tableName)
+		log.Println("Tablename already there", tableName)
 	}
 
 }
@@ -255,7 +252,7 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) (time.Time, time.Time) {
 		cols, err := NormalizeRow(&record)
 
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			csvError.Printf("%s: %s \n", err, record)
 			failed++
 			continue
