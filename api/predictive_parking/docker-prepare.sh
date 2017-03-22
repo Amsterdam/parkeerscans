@@ -3,11 +3,7 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-source docker-wait.sh
-
-source docker-migrate.sh
-
-# echo 'Downloading latest parking scan data'
+echo 'Downloading latest parking scan data'
 python get_os_data.py
 
 #[ "$(ls -A /app/unzipped/)" ] && echo "Not Empty" || echo "Empty"

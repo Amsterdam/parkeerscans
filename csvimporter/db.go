@@ -42,9 +42,19 @@ func (i *SQLImport) Commit() error {
 }
 
 //CleanTargetTable the table we are importing to
-func CleanTargetTable(db *sql.DB, target string) {
+func cleanTable(db *sql.DB, target string) {
 
 	sql := fmt.Sprintf("TRUNCATE TABLE %s;", target)
+
+	if _, err := db.Exec(sql); err != nil {
+		panic(err)
+	}
+}
+
+//dropTargetTable drop it!
+func dropTargetTable(db *sql.DB, target string) {
+
+	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", target)
 
 	if _, err := db.Exec(sql); err != nil {
 		panic(err)
@@ -169,8 +179,8 @@ func procesDate(cols []interface{},
 	return startDate, endDate, nil
 }
 
-//CreateTable  table to put csv data in
-func CreateTable(db *sql.DB, csvfile string) string {
+//CreateTables  table to put csv data in
+func CreateTables(db *sql.DB, csvfile string) (string, string) {
 
 	validTableName := regexp.MustCompile("201([a-z_0-9]*)")
 
@@ -180,9 +190,19 @@ func CreateTable(db *sql.DB, csvfile string) string {
 		panic(errors.New("filename no regexmatch"))
 	}
 
-	tableName = fmt.Sprintf("scans_%s", tableName)
+	targetTable := fmt.Sprintf("scans_%s", tableName)
+	importTable := fmt.Sprintf("import_%s", tableName)
 
-	fmt.Println("Tablename", tableName)
+	fmt.Println("Tablename", targetTable)
+
+	makeTable(db, targetTable)
+	makeTable(db, importTable)
+
+	return importTable, targetTable
+
+}
+
+func makeTable(db *sql.DB, tableName string) {
 
 	sql := fmt.Sprintf(`CREATE UNLOGGED TABLE IF NOT EXISTS %s (
 		LIKE metingen_scanraw
@@ -197,8 +217,6 @@ func CreateTable(db *sql.DB, csvfile string) string {
 	if _, err := db.Exec(sql); err != nil {
 		fmt.Println("Tablename already there", tableName)
 	}
-
-	return tableName
 
 }
 
@@ -257,20 +275,11 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) (time.Time, time.Time) {
 
 		if err != nil {
 			line := strings.Join(record, delimiter)
-
-			failed++
-
-			if ignoreErrors {
-				csvError.Println(string(line))
-				continue
-			} else {
-				err = fmt.Errorf("%s: %s", err, line)
-				printRecord(&record)
-				printCols(cols)
-				panic(err)
-			}
+			err = fmt.Errorf("%s: %s", err, line)
+			printRecord(&record)
+			printCols(cols)
+			panic(err)
 		}
-
 		success++
 
 	}

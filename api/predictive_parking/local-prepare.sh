@@ -3,11 +3,15 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-#echo 'Downloading latest parking scan data'
-#python get_os_data.py
+echo 'Downloading latest parking scan data'
+python get_os_data.py
 
+
+echo 'Unrar scan data'
+ls /app/data/*.rar | xargs -I rarfile unrar -x rarfile /app/unzipped/ || true
 
 echo "split files in 500.000 chunks"
+
 
 #ls /app/unzipped/*stad*.csv | xargs -I csvsource -x tail -n +2 csvsource |  split -l 500000 - /app/unzipped/split_csvsource_
 

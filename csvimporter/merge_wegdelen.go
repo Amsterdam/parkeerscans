@@ -8,14 +8,18 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
-//MergeScansParkeervakWegdelen merge wegdelen / pv with scans
-func MergeScansParkeervakWegdelen(
+//mergeScansParkeervakWegdelen merge wegdelen / pv with scans
+func mergeScansParkeervakWegdelen(
 	db *sql.DB,
 	sourceTable string,
-	start string, end string,
+	targetTable string,
 	distance float32) {
+
+	info := fmt.Sprintf("merge vakken %s", sourceTable)
+	defer timeTrack(time.Now(), info)
 
 	sql := fmt.Sprintf(`
 
@@ -49,12 +53,8 @@ func MergeScansParkeervakWegdelen(
 
     FROM %s s ,wegdelen_parkeervak pv
     WHERE ST_DWithin(s.geometrie, pv.geometrie, %f)
-	/*
-	AND scan_moment >= '%s'::date
-	AND scan_moment <= '%s'::date */
-
     )
-    INSERT INTO metingen_scan(
+    INSERT INTO %s(
         scan_id,
         scan_moment,
 
@@ -85,7 +85,7 @@ func MergeScansParkeervakWegdelen(
 
         )
     SELECT * FROM matched_scans;
-	`, sourceTable, distance, start, end)
+	`, sourceTable, distance, targetTable)
 
 	//fmt.Printf(sql)
 
@@ -95,15 +95,18 @@ func MergeScansParkeervakWegdelen(
 		panic(err)
 	}
 
-	scanStatus(db)
+	scanStatus(db, targetTable)
 }
 
-//MergeScansWegdelen merge wegdelen / pv with scans
-func MergeScansWegdelen(
+//mergeScansWegdelen merge wegdelen / pv with scans
+func mergeScansWegdelen(
 	db *sql.DB,
 	sourceTable string,
-	start string, end string,
+	targetTable string,
 	distance float32) {
+
+	info := fmt.Sprintf("merge vakken %s", sourceTable)
+	defer timeTrack(time.Now(), info)
 
 	sql := fmt.Sprintf(`
 
@@ -135,11 +138,8 @@ func MergeScansWegdelen(
 
     FROM %s s, wegdelen_wegdeel wd
     WHERE ST_DWithin(s.geometrie, wd.geometrie, %f)
-	/*
-	AND scan_moment >= '%s'::date
-	AND scan_moment <= '%s'::date */
     )
-    INSERT INTO metingen_scan(
+    INSERT INTO %s(
         scan_id,
         scan_moment,
 
@@ -164,7 +164,7 @@ func MergeScansWegdelen(
         bgt_wegdeel,
         bgt_wegdeel_functie
     )
-    SELECT * FROM matched_scans;`, sourceTable, distance, start, end)
+    SELECT * FROM matched_scans;`, sourceTable, distance, targetTable)
 
 	fmt.Println("\nMerge Wegdelen\n", sourceTable)
 
@@ -172,28 +172,26 @@ func MergeScansWegdelen(
 		panic(err)
 	}
 
-	scanStatus(db)
+	scanStatus(db, targetTable)
 }
 
-func scanStatus(db *sql.DB) {
+func scanStatus(db *sql.DB, targetTable string) {
 
-	countScans := "SELECT count(*) from metingen_scan;"
+	info := "counting.."
+	defer timeTrack(time.Now(), info)
+	countScans := fmt.Sprintf("SELECT count(*) from %s;", targetTable)
 
 	rows, err := db.Query(countScans)
-	CheckErr(err)
+	checkErr(err)
 	count := checkCount(rows)
 
 	fmt.Println("\n Scans Verwerkt: ", count)
 }
 
-//func countTable(db *sql.DB, tableName string) {
-//	countScans := fmt.Sprintf("SELECT count(*) from %s;", tableName)
-//}
-
 func checkCount(rows *sql.Rows) (count int) {
 	for rows.Next() {
 		err := rows.Scan(&count)
-		CheckErr(err)
+		checkErr(err)
 	}
 	return count
 }

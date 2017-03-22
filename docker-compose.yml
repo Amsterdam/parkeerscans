@@ -1,8 +1,8 @@
 version: '2.1'
 services:
   database:
-    # build: ./postgres
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    build: ./postgres
+    #image: build.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
       - "5434:5432"
     environment:

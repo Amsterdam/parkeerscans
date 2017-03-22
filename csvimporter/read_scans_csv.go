@@ -2,7 +2,6 @@
 	- Import scan csv data into postgres using copy streaming protocol
 	- The database model should already be defined of the target table
 	- clean csv lines
-	- when ignoreErrors skips invalid csv lines
 */
 
 package main
@@ -41,7 +40,6 @@ var (
 
 	//IdxMap columnname index mapping
 	IdxMap       map[string]int
-	ignoreErrors bool
 	resultTable  string
 	targetTable  string
 	targetCSVdir string
@@ -70,6 +68,12 @@ func setLogging() {
 	csvError.Println("csv loading started...")
 }
 
+//timeTrack
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
+}
+
 //create string to connect to database
 func connectStr() string {
 
@@ -79,10 +83,10 @@ func connectStr() string {
 		"predictiveparking",
 		"predictiveparking",
 		"insecure",
-		"database",
-		"5432",
-		//"127.0.0.1",
-		//"5434",
+		//"database",
+		//"5432",
+		"127.0.0.1",
+		"5434",
 		otherParams,
 	)
 }
@@ -135,7 +139,7 @@ func init() {
 	db, err := dbConnect(connectStr())
 	Db = db
 
-	CheckErr(err)
+	checkErr(err)
 
 }
 
@@ -212,7 +216,7 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 
 	err := setLatLong(cols)
 
-	CheckErr(err)
+	checkErr(err)
 
 	if str, ok := cols[IdxMap["scan_id"]].(string); ok {
 		if str == "" {
@@ -247,27 +251,25 @@ func csvloader(id int, jobs <-chan string) {
 
 	for csvfile := range jobs {
 
-		target := CreateTable(Db, csvfile)
-		CleanTargetTable(Db, target)
-		pgTable, err := NewImport(Db, "public", target, columns)
-		CheckErr(err)
+		source, target := CreateTables(Db, csvfile)
+		cleanTable(Db, target)
+		cleanTable(Db, source)
+		pgTable, err := NewImport(Db, "public", source, columns)
+		checkErr(err)
 
-		datePair := LoadSingleCSV(csvfile, pgTable)
-
-		start := datePair.start
-		end := datePair.end
+		LoadSingleCSV(csvfile, pgTable)
 
 		pgTable.Commit()
-
-		MergeScansWegdelen(Db, target, start, end, 0.000001)
 		// within 0.1 meter from parkeervak
-		MergeScansParkeervakWegdelen(Db, target, start, end, 0.000001)
+		mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
 		// within 1.5 meters from parkeervak
-		MergeScansParkeervakWegdelen(Db, target, start, end, 0.000015)
+		mergeScansParkeervakWegdelen(Db, source, target, 0.000015)
 
-		//Clean import table
-		CleanTargetTable(Db, target)
-		//finalize csv file import in db
+		mergeScansWegdelen(Db, source, target, 0.000001)
+
+		// Drop import table
+		//dropTargetTable(Db, source)
+		// finalize csv file import in db
 	}
 	fmt.Println("Done", id)
 	defer wg.Done()
@@ -295,7 +297,7 @@ func importScans() {
 
 	//fmt.Println(files)
 
-	CheckErr(err)
+	checkErr(err)
 
 	if len(files) == 0 {
 		fmt.Printf(targetCSVdir)
@@ -335,8 +337,8 @@ func main() {
 	fmt.Printf("csv loading done succes: %d failed: %d", success, failed)
 }
 
-//CheckErr default crash hard error handling
-func CheckErr(err error) {
+//checkErr default crash hard error handling
+func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
