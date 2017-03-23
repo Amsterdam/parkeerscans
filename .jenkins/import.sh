@@ -77,10 +77,12 @@ echo "loading the unzipped scans into database, add wegdelen / pv to scans"
 
 dc run csvimporter app
 
+# crate table list for logstash
+dc run importer python manage.py run_import --storescantables
+
 echo "DONE! importing scans into database"
 
 echo "create scan db dump"
-
 # run the DB backup shizzle
 dc up db-backup
 
