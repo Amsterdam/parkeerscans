@@ -23,12 +23,13 @@ services:
   logstash:
     # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
     build: ../logstash
+    volumes:
+      - data-volume:/app/data
     links:
       - database:database
       - elasticsearch:elasticsearch
     environment:
-      START_DATE:
-      END_DATE:
+      TABLE:
 
   importer:
     # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}

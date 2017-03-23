@@ -27,5 +27,3 @@ dc exec database update-table.sh basiskaart BGT_WGL_rijbaan_regionale_weg bgt pr
 
 echo "Load buurt / buurtcombinatie"
 dc exec database update-table.sh bag bag_buurt public predictiveparking
-#
-

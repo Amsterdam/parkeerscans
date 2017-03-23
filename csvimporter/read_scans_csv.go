@@ -278,7 +278,7 @@ func csvloader(id int, jobs <-chan string) {
 			target,
 			count1, count15, countW)
 		// Drop import table
-		//dropTargetTable(Db, source)
+		dropTable(Db, source)
 		// finalize csv file import in db
 	}
 	log.Print("Done:", id)

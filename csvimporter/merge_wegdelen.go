@@ -30,31 +30,30 @@ func mergeScansParkeervakWegdelen(
     USING wegdelen_parkeervak pv
     WHERE ST_DWithin(s.geometrie, pv.geometrie, %f)
     RETURNING
-	s.scan_id,
-        s.scan_moment,
+		s.scan_id,
+		s.scan_moment,
+		s.device_id,
+		s.scan_source,
 
-        s.device_id,
-        s.scan_source,
+		s.longitude,
+		s.latitude,
+		s.geometrie,
 
-        s.longitude,
-        s.latitude,
-	s.geometrie,
+		s.stadsdeel,
+			s.buurtcode,
+		s.buurtcombinatie,
 
-	s.stadsdeel,
-        s.buurtcode,
-	s.buurtcombinatie,
+		s.sperscode,
+		s.qualcode,
+		s.ff_df,
+		s.nha_nr,
+		s.nha_hoogte,
+		s.uitval_nachtrun,
 
-        s.sperscode,
-        s.qualcode,
-        s.ff_df,
-        s.nha_nr,
-        s.nha_hoogte,
-        s.uitval_nachtrun,
-
-        pv.id,
-        pv.soort,
-        pv.bgt_wegdeel,
-        pv.bgt_wegdeel_functie
+		pv.id,
+		pv.soort,
+		pv.bgt_wegdeel,
+		pv.bgt_wegdeel_functie
     )
     INSERT INTO %s(
         scan_id,
@@ -65,11 +64,11 @@ func mergeScansParkeervakWegdelen(
 
         longitude,
         latitude,
-	geometrie,
+		geometrie,
 
-	stadsdeel,
+		stadsdeel,
         buurtcode,
-	buurtcombinatie,
+		buurtcombinatie,
 
         sperscode,
         qualcode,
@@ -78,14 +77,14 @@ func mergeScansParkeervakWegdelen(
         nha_hoogte,
         uitval_nachtrun,
 
-	/* add parkeervak AND wegdeel infromation */
+	    /* add parkeervak AND wegdeel infromation */
 
         parkeervak_id,
         parkeervak_soort,
         bgt_wegdeel,
         bgt_wegdeel_functie
 
-        )
+	)
     SELECT * FROM matched_scans;
 	`, sourceTable, distance, targetTable)
 
@@ -113,54 +112,54 @@ func mergeScansWegdelen(
     USING wegdelen_wegdeel wd
     WHERE ST_DWithin(s.geometrie, wd.geometrie, %f)
     RETURNING
-	s.scan_id,
-        s.scan_moment,
+		s.scan_id,
+		s.scan_moment,
 
-        s.device_id,
-        s.scan_source,
+		s.device_id,
+		s.scan_source,
 
-        s.longitude,
-        s.latitude,
-	s.geometrie,
+		s.longitude,
+		s.latitude,
+		s.geometrie,
 
-	s.stadsdeel,
-        s.buurtcode,
-	s.buurtcombinatie,
+		s.stadsdeel,
+		s.buurtcode,
+		s.buurtcombinatie,
 
-        s.sperscode,
-        s.qualcode,
-        s.ff_df,
-        s.nha_nr,
-        s.nha_hoogte,
-        s.uitval_nachtrun,
+		s.sperscode,
+		s.qualcode,
+		s.ff_df,
+		s.nha_nr,
+		s.nha_hoogte,
+		s.uitval_nachtrun,
 
-        wd.id,
-        wd.bgt_functie
+		wd.id,
+		wd.bgt_functie
     )
     INSERT INTO %s(
-        scan_id,
-        scan_moment,
+		scan_id,
+		scan_moment,
 
-        device_id,
-        scan_source,
+		device_id,
+		scan_source,
 
-        longitude,
-        latitude,
-	geometrie,
+		longitude,
+		latitude,
+		geometrie,
 
-	stadsdeel,
-        buurtcode,
-	buurtcombinatie,
+		stadsdeel,
+		buurtcode,
+		buurtcombinatie,
 
-        sperscode,
-        qualcode,
-        ff_df,
-        nha_nr,
-        nha_hoogte,
-        uitval_nachtrun,
+		sperscode,
+		qualcode,
+		ff_df,
+		nha_nr,
+		nha_hoogte,
+		uitval_nachtrun,
 
-        bgt_wegdeel,
-        bgt_wegdeel_functie
+		bgt_wegdeel,
+		bgt_wegdeel_functie
     )
     SELECT * FROM matched_scans;`, sourceTable, distance, targetTable)
 

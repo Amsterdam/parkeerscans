@@ -102,6 +102,13 @@ class Command(BaseCommand):
             default=False,
             help='merge scans met wegdelen als deze geen parkeerid hebben')
 
+        parser.add_argument(
+            '--storescantables',
+            action='store_true',
+            dest='findscantables',
+            default=False,
+            help='create list of scanstables')
+
     def handle(self, *args, **options):
         """
         Validate and execute import task
@@ -127,6 +134,8 @@ class Command(BaseCommand):
         elif options['setcounts']:
             import_wegdelen.add_parkeervak_count_to_buurt()
             import_wegdelen.add_parkeervak_count_to_wegdeel()
+        elif options['findscantables']:
+            import_wegdelen.collect_scans_table_list()
         else:
             log.error('Nothing imported.')
             sys.exit(1)

@@ -9,17 +9,17 @@ python get_os_data.py
 echo 'start extracting..'
 #[ "$(ls -A /app/unzipped/)" ] && echo "Not Empty" || echo "Empty"
 
-ls -A /app/unzipped/
+#if [ "$(ls -A /app/unzipped/)" ]
+#then
+#	echo "csv already present"
+#else
+#	echo "lets unzip csvs!"
+#	# these commands do not overwirte existing files!!
+#	# unzip -n '/app/data/*.zip' -d /app/unzipped/
+#	ls /app/data/*.rar | xargs -I rarfile unrar -x rarfile /app/unzipped/ || true
+#fi
 
-if [ "$(ls -A /app/unzipped/)" ]
-then
-	echo "csv already present"
-else
-	echo "lets unzip csvs!"
-	# these commands do not overwirte existing files!!
-	# unzip -n '/app/data/*.zip' -d /app/unzipped/
-	ls /app/data/*.rar | xargs -I rarfile unrar -x rarfile /app/unzipped/ || true
-fi
+ls /app/data/*.rar | xargs -I rarfile unrar -x rarfile /app/unzipped/ || true
 
 ls -alh /app/unzipped
 

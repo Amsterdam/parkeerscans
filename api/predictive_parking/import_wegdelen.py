@@ -86,11 +86,36 @@ def cluster_geometrieindexen():
 
 
 @LogWith(log)
-def scan_moment_index():
+def scan_moment_index(tablename='metingen_scan'):
     with connection.cursor() as c:
         c.execute(f"""
-        CREATE INDEX ON metingen_scan (scan_moment);
+        CREATE INDEX ON {tablename} (scan_moment);
         """)
+
+
+@LogWith(log)
+def collect_scans_table_list():
+    with connection.cursor() as c:
+        c.execute(f"""
+        SELECT table_name
+        FROM information_schema.tables t
+        WHERE t.table_schema LIKE 'public' AND table_name LIKE 'scans_%'
+        ORDER BY table_schema,table_name;
+        """)
+
+        rows = []
+        row = c.fetchone()
+        while row is not None:
+            rows.append(row)
+            log.debug(f'Tablename: {row[0]}')
+            row = c.fetchone()
+
+        with open('/app/data/tables.txt', 'w') as output:
+            for tablename in rows:
+                output.write(f"{tablename[0]}\n")
+
+        # create scan momnet indexes
+        # ...
 
 
 # @LogWith(log)

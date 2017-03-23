@@ -52,8 +52,8 @@ func cleanTable(db *sql.DB, target string) {
 	}
 }
 
-//dropTargetTable drop it!
-func dropTargetTable(db *sql.DB, target string) {
+//dropTable drop it!
+func dropTable(db *sql.DB, target string) {
 
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", target)
 
@@ -189,29 +189,27 @@ func CreateTables(db *sql.DB, csvfile string) (string, string) {
 
 	log.Println("Tablename", targetTable)
 
-	makeTable(db, targetTable)
-	makeTable(db, importTable)
+	makeTable(db, targetTable, false)
+	makeTable(db, importTable, true)
 
 	return importTable, targetTable
 
 }
 
-func makeTable(db *sql.DB, tableName string) {
+func makeTable(db *sql.DB, tableName string, inherit bool) {
 
-	sql := fmt.Sprintf(`CREATE UNLOGGED TABLE IF NOT EXISTS %s (
-		LIKE metingen_scanraw
-		);`, tableName)
+	dropTable(db, tableName)
+
+	sql := ""
+	if inherit {
+		sql = fmt.Sprintf(`CREATE UNLOGGED TABLE %s () INHERITS (metingen_scan);`, tableName)
+	} else {
+		sql = fmt.Sprintf(`CREATE UNLOGGED TABLE %s (LIKE metingen_scan INCLUDING DEFAULTS INCLUDING CONSTRAINTS);`, tableName)
+	}
 
 	if _, err := db.Exec(sql); err != nil {
 		panic(err)
 	}
-
-	sql = fmt.Sprintf(`ALTER TABLE %s DROP COLUMN id;`, tableName)
-
-	if _, err := db.Exec(sql); err != nil {
-		log.Println("Tablename already there", tableName)
-	}
-
 }
 
 func importCSV(pgTable *SQLImport, reader *csv.Reader) (time.Time, time.Time) {
