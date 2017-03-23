@@ -1,8 +1,8 @@
 version: '2.1'
 services:
   database:
-    # image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    build: ../postgres
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # build: ../postgres
     ports:
       - "5434:5432"
     environment:
@@ -21,8 +21,8 @@ services:
       - ./backups/elasticsearch:/tmp/backups
 
   logstash:
-    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
-    build: ../logstash
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
+    # build: ../logstash
     volumes:
       - data-volume:/app/data
     links:
@@ -32,8 +32,8 @@ services:
       TABLE:
 
   importer:
-    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
-    build: ../api/
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
+    # build: ../api/
     links:
       - database:database
       #- elasticsearch:elasticsearch
@@ -50,8 +50,8 @@ services:
       - unzip-volume:/app/unzipped
 
   csvimporter:
-    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
-    build: ../csvimporter/
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+    # build: ../csvimporter/
     links:
       - database:database
     environment:
@@ -61,9 +61,10 @@ services:
     volumes:
       - unzip-volume:/app/unzipped
 
+  # backup ALL
   db-backup:
-    # image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    build: ../postgres
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # build: ../postgres
     links:
       - database
     environment:
@@ -75,16 +76,19 @@ services:
               && chmod 600 ~/.pgpass \
               && pg_dump --clean \
                           -Fc \
+                          -t scans_* \
                           -t metingen_scans \
+                          -t wegdelen* \
                           -t django_migrations  \
                           -T auth*    \
                           -U predictiveparking \
                           -h database -p 5432 \
                           predictiveparking > /tmp/backups/database.dump"
 
+  # incemental
   db-backup-scans:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    build: ../postgres
+    # build: ../postgres
     links:
       - database
     environment:
@@ -94,10 +98,14 @@ services:
     command: >
       bash -c "echo database:5432:predictiveparking:predictiveparking:insecure > ~/.pgpass \
               && chmod 600 ~/.pgpass \
-              && pg_dump -t metingen_scans \
+              && pg_dump -t scans* \
                           -U predictiveparking \
                           -h database -p 5432 \
-                          predictiveparking > /tmp/backups/database.dump"
+                          predictiveparking > /tmp/backups/scans.dump \
+              && pg_dump -t wegdelen* \
+                          -U predictiveparking \
+                          -h database -p 5432 \
+                          predictiveparking > /tmp/backups/wegdelen.dump"
 
   el-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
