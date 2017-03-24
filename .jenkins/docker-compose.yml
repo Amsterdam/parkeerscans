@@ -99,6 +99,7 @@ services:
       bash -c "echo database:5432:predictiveparking:predictiveparking:insecure > ~/.pgpass \
               && chmod 600 ~/.pgpass \
               && pg_dump -t scans* \
+                          -Fc \
                           -U predictiveparking \
                           -h database -p 5432 \
                           predictiveparking > /tmp/backups/scans.dump \

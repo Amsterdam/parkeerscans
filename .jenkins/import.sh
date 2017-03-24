@@ -22,7 +22,7 @@ dc() {
 dc stop
 dc rm -f -v
 
-#trap 'dc kill ; dc rm -f -v' EXIT
+trap 'dc kill ; dc rm -f -v' EXIT
 
 if [ $TESTING != "yes" ]
 then
@@ -94,7 +94,7 @@ dc run --rm logstash
 echo "create scan db dump"
 # run the backup shizzle
 dc up db-backup
-dc up db-backup-scans
+# dc up db-backup-scans
 #
 #
 dc up el-backup
