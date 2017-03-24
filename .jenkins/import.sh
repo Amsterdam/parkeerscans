@@ -92,7 +92,7 @@ dc up -d elasticsearch
 dc run --rm logstash
 
 #
-dc up --rm el-backup
+dc up el-backup
 #
 
 
