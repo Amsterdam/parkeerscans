@@ -76,9 +76,9 @@ services:
               && chmod 600 ~/.pgpass \
               && pg_dump --clean \
                           -Fc \
-                          -t scans_* \
-                          -t metingen_scans \
                           -t wegdelen* \
+                          -t metingen* \
+                          -t scans* \
                           -t django_migrations  \
                           -T auth*    \
                           -U predictiveparking \

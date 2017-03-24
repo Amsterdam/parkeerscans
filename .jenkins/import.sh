@@ -27,6 +27,7 @@ trap 'dc kill ; dc rm -f -v' EXIT
 if [ $TESTING != "yes" ]
 then
 	docker volume rm pp_unzip-volume || true
+	docker volume rm pp_data-volume || true
 fi
 
 #
@@ -90,14 +91,14 @@ dc up -d elasticsearch
 
 dc run --rm logstash
 
+#
+dc up --rm el-backup
+#
+
 
 echo "create scan db dump"
 # run the backup shizzle
-dc up db-backup
-# dc up db-backup-scans
-#
-#
-dc up el-backup
-#
+dc up --rm db-backup
+
 echo "DONE! with import. You are awesome! <3"
 dc stop
