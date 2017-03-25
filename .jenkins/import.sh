@@ -98,7 +98,7 @@ dc up el-backup
 
 echo "create scan db dump"
 # run the backup shizzle
-dc up --rm db-backup
+dc up db-backup
 
 echo "DONE! with import. You are awesome! <3"
 dc stop
