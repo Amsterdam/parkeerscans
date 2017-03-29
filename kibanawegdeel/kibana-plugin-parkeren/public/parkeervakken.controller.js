@@ -92,7 +92,7 @@ module.controller('ParkeervakkenController', function ($scope, $http, Private) {
 
     function fetchWfsParkeervakken () {
         const BBOX = map.getBounds().toBBoxString();
-        const WFS_URL = 'https://map-acc.datapunt.amsterdam.nl/maps/parkeervakken?' +
+        const WFS_URL = 'https://map-acc.data.amsterdam.nl/maps/parkeervakken?' +
             'REQUEST=Getfeature&' +
             'VERSION=1.1.0&' +
             'SERVICE=wfs&' +
@@ -108,7 +108,7 @@ module.controller('ParkeervakkenController', function ($scope, $http, Private) {
 
     function fetchWfsWegdelen () {
         const BBOX = map.getBounds().toBBoxString();
-        const WFS_URL = 'https://map-acc.datapunt.amsterdam.nl/maps/predictiveparking?' +
+        const WFS_URL = 'https://map-acc.data.amsterdam.nl/maps/predictiveparking?' +
             'REQUEST=Getfeature&' +
             'VERSION=1.1.0&' +
             'SERVICE=wfs&' +
