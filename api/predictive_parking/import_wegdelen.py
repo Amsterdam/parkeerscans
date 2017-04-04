@@ -93,8 +93,14 @@ def scan_moment_index(tablename='metingen_scan'):
         """)
 
 
-@LogWith(log)
-def collect_scans_table_list():
+def store_row_data(rows):
+
+    with open('/app/data/tables.txt', 'w') as output:
+        for tablename in rows:
+            output.write(f"{tablename}\n")
+
+
+def collect_scans_table_list_stmt():
     with connection.cursor() as c:
         c.execute(f"""
         SELECT table_name
@@ -105,18 +111,18 @@ def collect_scans_table_list():
 
         rows = []
         row = c.fetchone()
+
         while row is not None:
             rows.append(row)
             log.debug(f'Tablename: {row[0]}')
             row = c.fetchone()
 
-        with open('/app/data/tables.txt', 'w') as output:
-            for tablename in rows:
-                output.write(f"{tablename[0]}\n")
+        return [r[0] for r in rows]
 
-        # create scan momnet indexes
-        # ...
 
+def collect_scans_table_list():
+    rows = collect_scans_table_list_stmt()
+    store_row_data(rows)
 
 # @LogWith(log)
 # def add_parkeervak_to_scans(distance=0.000015):
@@ -534,6 +540,105 @@ def add_parkeervak_count_to_buurt():
         )
         AS sq
         WHERE id = buurt
+    """)
+
+    status('after')
+
+
+def add_scan_count_wegdelen_vakken():
+    """
+    Find the last 3 scan tables and add counts to
+    """
+    rows = collect_scans_table_list_stmt()
+    total_scans = 0
+    # newest first
+    rows.reverse()
+
+    for table in rows:
+
+        c_stmt = f"SELECT COUNT(*) FROM {table};"
+
+        idx_wegdeel = f"CREATE INDEX ON {table} (bgt_wegdeel);"
+        idx_pvid = f"CREATE INDEX ON {table} (parkeervak_id);"
+
+        with connection.cursor() as c:
+            log.debug('INDEX on Wegdeel %s', table)
+            c.execute(idx_wegdeel)
+        with connection.cursor() as c:
+            log.debug('INDEX on Parkeervak %s', table)
+            c.execute(idx_pvid)
+        with connection.cursor() as c:
+            log.debug('COUNT %s', table)
+            c.execute(c_stmt)
+            row = c.fetchone()
+            total_scans += row[0]
+
+        log.debug('COUNT %s %s', table, total_scans)
+
+        add_scan_count_to_wegdelen(table)
+        add_scan_count_to_vakken(table)
+
+        if total_scans > 1800000:
+            break
+
+        print(table)
+
+
+@LogWith(log)
+def add_scan_count_to_wegdelen(source_table):
+
+    log.debug('Add scan count to each wegdeel using %s', source_table)
+
+    def status(state):
+        log.debug(
+            "%6s: Wegdelen Totaal %s null: %s >0: %s",
+            state,
+            WegDeel.objects.count(),
+            WegDeel.objects.filter(scan_count=None).count(),
+            WegDeel.objects.filter(scan_count__gt=0).count())
+
+    status('before')
+
+    with connection.cursor() as c:
+        c.execute(f"""
+    UPDATE wegdelen_wegdeel b SET scan_count = scan_count + sq.scans
+    FROM (
+        SELECT bgt_wegdeel, count(id) as scans
+        FROM {source_table}
+            GROUP BY bgt_wegdeel
+        )
+        AS sq
+        WHERE b.id = sq.bgt_wegdeel
+    """)
+
+    status('after')
+
+
+@LogWith(log)
+def add_scan_count_to_vakken(source_table):
+
+    log.debug('Add scan count to each parkeervak using %s', source_table)
+
+    def status(state):
+        log.debug(
+            "%6s: Vakken Totaal %s null: %s >0: %s",
+            state,
+            Parkeervak.objects.count(),
+            Parkeervak.objects.filter(scan_count=None).count(),
+            Parkeervak.objects.filter(scan_count__gt=0).count())
+
+    status('before')
+
+    with connection.cursor() as c:
+        c.execute(f"""
+    UPDATE wegdelen_parkeervak v SET scan_count = scan_count + sq.scans
+    FROM (
+        SELECT parkeervak_id, count(id) as scans
+        FROM {source_table}
+            GROUP BY parkeervak_id
+        )
+        AS sq
+        WHERE v.id = sq.parkeervak_id
     """)
 
     status('after')

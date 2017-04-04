@@ -124,7 +124,7 @@ func init() {
 	success = 1
 	indb = 0
 
-	workers = 2
+	workers = 3
 
 	//TODO make environment variable
 	targetCSVdir = "/app/unzipped"

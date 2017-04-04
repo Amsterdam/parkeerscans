@@ -32,13 +32,19 @@ fi
 echo "split files in 500.000 chunks"
 
 #ls /app/unzipped/*stad*.csv | xargs -I csvsource -x tail -n +2 csvsource |  split -l 500000 - /app/unzipped/split_csvsource_
-
 for file in /app/unzipped/*stad*.csv
 do
 	echo $file
 	lala=`basename $file .csv`
 	echo $lala
 	tail -n +2 $file | split --additional-suffix=.csv -l 500000 - "/app/unzipped/split$lala"
+
+    # only do 1 file while testing
+
+    if [ "$TESTING" = "yes" ]
+    then
+        break
+    fi
 
 done
 

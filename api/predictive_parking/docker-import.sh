@@ -32,15 +32,3 @@ python manage.py run_import --mergebuurten
 # set parkeervak counts op buurten en wegdelen
 # fiscaal en niet fiscaal
 python manage.py run_import --parkeervakcounts
-
-
-## plak vakken aan scans
-# python manage.py run_import --mergevakken
-
-# scans zonder parkeervak hebben wel een wegdeel
-# python manage.py run_import --addwegdeeltowrongscans
-
-# create scanmoment index for logstash
-# python manage.py run_import --scanmomentindex
-
-

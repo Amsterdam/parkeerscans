@@ -78,27 +78,23 @@ echo "loading the unzipped scans into database, add wegdelen / pv to scans"
 
 dc run --rm csvimporter app
 
-# crate table list for logstash
-dc run --rm importer python manage.py run_import --storescantables
+# crate table list for logstash / scan count stats on wegdelen / vakken
+dc run --rm importer ./docker-scanstats.sh
 
 echo "DONE! importing scans into database"
 
 echo "create scan db dump"
+dc up -d elasticsearch
+
 # run the DB backup shizzle
 dc up db-backup
 
-dc up -d elasticsearch
+dc up db-backup-scans
 
 dc run --rm logstash
 
-#
 dc up el-backup
 #
 
-
-echo "create scan db dump"
-# run the backup shizzle
-dc up db-backup
-
-echo "DONE! with import. You are awesome! <3"
+echo "DONE! with scan data import. You are awesome! <3"
 dc stop

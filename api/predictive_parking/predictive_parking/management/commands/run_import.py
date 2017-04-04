@@ -109,6 +109,13 @@ class Command(BaseCommand):
             default=False,
             help='create list of scanstables')
 
+        parser.add_argument(
+            '--addsummaryscancounts',
+            action='store_true',
+            dest='summarycounts',
+            default=False,
+            help='Add summary counts to wegdelen en vakken')
+
     def handle(self, *args, **options):
         """
         Validate and execute import task
@@ -136,6 +143,8 @@ class Command(BaseCommand):
             import_wegdelen.add_parkeervak_count_to_wegdeel()
         elif options['findscantables']:
             import_wegdelen.collect_scans_table_list()
+        elif options['summarycounts']:
+            import_wegdelen.add_scan_count_wegdelen_vakken()
         else:
             log.error('Nothing imported.')
             sys.exit(1)

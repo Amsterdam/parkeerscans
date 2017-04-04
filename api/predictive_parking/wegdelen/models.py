@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.gis.db import models as geo
 # Create your models here.
 
+
 class Parkeervak(models.Model):
     """
     Een parkeervak met relatie naar wegdeel WGS84
@@ -27,6 +28,10 @@ class Parkeervak(models.Model):
     buurt = models.CharField(
         null=True, db_index=True, max_length=4)
 
+    # count indication of scans of last month
+    # used to cleanup / find errors in dataset
+    scan_count = models.IntegerField(null=True)
+
 
 class WegDeel(models.Model):
     """
@@ -38,6 +43,10 @@ class WegDeel(models.Model):
     geometrie = geo.MultiPolygonField(srid=4326)
     vakken = models.IntegerField(null=True)
     fiscale_vakken = models.IntegerField(null=True)
+
+    # count indication of scans of last month
+    # used to cleanup / find errors in dataset
+    scan_count = models.IntegerField(null=True)
 
 
 class Buurt(models.Model):
