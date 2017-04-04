@@ -578,10 +578,8 @@ def add_scan_count_wegdelen_vakken():
         add_scan_count_to_wegdelen(table)
         add_scan_count_to_vakken(table)
 
-        if total_scans > 1800000:
+        if total_scans > 2800000:
             break
-
-        print(table)
 
 
 @LogWith(log)
