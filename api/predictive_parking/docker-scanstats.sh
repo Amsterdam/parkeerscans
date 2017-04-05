@@ -8,3 +8,4 @@ python manage.py run_import --storescantables
 
 python manage.py run_import --addsummaryscancounts
 
+python manage.py run_import --createsamplescans

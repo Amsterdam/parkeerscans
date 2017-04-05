@@ -116,6 +116,13 @@ class Command(BaseCommand):
             default=False,
             help='Add summary counts to wegdelen en vakken')
 
+        parser.add_argument(
+            '--createsamplescans',
+            action='store_true',
+            dest='samplescans',
+            default=False,
+            help='Create sample scans')
+
     def handle(self, *args, **options):
         """
         Validate and execute import task
@@ -145,6 +152,8 @@ class Command(BaseCommand):
             import_wegdelen.collect_scans_table_list()
         elif options['summarycounts']:
             import_wegdelen.add_scan_count_wegdelen_vakken()
+        elif options['samplescans']:
+            import_wegdelen.create_scan_sample_table()
         else:
             log.error('Nothing imported.')
             sys.exit(1)

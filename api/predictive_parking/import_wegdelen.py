@@ -545,6 +545,46 @@ def add_parkeervak_count_to_buurt():
     status('after')
 
 
+@LogWith(log)
+def create_scan_sample_table():
+    """
+    Create scan sample viewset ~2.000.000 items
+    """
+
+    rows = collect_scans_table_list_stmt()
+    rows.reverse()
+
+    sample_table = "scans_sample"
+
+    drop_if = f"""
+        DROP TABLE IF EXISTS {sample_table};
+    """
+
+    create_sample_stm = f"""
+
+    CREATE UNLOGGED TABLE {sample_table} (
+        LIKE metingen_scan INCLUDING DEFAULTS INCLUDING CONSTRAINTS);
+
+    """
+
+    with connection.cursor() as c:
+        c.execute(drop_if)
+
+    with connection.cursor() as c:
+        c.execute(create_sample_stm)
+
+    for table_name in rows[:6]:
+        log.debug('SAMPLE %s', table_name)
+
+        insert_stm = f"""
+            INSERT INTO {sample_table}
+            SELECT * FROM {table_name};
+        """
+
+        with connection.cursor() as c:
+            c.execute(insert_stm)
+
+
 def add_scan_count_wegdelen_vakken():
     """
     Find the last 3 scan tables and add counts to
