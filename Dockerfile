@@ -29,4 +29,3 @@ ENV DJANGO_SETTINGS_MODULE=predictive_parking.settings
 USER datapunt
 COPY bag /app/
 CMD /app/docker-entrypoint.sh
-

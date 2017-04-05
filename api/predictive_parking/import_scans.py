@@ -97,7 +97,7 @@ def scan_moment_index():
 @LogWith(log)
 def add_parkeervak_to_scans(distance=0.000015):
     """
-    Given scans pind nearest parking spot
+    Given scans find nearest parking spot
     """
     without_parkspot = ScanRaw.objects.filter(parkeervak_id=None).count
 

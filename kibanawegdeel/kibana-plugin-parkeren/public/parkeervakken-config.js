@@ -9,7 +9,7 @@ module.exports = {
         zoom: 13
     },
 
-    BASE_LAYER_URL: 'https://{s}.datapunt.amsterdam.nl/topo_google/{z}/{x}/{y}.png',
+    BASE_LAYER_URL: 'https://{s}.data.amsterdam.nl/topo_google/{z}/{x}/{y}.png',
 
     BASE_LAYER_OPTIONS: {
         minZoom: 9,
