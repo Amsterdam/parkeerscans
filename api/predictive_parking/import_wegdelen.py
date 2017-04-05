@@ -618,12 +618,13 @@ def add_scan_count_to_vakken(source_table):
     log.debug('Add scan count to each parkeervak using %s', source_table)
 
     def status(state):
+        fiscaal = Parkeervak.objects.filter(soort='FISCAAL')
         log.debug(
-            "%6s: Vakken Totaal %s null: %s >0: %s",
+            "%6s: Fiscale Vakken Totaal %s null: %s >0: %s",
             state,
-            Parkeervak.objects.count(),
-            Parkeervak.objects.filter(scan_count=None).count(),
-            Parkeervak.objects.filter(scan_count__gt=0).count())
+            fiscaal.count(),
+            fiscaal.filter(scan_count=None).count(),
+            fiscaal.filter(scan_count__gt=0).count())
 
     status('before')
 
