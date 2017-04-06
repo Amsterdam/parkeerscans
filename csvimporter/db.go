@@ -189,8 +189,8 @@ func CreateTables(db *sql.DB, csvfile string) (string, string) {
 
 	log.Println("Tablename", targetTable)
 
-	makeTable(db, targetTable, false)
-	makeTable(db, importTable, true)
+	makeTable(db, targetTable, true)
+	makeTable(db, importTable, false)
 
 	return importTable, targetTable
 

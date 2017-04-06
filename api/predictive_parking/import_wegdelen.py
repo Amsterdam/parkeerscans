@@ -573,7 +573,7 @@ def create_scan_sample_table():
     with connection.cursor() as c:
         c.execute(create_sample_stm)
 
-    for table_name in rows[:6]:
+    for table_name in rows[:2]:
         log.debug('SAMPLE %s', table_name)
 
         insert_stm = f"""
