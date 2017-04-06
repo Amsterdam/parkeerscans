@@ -179,6 +179,19 @@ func scanStatus(db *sql.DB, targetTable string) int {
 	count := checkCount(rows)
 
 	log.Printf("Scans in %s:  %d", targetTable, count)
+
+	return count
+}
+
+func totalProcessedScans(db *sql.DB) int {
+	countScans := fmt.Sprintf("SELECT count(*) from metingen_scan;")
+
+	rows, err := db.Query(countScans)
+	checkErr(err)
+	count := checkCount(rows)
+
+	log.Printf("Scans in metingen_scan:  %d", count)
+
 	return count
 }
 

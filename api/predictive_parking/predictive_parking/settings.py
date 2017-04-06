@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 
     'django_extensions',
 
+    'health',
     'metingen',
     'wegdelen',
 

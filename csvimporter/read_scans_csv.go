@@ -274,9 +274,10 @@ func csvloader(id int, jobs <-chan string) {
 
 		indb += countW
 
-		log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d\n\n",
+		log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d \n\n",
 			target,
-			count1, count15, countW)
+			count1, count15, countW,
+		)
 		// Drop import table
 		dropTable(Db, source)
 		// finalize csv file import in db
@@ -294,8 +295,10 @@ func printStatus() {
 	for {
 		time.Sleep(time.Duration(delta) * time.Second)
 
-		log.Printf("STATUS: rows:%-10ds inDB: %-10d failed %-10d  - %10d rows/s",
-			success, indb, failed, speed)
+		countT := totalProcessedScans(Db)
+
+		log.Printf("STATUS: rows:%-10ds inDB: %-10d failed %-10d  - %10d rows/s  %10d Total",
+			success, indb, failed, speed, countT)
 		duration = i * delta
 		speed = success / duration
 		i++
