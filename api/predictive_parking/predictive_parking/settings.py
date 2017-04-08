@@ -193,12 +193,7 @@ REST_FRAMEWORK = dict(
     PAGE_SIZE=100,
 
     MAX_PAGINATE_BY=100,
-    DEFAULT_AUTHENTICATION_CLASSES=(
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ),
-    DEFAULT_PAGINATION_CLASS='drf_hal_json.pagination.HalPageNumberPagination',
-    DEFAULT_PARSER_CLASSES=('drf_hal_json.parsers.JsonHalParser',),
+
     DEFAULT_RENDERER_CLASSES=(
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
