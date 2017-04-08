@@ -33,6 +33,9 @@ python manage.py run_import --mergebuurten
 # fiscaal en niet fiscaal
 python manage.py run_import --parkeervakcounts
 
+# create sample scans dataset of last ~500.000 scans.
+python manage.py run_import --samplescans
+
 
 ## plak vakken aan scans
 # python manage.py run_import --mergevakken

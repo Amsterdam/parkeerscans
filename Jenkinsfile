@@ -23,6 +23,8 @@ node {
         checkout scm
     }
 
+    //TODO tests!!
+
     stage("Build develop kibana") {
         tryStep "build", {
             def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}", "kibana")
@@ -73,4 +75,4 @@ node {
                     ]
         }
     }
-}    //TODO tests!!
+}
