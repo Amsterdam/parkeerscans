@@ -34,7 +34,7 @@ python manage.py run_import --mergebuurten
 python manage.py run_import --parkeervakcounts
 
 # create sample scans dataset of last ~500.000 scans.
-python manage.py run_import --samplescans
+python manage.py run_import --createsamplescans
 
 
 ## plak vakken aan scans
