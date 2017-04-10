@@ -35,5 +35,5 @@ USER datapunt
 
 COPY predictive_parking /app/
 
-#CMD ["/app/docker-run.sh"]
+CMD ["/app/docker-run.sh"]
 #CMD ["/app/docker-run.sh"]

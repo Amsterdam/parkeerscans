@@ -28,6 +28,25 @@ services:
       START_DATE:
       END_DATE:
 
+  ppapi:
+    build: ./api
+    ports:
+      - "8080:8080"
+    links:
+      - database:database
+      - elasticsearch:elasticsearch
+    environment:
+      DATABASE_NAME: predictiveparking
+      DATABASE_PASSWORD: insecure
+      UWSGI_HTTP: ":8080"
+      UWSGI_MODULE: "predictive_parking.wsgi:application"
+      UWSGI_MASTER: 1
+      UWSGI_STATIC_MAP: "/static=/static"
+      UWSGI_PROCESSES: 4
+      UWSGI_VACUUM: 1
+      UWSGI_HARAKIRI: 15
+      UWSGI_DIE_ON_TERM: 1
+
   kibana:
     build: ./kibana
     ports:
