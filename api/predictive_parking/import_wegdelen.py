@@ -378,6 +378,7 @@ def create_scan_sample_table():
     """
 
     rows = collect_scans_table_list_stmt()
+
     rows.reverse()
 
     sample_table = "scans_sample"
@@ -404,7 +405,7 @@ def create_scan_sample_table():
     with connection.cursor() as c:
         c.execute(create_sample_stm)
 
-    for table_name in rows[:2]:
+    for table_name in rows[:4]:
         log.debug('SAMPLE %s', table_name)
 
         insert_stm = f"""
@@ -416,6 +417,7 @@ def create_scan_sample_table():
             c.execute(insert_stm)
 
     count = status('after')
+
     assert count > 0
 
 

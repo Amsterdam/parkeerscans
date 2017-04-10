@@ -38,14 +38,6 @@ do
 	lala=`basename $file .csv`
 	echo $lala
 	tail -n +2 $file | split --additional-suffix=.csv -l 500000 - "/app/unzipped/split$lala"
-
-    # only do 1 file while testing
-
-    if [ "$TESTING" = "yes" ]
-    then
-        break
-    fi
-
 done
 
 ls -alh /app/unzipped
