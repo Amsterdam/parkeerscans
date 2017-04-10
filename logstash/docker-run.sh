@@ -13,9 +13,6 @@ do
 done
 
 
-# export ELKHOST='http://es01-acc.datapunt.amsterdam.nl'
-
-
 # curl -s -v -f -XDELETE http://${ELKHOST:-elasticsearch}:9200/_template/scan || echo 'OK'
 curl -s -v -f -XPUT http://${ELKHOST:-elasticsearch}:9200/_template/scan -d '
 {
