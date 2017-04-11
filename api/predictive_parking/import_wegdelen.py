@@ -117,6 +117,7 @@ def collect_scans_table_list_stmt():
             log.debug(f'Tablename: {row[0]}')
             row = c.fetchone()
 
+        log.debug(f'Scan Tablename: {len(rows)}')
         return [r[0] for r in rows]
 
 
@@ -163,10 +164,10 @@ def sql_count(table):
     count = 0
 
     with connection.cursor() as c:
-        log.debug('COUNT %s', table)
         c.execute(c_stmt)
         row = c.fetchone()
         count += row[0]
+        log.debug('COUNT %s %s', table, count)
 
     return count
 
@@ -421,6 +422,7 @@ def create_scan_sample_table():
     assert count > 0
 
 
+@LogWith(log)
 def add_scan_count_wegdelen_vakken():
     """
     Find the last 3 scan tables and add counts to
@@ -429,16 +431,6 @@ def add_scan_count_wegdelen_vakken():
     total_scans = 0
     # newest first
     rows.reverse()
-
-    def status(state):
-        log.debug(
-            "%6s: Vakken Totaal %s null: %s >0: %s",
-            state,
-            Parkeervak.objects.count(),
-            Parkeervak.objects.filter(scan_count=None).count(),
-            Parkeervak.objects.filter(scan_count__gt=0).count())
-
-    status('before')
 
     for table in rows:
 
@@ -458,13 +450,12 @@ def add_scan_count_wegdelen_vakken():
         log.debug('COUNT %s %s', table, total_scans)
 
         add_scan_count_to_wegdelen(table)
+
         add_scan_count_to_vakken(table)
 
         if total_scans > 2800000:
             # We hane enough sample data
             break
-
-    status('after')
 
 
 @LogWith(log)
@@ -473,18 +464,24 @@ def add_scan_count_to_wegdelen(source_table):
     log.debug('Add scan count to each wegdeel using %s', source_table)
 
     def status(state):
+        source_scan_count = sql_count(source_table)
+        log.debug('scans: %s', source_scan_count)
+
+        all_wegdeel = WegDeel.objects.count()
+        null_wegdeel = WegDeel.objects.filter(scan_count=None).count()
+
         log.debug(
-            "%6s: Wegdelen Totaal %s null: %s >0: %s",
+            "%6s: Wegdelen T %s NULl: %s >0: %s",
             state,
-            WegDeel.objects.count(),
-            WegDeel.objects.filter(scan_count=None).count(),
+            all_wegdeel,
+            null_wegdeel,
             WegDeel.objects.filter(scan_count__gt=0).count())
 
-    status('before')
+        assert null_wegdeel != all_wegdeel
 
     with connection.cursor() as c:
         c.execute(f"""
-    UPDATE wegdelen_wegdeel b SET scan_count = scan_count + sq.scans
+    UPDATE wegdelen_wegdeel b SET scan_count = COALESCE(scan_count, 0) + sq.scans
     FROM (
         SELECT bgt_wegdeel, count(id) as scans
         FROM {source_table}
@@ -492,9 +489,9 @@ def add_scan_count_to_wegdelen(source_table):
         )
         AS sq
         WHERE b.id = sq.bgt_wegdeel
-    """)
+    """)  # noqa
 
-    status('after')
+    status('validate')
 
 
 @LogWith(log)
@@ -504,18 +501,24 @@ def add_scan_count_to_vakken(source_table):
 
     def status(state):
         fiscaal = Parkeervak.objects.filter(soort='FISCAAL')
+
+        all_fiscaal = fiscaal.count()
+        null_vakken = fiscaal.filter(scan_count=None).count(),
+
         log.debug(
             "%6s: Fiscale Vakken Totaal %s null: %s >0: %s",
             state,
-            fiscaal.count(),
-            fiscaal.filter(scan_count=None).count(),
+            all_fiscaal,
+            null_vakken,
             fiscaal.filter(scan_count__gt=0).count())
+
+        assert all_fiscaal != null_vakken
 
     status('before')
 
     with connection.cursor() as c:
         c.execute(f"""
-    UPDATE wegdelen_parkeervak v SET scan_count = scan_count + sq.scans
+    UPDATE wegdelen_parkeervak v SET scan_count = COALESCE(scan_count, 0) + sq.scans
     FROM (
         SELECT parkeervak_id, count(id) as scans
         FROM {source_table}
@@ -523,6 +526,6 @@ def add_scan_count_to_vakken(source_table):
         )
         AS sq
         WHERE v.id = sq.parkeervak_id
-    """)
+    """)  # noqa
 
     status('after')

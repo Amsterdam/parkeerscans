@@ -26,9 +26,10 @@ trap 'dc kill ; dc rm -f -v' EXIT
 
 if [ $TESTING != "yes" ]
 then
-	docker volume rm pp_unzip-volume || true
 	docker volume rm pp_data-volume || true
 fi
+
+docker volume rm pp_unzip-volume || true
 
 #
 ## get the latest and greatest

@@ -11,7 +11,7 @@ RUN apt-get update \
 		gdal-bin \
 		libgeos-dev \
 		unzip \
-        unrar-free \
+		unrar \
 		postgresql-client-9.4 \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

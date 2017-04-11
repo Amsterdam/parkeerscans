@@ -29,6 +29,11 @@ python manage.py run_import --mergewegdelen
 
 python manage.py run_import --mergebuurten
 
+# set parkeervak counts op buurten en wegdelen
+# fiscaal en niet fiscaal
+python manage.py run_import --parkeervakcounts
+
+
 
 ## plak vakken aan scans
 # python manage.py run_import --mergevakken
