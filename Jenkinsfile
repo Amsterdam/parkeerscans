@@ -18,7 +18,6 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 
 
 node {
-
     stage("Checkout") {
         checkout scm
     }
@@ -57,6 +56,17 @@ node {
             }
     }
 
+if (BRANCH == "master") {
+
+    node {
+        stage('Push acceptance image') {
+            tryStep "image tagging", {
+                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/monumenten:${env.BUILD_NUMBER}")
+                image.pull()
+                image.push("acceptance")
+            }
+        }
+    }
     stage("Deploy to ACC") {
         tryStep "deployment", {
             build job: 'Subtask_Openstack_Playbook',
