@@ -2,72 +2,56 @@ version: '2.1'
 services:
   database:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # build: ../postgres
+    ports:
+      - "5434:5432"
     environment:
       POSTGRES_PASSWORD: insecure
       POSTGRES_USER: predictiveparking
       POSTGRES_DB: predictiveparking
     volumes:
       - databasevolume:/tmp
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    mem_limit: 6g
 
-  # sudo sysctl -w vm.max_map_count=262144
-  # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Ebootstrap.memory_lock=true -Enetwork.host=_site_ -Erepositories.url.allowed_urls=https://*.datapunt.amsterdam.nl/*
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
     environment:
-      - "ES_JAVA_OPTS=-Xms5g -Xmx5g"
-    user: root
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
     volumes:
       - ./backups/elasticsearch:/tmp/backups
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 195536
-        hard: 195536
-    mem_limit: 6g
-    cap_add:
-      - IPC_LOCK
 
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
-    #build: ../logstash
+    # build: ../logstash
+    volumes:
+      - data-volume:/app/data
     links:
       - database:database
       - elasticsearch:elasticsearch
     environment:
-      START_DATE:
-      END_DATE:
+      TABLE:
 
   importer:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
-    # build: ../web/
+    # build: ../api/
     links:
       - database:database
-      - elasticsearch:elasticsearch
+      #- elasticsearch:elasticsearch
     environment:
       DATABASE_NAME: predictiveparking
       DATABASE_USER: predictiveparking
       DATABASE_PASSWORD: insecure
       PARKEERVAKKEN_OBJECTSTORE_PASSWORD:
       PGPASSWORD: insecure
+      TESTING:
     user: root
     volumes:
       - data-volume:/app/data
       - unzip-volume:/app/unzipped
 
   csvimporter:
-    # image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
-    build: ../csvimporter/
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+    # build: ../csvimporter/
     links:
       - database:database
     environment:
@@ -75,10 +59,12 @@ services:
       DATABASE_PASSWORD: insecure
       TESTING:
     volumes:
-      - unzip-volume:/tmp/unzipped
+      - unzip-volume:/app/unzipped
 
+  # backup ALL
   db-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # build: ../postgres
     links:
       - database
     environment:
@@ -90,12 +76,37 @@ services:
               && chmod 600 ~/.pgpass \
               && pg_dump --clean \
                           -Fc \
+                          -t wegdelen* \
+                          -t metingen* \
                           -t scans* \
                           -t django_migrations  \
                           -T auth*    \
                           -U predictiveparking \
                           -h database -p 5432 \
                           predictiveparking > /tmp/backups/database.dump"
+
+  # incemental
+  db-backup-scans:
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # build: ../postgres
+    links:
+      - database
+    environment:
+      PGPASSWORD: insecure
+    volumes:
+      - ./backups:/tmp/backups
+    command: >
+      bash -c "echo database:5432:predictiveparking:predictiveparking:insecure > ~/.pgpass \
+              && chmod 600 ~/.pgpass \
+              && pg_dump -t scans* \
+                          -Fc \
+                          -U predictiveparking \
+                          -h database -p 5432 \
+                          predictiveparking > /tmp/backups/scans.dump \
+              && pg_dump -t wegdelen* \
+                          -U predictiveparking \
+                          -h database -p 5432 \
+                          predictiveparking > /tmp/backups/wegdelen.dump"
 
   el-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
@@ -105,9 +116,10 @@ services:
       - ./backups/elasticsearch:/tmp/backups
     user: root
     command: >
-      bash -c "curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
-              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }' \
-              && chown -R 997:997 /tmp/backups"
+      bash -c "chmod -R 777 /tmp/backups  \
+              && rm -f /tmp/backups/* \
+              && curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
+              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }'"
 
 volumes:
   data-volume:

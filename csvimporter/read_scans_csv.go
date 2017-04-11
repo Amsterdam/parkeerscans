@@ -2,12 +2,12 @@
 	- Import scan csv data into postgres using copy streaming protocol
 	- The database model should already be defined of the target table
 	- clean csv lines
-	- when ignoreErrors skips invalid csv lines
 */
 
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -21,18 +21,32 @@ import (
 	"time"
 )
 
+//DatePair start and end data string values
+type DatePair struct {
+	start string
+	end   string
+}
+
 var (
-	csvError     *log.Logger
-	columns      []string
-	success      int
-	last         int
-	workers      int
-	failed       int
-	ignoreErrors bool
-	targetTable  string
+	csvError *log.Logger
+	columns  []string
+	success  int
+	indb     int
+	last     int
+	workers  int
+	failed   int
+
+	//Db object we use all over the place
+	Db *sql.DB
+
+	//idxMap columnname index mapping
+	idxMap       map[string]int
 	targetCSVdir string
 	wg           sync.WaitGroup
 	start        time.Time
+
+	//DateMap store per filename the start and end date
+	DateMap map[string]DatePair
 )
 
 //set up logging..
@@ -51,6 +65,12 @@ func setLogging() {
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	csvError.Println("csv loading started...")
+}
+
+//timeTrack
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
 }
 
 //create string to connect to database
@@ -79,30 +99,46 @@ ScanId;scnMoment;scan_source;scnLongitude;scnLatitude;buurtcode;afstand;spersCod
 
 func init() {
 	columns = []string{
-		"scan_id",         // 0  ScanId;
-		"scan_moment",     // 1  scnMoment;
-		"scan_source",     // 2  scan_source;
-		"longitude",       // 3  scnLongitude;
-		"latitude",        // 4  scnLatitude;
-		"buurtcode",       // 5  buurtcode;
-		"afstand",         // 6  aftand to pvak?
-		"sperscode",       // 7  spersCode;
-		"qualcode",        // 8  qualCode;
-		"ff_df",           // 9  FF_DF;
-		"nha_nr",          // 10 NHA_nr;
-		"nha_hoogte",      // 11 NHA_hoogte;
-		"uitval_nachtrun", // 12 uitval_nachtrun;
+		"scan_id",         //  ScanId;
+		"scan_moment",     //  scnMoment;
+		"device_id",       //  device id
+		"scan_source",     //  scan_source;
+		"longitude",       //  scnLongitude;
+		"latitude",        //  scnLatitude;
+		"buurtcode",       //  buurtcode;
+		"afstand",         //  aftand to pvak?
+		"sperscode",       //  spersCode;
+		"qualcode",        //  qualCode;
+		"ff_df",           //   FF_DF;
+		"nha_nr",          //  NHA_nr;
+		"nha_hoogte",      //  NHA_hoogte;
+		"uitval_nachtrun", //  uitval_nachtrun;
 
-		"stadsdeel",       // 13  stadsdeel;
-		"buurtcombinatie", // 14  buurtcombinatie;
-		"geometrie",       // 15 geometrie
+		"stadsdeel",       //  stadsdeel;
+		"buurtcombinatie", //  buurtcombinatie;
+		"geometrie",       //  geometrie
 	}
 
-	targetTable = "scans_scan"
+	idxMap = make(map[string]int)
+	DateMap = make(map[string]DatePair)
+	success = 1
+	indb = 0
+
 	workers = 3
-	ignoreErrors = false
+
 	//TODO make environment variable
-	targetCSVdir = "/tmp/unzipped"
+	targetCSVdir = "/app/unzipped"
+
+	// fill map
+	for i, field := range columns {
+		idxMap[field] = i
+	}
+
+	db, err := dbConnect(connectStr())
+	Db = db
+
+	checkErr(err)
+
 }
 
 //setLatLon create wgs84 point for postgres
@@ -113,17 +149,28 @@ func setLatLong(cols []interface{}) error {
 	var err error
 	var point string
 
-	if str, ok := cols[3].(string); ok {
-		long, err = strconv.ParseFloat(str, 64)
-	} else {
-		return errors.New("long field value wrong")
+	if cols[idxMap["longitude"]] == nil {
+		return errors.New("longitude field value wrong")
 	}
 
-	if str, ok := cols[4].(string); ok {
+	if cols[idxMap["latitude"]] == nil {
+		return errors.New("latitude field value wrong")
+	}
+
+	if str, ok := cols[idxMap["longitude"]].(string); ok {
+		long, err = strconv.ParseFloat(str, 64)
+	} else {
+		return errors.New("longitude field value wrong")
+	}
+
+	if str, ok := cols[idxMap["latitude"]].(string); ok {
 		lat, err = strconv.ParseFloat(str, 64)
 	} else {
-		return errors.New("lat field value wrong")
+		return errors.New("latitude field value wrong")
 	}
+
+	//bbox amsterdam
+	//precision
 
 	if err != nil {
 		return err
@@ -131,7 +178,8 @@ func setLatLong(cols []interface{}) error {
 
 	point = geo.NewPointFromLatLng(lat, long).ToWKT()
 	point = fmt.Sprintf("SRID=4326;%s", point)
-	cols[15] = point
+
+	cols[idxMap["geometrie"]] = point
 
 	return nil
 
@@ -148,29 +196,37 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		if field == "" {
 			continue
 		}
+
 		// normalize on dot notation
 		cleanedField = strings.Replace(field, ",", ".", 1)
 		cols[i] = cleanedField
 
-		if i == 5 {
-			cols[13] = string(field[0]) //stadsdeel
-			cols[14] = field[:3]        //buurtcombinatie
+		if i == idxMap["buurtcode"] {
+			cols[idxMap["stadsdeel"]] = string(field[0])
+			cols[idxMap["buurtcombinatie"]] = field[:3]
 		}
-	}
 
-	if cols[8] == "Distanceerror" {
-		return nil, errors.New("Distanceerror in 'afstand'")
+		//ignore afstand
+		if i == idxMap["afstand"] {
+			cols[i] = ""
+		}
 	}
 
 	err := setLatLong(cols)
 
 	if err != nil {
-		return nil, err
+		printRecord(record)
+		printCols(cols)
+		panic(err)
+		//return nil, errors.New("lat long field failure")
 	}
 
-	if err != nil {
-		//not a valid point
-		return nil, errors.New("invalid lat long")
+	if str, ok := cols[idxMap["scan_id"]].(string); ok {
+		if str == "" {
+			return nil, errors.New("scan_id field missing")
+		}
+	} else {
+		return nil, errors.New("scan_id field missing")
 	}
 
 	return cols, nil
@@ -179,50 +235,73 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 func printRecord(record *[]string) {
 	log.Println("\n source record:")
 	for i, field := range *record {
-		log.Println(columns[i], field)
-		csvError.Printf("%10s %s", field, columns[i])
+		log.Printf("%2d %20s %32s", i, field, columns[i])
+		csvError.Printf("%d %10s %22s", i, field, columns[i])
 	}
 }
 
 func printCols(cols []interface{}) {
 	log.Println("\ncolumns:")
 	for i, field := range columns {
-		log.Printf("%10s %s", field, cols[i])
+		log.Printf("%2d %20s %32s", i, field, cols[i])
 	}
 }
 
 //csvloader streams one csv and commit into database
 func csvloader(id int, jobs <-chan string) {
 
-	fmt.Println("worker", id)
+	log.Print("worker", id)
 
 	for csvfile := range jobs {
 
-		db, err := dbConnect(connectStr())
+		source, target := CreateTables(Db, csvfile)
 
-		if err != nil {
-			log.Fatalln(err)
-		}
+		cleanTable(Db, target)
+		cleanTable(Db, source)
 
-		pgTable, err := NewImport(
-			db, "public", "scans_scan", columns)
+		pgTable, err := NewImport(Db, "public", source, columns)
+		checkErr(err)
 
 		LoadSingleCSV(csvfile, pgTable)
-		//finalize csv file import in db
-		pgTable.Commit()
 
+		pgTable.Commit()
+		// within 0.1 meter from parkeervak
+		count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
+		// within 1.5 meters from parkeervak
+		count15 := mergeScansParkeervakWegdelen(Db, source, target, 0.000015)
+		// scans op bgt wegdeel
+		countW := mergeScansWegdelen(Db, source, target, 0.000001)
+
+		indb += countW
+
+		log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d \n\n",
+			target,
+			count1, count15, countW,
+		)
+		// Drop import table
+		dropTable(Db, source)
+		// finalize csv file import in db
 	}
-	fmt.Println("Done", id)
+	log.Print("Done:", id)
 	defer wg.Done()
 }
 
 func printStatus() {
+	i := 1
+	delta := 10
+	duration := 0
+	speed := 0
+
 	for {
-		time.Sleep(1 * time.Second)
-		fmt.Printf(
-			"\r STATUS: %10d:imported %10d:failed  %10d rows/s",
-			success, failed, success-last)
-		last = success
+		time.Sleep(time.Duration(delta) * time.Second)
+
+		countT := totalProcessedScans(Db)
+
+		log.Printf("STATUS: rows:%-10ds inDB: %-10d failed %-10d  - %10d rows/s  %10d Total",
+			success, indb, failed, speed, countT)
+		duration = i * delta
+		speed = success / duration
+		i++
 	}
 }
 
@@ -234,28 +313,21 @@ func importScans() {
 	//find all csv files
 	start := time.Now()
 
-	files, err := filepath.Glob(fmt.Sprintf("%s/*week*.csv", targetCSVdir))
+	files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", targetCSVdir))
 
-	if err != nil {
-		panic(err)
-	}
+	//fmt.Println(files)
+
+	checkErr(err)
 
 	if len(files) == 0 {
+		log.Printf(targetCSVdir)
 		panic(errors.New("Missing csv files"))
 	}
 
-	jobs := make(chan string, 100)
+	jobs := make(chan string, 500)
 
-	test := os.Getenv("TESTING")
-
-	fmt.Println("\n TESTING: ", test)
-
-	for i, file := range files {
-		if test == "yes" {
-			if i > 1 {
-				break
-			}
-		}
+	for _, file := range files {
+		log.Println(file)
 		jobs <- file
 	}
 
@@ -269,18 +341,25 @@ func importScans() {
 	}
 
 	wg.Wait()
-	fmt.Println("\n Duration:", time.Now().Sub(start))
+
+	log.Print("\n Duration:", time.Now().Sub(start))
 
 }
 
 func main() {
-	fmt.Println("Reading scans..")
+	log.Print("Importing scans..")
 
 	setLogging()
 
-	// CleanTargetTable(db, targetTable)
-
 	importScans()
 
-	fmt.Printf("csv loading done succes: %d failed: %d", success, failed)
+	log.Printf("COUNTS: rows:%-10ds inDB: %-10d failed %-10d", success, indb, failed)
+
+}
+
+//checkErr default crash hard error handling
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

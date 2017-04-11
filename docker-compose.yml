@@ -1,8 +1,8 @@
 version: '2.1'
 services:
   database:
-    build: ./postgres
-    # image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # build: ./postgres
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
       - "5434:5432"
     environment:
@@ -10,11 +10,9 @@ services:
       POSTGRES_USER: predictiveparking
       POSTGRES_DB: predictiveparking
 
-  # sudo sysctl -w vm.max_map_count=262144
-  # if elasticsearch docker does not start..
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Enetwork.host=0.0.0.0
+    command: elasticsearch  -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -30,6 +28,25 @@ services:
       START_DATE:
       END_DATE:
 
+  ppapi:
+    build: ./api
+    ports:
+      - "8080:8080"
+    links:
+      - database:database
+      - elasticsearch:elasticsearch
+    environment:
+      DATABASE_NAME: predictiveparking
+      DATABASE_PASSWORD: insecure
+      UWSGI_HTTP: ":8080"
+      UWSGI_MODULE: "predictive_parking.wsgi:application"
+      UWSGI_MASTER: 1
+      UWSGI_STATIC_MAP: "/static=/static"
+      UWSGI_PROCESSES: 4
+      UWSGI_VACUUM: 1
+      UWSGI_HARAKIRI: 15
+      UWSGI_DIE_ON_TERM: 1
+
   kibana:
     build: ./kibana
     ports:
@@ -38,10 +55,10 @@ services:
       - elasticsearch:elasticsearch
     command: kibana
 
-  kibanaWegdeel:
-    build: ./kibana
+  kibanawegdeel:
+    build: ./kibanawegdeel
     ports:
-      - "5602:5602"
+      - "5602:5601"
     links:
       - elasticsearch:elasticsearch
     command: kibana
@@ -54,7 +71,7 @@ services:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
     volumes:
-      - ./unzipped:/tmp/unzipped
+      - ./unzipped:/app/unzipped
 
 
   # geoserver with elastic support

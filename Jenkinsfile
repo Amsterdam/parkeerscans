@@ -22,6 +22,8 @@ node {
         checkout scm
     }
 
+    //TODO tests!!
+
     stage("Build develop kibana") {
         tryStep "build", {
             def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}", "kibana")
@@ -30,7 +32,13 @@ node {
         }
     }
 
-
+    stage("Build develop kibana wegdeel") {
+        tryStep "build", {
+            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibanawegdeel:${env.BUILD_NUMBER}", "kibanawegdeel")
+            image.push()
+            image.push("acceptance")
+        }
+    }
 
     stage("Build develop logstash") {
         tryStep "build", {
@@ -48,9 +56,9 @@ node {
         }
     }
 
-    stage("Build develop web/python") {
+    stage("Build develop api/python") {
             tryStep "build", {
-                def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "web")
+                def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "api")
                 image.push()
                 image.push("acceptance")
             }
@@ -77,4 +85,4 @@ if (BRANCH == "master") {
                     ]
         }
     }
-}    //TODO tests!!
+}
