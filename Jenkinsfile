@@ -81,7 +81,6 @@ if (BRANCH == "master") {
                     parameters: [
                             [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
                             [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-predictive-parking.yml'],
-                            [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
                     ]
         }
     }
