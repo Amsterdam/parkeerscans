@@ -92,9 +92,14 @@ dc up db-backup
 
 dc up db-backup-scans
 
-dc run --rm logstash
+# 
+if [ $RUNELASTIC == "yes" ]
+then
 
-dc up el-backup
+	dc run --rm logstash
+	dc up el-backup
+fi
+
 #
 
 echo "DONE! with scan data import. You are awesome! <3"
