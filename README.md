@@ -1,9 +1,26 @@
 # Predictive Parking
 
-This is a proof of concept for scan data analysis using a kibana dashboard.
+This is a project about the scan data analysis. Making maps of the parking "pressure" 
+in the city is the main goal.
 
-Het in kaart brengen van de parkeerdruk door middel van scan data.
-We zijn bezig met een proof of concept (POC)
+The project is devided in a few docker-containers with their own functions.
+
+  - api
+     - provide web api on scan data
+     - contains database building / migrations and loading of related databases
+  - csvimporter
+    - golang code which crunches to and cleans up scan data and import csv data into postgres database
+  - kibana
+    - default kibana to analyse scan - data. deployed at: https://acc.parkeren.data.amsterdam.nl
+  - logstash
+    - import data from database into elasticsearch
+  - kibanawegdeel
+    - POC showing proof of concept with parking pressure: https://demo1.atlas.amsterdam.nl/goto/a6ec13ad0c9c4b2f2e5539cdf1d57feb
+  - postgres
+    - database docker with custom settings
+  - .jenkins
+    - import environment to build new dataset
+
 
 There are two steps
 
@@ -56,8 +73,8 @@ The visuallizations are done with 2 different kibana instances. We use 2 because
 =====
 
  - add test
- - make import more reliable
  - incremental data loading
+ - make custom api to replace kibana.
 
 
 Development
@@ -93,12 +110,3 @@ Step2, Visualization
    - start a local accesible elasticsearch docker with parking data from step1.
    - for plugin development npm is used and I suggest looking into the pluging develop
      ment documentation pages of kibana
-
-
-NOTE
-====
-
-  - IF ELK5 fails to start / unknown host.. then RUN 'sysctl -w vm.max_map_count=262144'
-    Elasticsearch 5 is WAY more strickt in checking the environment and memmory conditions
-  - Memory consupmtion is HUGE by both elasticsearch and the database. You can lower memory
-    consumption in the .jenkins/docker-compose file
