@@ -13,6 +13,10 @@ echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 echo "Testing import? if (yes)"
 echo $TESTING
 
+echo "Run elastic import? if (yes)"
+echo $RUNELASTIC
+
+
 
 dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
@@ -90,7 +94,7 @@ dc up -d elasticsearch
 # run the DB backup shizzle
 dc up db-backup
 
-dc up db-backup-scans
+# dc up db-backup-scans
 
 # 
 if [ $RUNELASTIC == "yes" ]

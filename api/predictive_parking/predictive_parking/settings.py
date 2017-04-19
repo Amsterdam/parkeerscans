@@ -48,6 +48,7 @@ SITE_ID = 1
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
 
     'django_extensions',
 
