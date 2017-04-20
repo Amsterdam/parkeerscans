@@ -49,12 +49,20 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'django.contrib.auth',
 
     'django_extensions',
+    'django_filters',
 
+    'rest_framework_gis',
+    'rest_framework',
+
+    'datapunt',
     'health',
+
     'metingen',
     'wegdelen',
+    'parkeerkans',
 
     'predictive_parking',
 ]
@@ -161,22 +169,6 @@ DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',  # noqa
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',  # noqa
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',  # noqa
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', # noqa
-    },
-]
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -191,7 +183,7 @@ USE_L10N = True
 USE_TZ = True
 
 REST_FRAMEWORK = dict(
-    PAGE_SIZE=100,
+    PAGE_SIZE=20,
 
     MAX_PAGINATE_BY=100,
 

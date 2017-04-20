@@ -1,40 +1,50 @@
 """predictive_parking ROOT URL Configuration
 """
 
+from parkeerkans import views as kansviews
+
 from rest_framework import routers
 
 from django.conf.urls import url, include
 
 
-class MetingenScanRouter(routers.DefaultRouter):
+# from metingen import views as metingviews
+
+
+class PredictiveParkingView(routers.APIRootView):
     """
-    Parkeerscan data
+    Alle API's / databronnen met betrekking tot predictive parking
 
-    De scandata die gebruikt wordt voor analyses.
+    * parkeerkans model output
+    * metingen (scans)
+    * tellingen mbv elasticsearch
 
-    De data is dermate groot dat er beter niet direct met deze API
-    gewerkt kan worden.
+    voor WFS data van vakken , wegdelen en scans:
 
-    Filteren kan op tijd, soort, type, scan, device_id.
+    [https://acc.map.amsterdam.nl/predictiveparking]
 
-    De dataset groeit met ongeveer 3.000.000 per maand.
-    begin 2017 zijn er al 43.000.000 scans beschikbaar voor analyses.
     """
 
-    def get_api_root_view(self, **kwargs):
-        view = super().get_api_root_view(**kwargs)
-        cls = view.cls
 
-        class ParkeerScans(cls):
-            pass
-
-        # Typeahead.__doc__ = self.__doc__
-        # return Typeahead.as_view()
+class PredictiveParkingRouter(routers.DefaultRouter):
+    APIRootView = PredictiveParkingView
 
 
-scans = MetingenScanRouter()
+# kansen.register(r'kansen/', kansviews.KansmodelViewSet, base_name='mvp')
+
+
+predictiveparking = PredictiveParkingRouter()
+
+predictiveparking.register(r'kansen/buurt', kansviews.KansmodelViewSet, 'mvp')
+
+# predictiveparking.extend(kansen)
+
+# predictiveparking.register(r'parkeerkans', kansen.urls
 
 urlpatterns = [
     url(r'^status/', include('health.urls', namespace='health')),
-    # url(r'^metingen/', include(scans.urls)),
+    url(r'^predictiveparking/', include(predictiveparking.urls)),
+
+    # url(r'^metingen/', include(kansen.urls)),
+
 ]
