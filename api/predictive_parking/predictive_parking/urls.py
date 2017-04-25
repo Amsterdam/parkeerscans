@@ -8,7 +8,7 @@ from rest_framework import routers
 from django.conf.urls import url, include
 
 
-# from metingen import views as metingviews
+from metingen import views as metingviews
 
 
 class PredictiveParkingView(routers.APIRootView):
@@ -36,6 +36,8 @@ class PredictiveParkingRouter(routers.DefaultRouter):
 predictiveparking = PredictiveParkingRouter()
 
 predictiveparking.register(r'kansen/buurt', kansviews.KansmodelViewSet, 'mvp')
+predictiveparking.register(
+    r'metingen/scans', metingviews.MetingenViewSet, 'Scan')
 
 # predictiveparking.extend(kansen)
 
@@ -46,5 +48,4 @@ urlpatterns = [
     url(r'^predictiveparking/', include(predictiveparking.urls)),
 
     # url(r'^metingen/', include(kansen.urls)),
-
 ]

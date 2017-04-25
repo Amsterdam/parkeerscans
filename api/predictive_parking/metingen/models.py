@@ -10,19 +10,18 @@ class Scan(models.Model):
     """
     Een scan punt
 
-    -'scan_id'          # niet altijd uniek..
-    -'scan_moment',
-    -'device_id',       # unieke device id / auto id
-    -'scan_source',     # auto of pda
-    -'longitude', 'latitude',
-    -'buurtcode',       # GGW code
-    -'afstand',         ..
-    -'sperscode', (vergunning..)
-    -'qualcode',        # status / kwaliteit
-    -'ff_df',           # field of desk
-    -'nha_nr', ignored? # naheffings_nummer
-    -'nha_hoogte',      # geldboete
-    -'uitval_nachtrun'  # nachtelijke correctie
+    - scan_id          # niet altijd uniek..
+    - scan_moment
+    - device_id         # unieke device id / auto id
+    - scan_source       # auto of pda
+
+    - buurtcode         # GGW code
+    - sperscode         # (vergunning..)
+    - qualcode          # status / kwaliteit
+    - ff_df             # field of desk
+    - nha_nr            # naheffings_nummer
+    - nha_hoogte        # geldboete
+    - uitval_nachtrun   # nachtelijke correctie
     """
 
     scan_id = models.IntegerField()  # not unique!!
