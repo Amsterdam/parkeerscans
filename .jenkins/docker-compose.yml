@@ -44,7 +44,7 @@ services:
       PARKEERVAKKEN_OBJECTSTORE_PASSWORD:
       PGPASSWORD: insecure
       TESTING:
-      DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.datapunt.amsterdam.nl/}
+      DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
     user: root
     volumes:
       - data-volume:/app/data
@@ -59,7 +59,7 @@ services:
       DATABASE_NAME: predictiveparking
       DATABASE_PASSWORD: insecure
       TESTING:
-      DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.datapunt.amsterdam.nl/}
+      DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
     volumes:
       - unzip-volume:/app/unzipped
 
