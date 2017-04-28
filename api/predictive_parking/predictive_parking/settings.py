@@ -141,7 +141,7 @@ DATABASE_OPTIONS = {
     },
     LocationKey.local: {
         'HOST': get_docker_host(),
-        'PORT': '5434'    # defined in compose file
+        'PORT': '5432'    # defined in compose file
     },
     LocationKey.override: {
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),

@@ -453,8 +453,8 @@ def add_scan_count_wegdelen_vakken():
 
         add_scan_count_to_vakken(table)
 
-        if total_scans > 2800000:
-            # We hane enough sample data
+        if total_scans > 9800000:
+            log.debug(f'We hane enough sample data sample size: {total_scans}')
             break
 
 
@@ -503,10 +503,10 @@ def add_scan_count_to_vakken(source_table):
         fiscaal = Parkeervak.objects.filter(soort='FISCAAL')
 
         all_fiscaal = fiscaal.count()
-        null_vakken = fiscaal.filter(scan_count=None).count(),
+        null_vakken = fiscaal.filter(scan_count=None).count()
 
         log.debug(
-            "%6s: Fiscale Vakken Totaal %s null: %s >0: %s",
+            "%6s: Fiscale Vakken Totaal %s not seen: %s seen: %s",
             state,
             all_fiscaal,
             null_vakken,
