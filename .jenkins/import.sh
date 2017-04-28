@@ -52,7 +52,7 @@ dc up -d database
 echo "create scan api database"
 dc run --rm importer ./docker-migrate.sh
 echo "download latest files.."
-dc run --rm importer ./docker-prepare.sh
+dc run --rm importer ./docker-prepare-csvdata.sh
 #
 echo "Load latest parkeervakken.."
 dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
@@ -96,7 +96,7 @@ dc up db-backup
 
 # dc up db-backup-scans
 
-# 
+#
 if [ $RUNELASTIC == "yes" ]
 then
 

@@ -84,8 +84,6 @@ func connectStr() string {
 		"insecure",
 		"database",
 		"5432",
-		//"127.0.0.1",
-		//"5434",
 		otherParams,
 	)
 }

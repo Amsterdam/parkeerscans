@@ -74,18 +74,18 @@ class ScanRaw(models.Model):
     """
     Een scan punt (zonder indexen)
 
-    -'scan_id'          # niet altijd uniek..
-    -'scan_moment',
-    -'scan_source',     # auto of pda
-    -'longitude', 'latitude',
-    -'buurtcode',       # GGW code
-    -'afstand',         ..
-    -'sperscode', (vergunning..)
-    -'qualcode',        # status / kwaliteit
-    -'ff_df',           # field of desk
-    -'nha_nr', ignored? # naheffings_nummer
-    -'nha_hoogte',      # geldboete
-    -'uitval_nachtrun'  # nachtelijke correctie
+    - scan_id           # niet altijd uniek..
+    - scan_moment
+    - scan_source       # auto of pda
+    - longitude latitude
+    - buurtcode         # GGW code
+    - afstand           ?
+    - sperscode         # (vergunning..)
+    - qualcode          # status / kwaliteit
+    - ff_df             # field of desk
+    - nha_nr            # naheffings_nummer
+    - nha_hoogte        # geldboete
+    - uitval_nachtrun   # nachtelijke correctie
     """
 
     scan_id = models.IntegerField()  # not unique!!
