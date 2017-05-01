@@ -512,7 +512,8 @@ def add_scan_count_to_vakken(source_table):
             null_vakken,
             fiscaal.filter(scan_count__gt=0).count())
 
-        assert all_fiscaal != null_vakken
+        if state == 'after':
+            assert all_fiscaal != null_vakken
 
     status('before')
 
