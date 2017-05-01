@@ -41,6 +41,12 @@ func dbConnect(connStr string) (*sql.DB, error) {
 	return db, nil
 }
 
+//TODO:
+//determine table name from argument
+//detemine count.
+//devide in batch jobs.
+//index scans in jobs
+
 func fetchScans() {
 
 	scansql := fmt.Sprintf(`
