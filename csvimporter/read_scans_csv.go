@@ -73,8 +73,8 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s took %s", name, elapsed)
 }
 
-//create string to connect to database
-func connectStr() string {
+//ConnectStr create string to connect to database
+func ConnectStr() string {
 
 	otherParams := "sslmode=disable connect_timeout=5"
 	return fmt.Sprintf(
@@ -132,7 +132,7 @@ func init() {
 		idxMap[field] = i
 	}
 
-	db, err := dbConnect(connectStr())
+	db, err := dbConnect(ConnectStr())
 	Db = db
 
 	checkErr(err)

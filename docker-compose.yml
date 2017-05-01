@@ -16,9 +16,10 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
-    volumes:
-      - /home/stephan/elk_okt:/tmp/backup
+    #volumes:
+    #  - /home/stephan/elk_okt:/tmp/backup
     #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+
   logstash:
     links:
       - database:database
