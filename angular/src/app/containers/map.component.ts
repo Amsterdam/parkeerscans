@@ -8,7 +8,7 @@ import * as mapActions from '../actions/map';
 @Component({
   selector: 'dp-map',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div dp-leaflet>This will show a map</div>`
+  template: `<div dp-leaflet class="c-map">This will show a map</div>`
 })
 export class MapComponent {
 }

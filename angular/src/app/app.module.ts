@@ -20,6 +20,7 @@ import { schema } from './db';
 
 import { MapComponent } from './containers/map.component';
 import { LeafletDirective } from './containers/leaflet.directive';
+import { MapCrs } from './containers/map-crs.service';
 
 /*
  * Platform and Environment providers/directives/pipes
@@ -92,7 +93,8 @@ import '../styles/headings.css';
     DBModule.provideDB(schema)
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
-    ENV_PROVIDERS
+    ENV_PROVIDERS,
+    MapCrs
   ]
 })
 export class AppModule {}
