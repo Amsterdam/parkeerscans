@@ -6,6 +6,7 @@ from parkeerkans import views as kansviews
 from rest_framework import routers
 
 from django.conf.urls import url, include
+from django.conf import settings
 
 
 from metingen import views as metingviews
@@ -37,7 +38,11 @@ predictiveparking = PredictiveParkingRouter()
 
 predictiveparking.register(r'kansen/buurt', kansviews.KansmodelViewSet, 'mvp')
 predictiveparking.register(
-    r'metingen/scans', metingviews.MetingenViewSet, 'Scan')
+    r'metingen/scans', metingviews.MetingenViewSet, 'scan')
+
+predictiveparking.register(
+    r'metingen/aggregations', metingviews.AggregationViewSet, 'scan')
+
 
 # predictiveparking.extend(kansen)
 
@@ -49,3 +54,9 @@ urlpatterns = [
 
     # url(r'^metingen/', include(kansen.urls)),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        url(r'^__debug__/', include(debug_toolbar.urls))
+    ] + urlpatterns

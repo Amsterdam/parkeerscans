@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'django.contrib.auth',
+    # 'django.contrib.auth',
 
     'django_extensions',
     'django_filters',
@@ -65,16 +65,22 @@ INSTALLED_APPS = [
     'parkeerkans',
 
     'predictive_parking',
+    'debug_toolbar',
+
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'predictive_parking.urls'
+
+INTERNAL_IPS = ['127.0.0.1']
 
 TEMPLATES = [
     {
@@ -85,7 +91,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
+                # 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
@@ -186,6 +192,9 @@ REST_FRAMEWORK = dict(
     PAGE_SIZE=20,
 
     MAX_PAGINATE_BY=100,
+
+    UNAUTHENTICATED_USER=None,
+    UNAUTHENTICATED_TOKE=None,
 
     DEFAULT_RENDERER_CLASSES=(
         'rest_framework.renderers.JSONRenderer',
