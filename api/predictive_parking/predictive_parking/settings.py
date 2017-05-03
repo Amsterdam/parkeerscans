@@ -65,17 +65,22 @@ INSTALLED_APPS = [
     'parkeerkans',
 
     'predictive_parking',
-    'debug_toolbar',
-
 ]
 
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+
+
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+if DEBUG:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
 
 ROOT_URLCONF = 'predictive_parking.urls'
