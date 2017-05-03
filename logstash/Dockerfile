@@ -28,5 +28,6 @@ COPY readdb.conf /app/
 COPY geomapping.json /app/
 COPY docker-run.sh /app/
 
+COPY tables.txt /app/data/
 
 CMD ["/app/docker-run.sh"]

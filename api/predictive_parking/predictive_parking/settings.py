@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    # 'django.contrib.auth',
 
     'django_extensions',
     'django_filters',
@@ -130,7 +129,7 @@ def in_docker():
         return False
 
 
-class LocationKey:
+class LocationKey(object):
     local = 'local'
     docker = 'docker'
     override = 'override'
@@ -175,6 +174,15 @@ DATABASES = {
 }
 
 DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
+
+ELASTIC_INDICES = {
+    'scans': 'scans-*',
+}
+
+
+ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
+    os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', get_docker_host()),
+    os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]
 
 
 # Password validation
@@ -261,7 +269,7 @@ LOGGING = {
 
         'search': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
 
@@ -298,7 +306,7 @@ LOGGING = {
         # Log all unhandled exceptions
         'django.request': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
 
