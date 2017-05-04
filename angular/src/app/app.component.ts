@@ -22,11 +22,7 @@ import * as mapActions from './actions/map';
   styleUrls: [
     './app.component.css'
   ],
-  template: `
-    <main>
-      <router-outlet></router-outlet>
-    </main>
-  `
+  template: `<router-outlet></router-outlet>`
 })
 export class AppComponent {
 }
