@@ -27,7 +27,11 @@ export class LeafletDirective {
       const leafletMap: L.Map = L.map(el.nativeElement, options)
         .setView([52.3731081, 4.8932945], 11);
       const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd/{z}/{x}/{y}.png', {
-        subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4']
+        subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4'],
+        tms: true,
+        minZoom: 8,
+        maxZoom: 16,
+        bounds: mapOptions.maxBounds
       });
 
       baseLayer.addTo(leafletMap);
