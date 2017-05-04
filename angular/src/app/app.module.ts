@@ -83,8 +83,8 @@ import '../styles/headings.css';
      *
      * See: https://github.com/ngrx/effects/blob/master/docs/api.md#run
      */
-    //EffectsModule.run(BookEffects),
-    //EffectsModule.run(CollectionEffects),
+    // EffectsModule.run(BookEffects),
+    // EffectsModule.run(CollectionEffects),
 
     /**
      * `provideDB` sets up @ngrx/db with the provided schema and makes the Database
