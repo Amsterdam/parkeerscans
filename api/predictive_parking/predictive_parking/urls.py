@@ -41,7 +41,13 @@ predictiveparking.register(
     r'metingen/scans', metingviews.MetingenViewSet, 'scan')
 
 predictiveparking.register(
-    r'metingen/aggregations', metingviews.AggregationViewSet, 'scan')
+    r'metingen/aggregations/wegdelen',
+    metingviews.WegdelenAggregationViewSet, 'wegdelen')
+
+
+predictiveparking.register(
+    r'metingen/aggregations/vakkenn',
+    metingviews.VakkenAggregationViewSet, 'vakken')
 
 
 # predictiveparking.extend(kansen)
@@ -56,7 +62,7 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    import debug_toolbar
+    import debug_toolbar  # noqa
     urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls))
     ] + urlpatterns
