@@ -181,8 +181,8 @@ ELASTIC_INDICES = {
 
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
-    os.getenv('OVERRIDE_EL_HOST_VAR', get_docker_host()),
-    os.getenv('OVERRIDE_EL_PORT_VAR', 9200))]
+    os.getenv('ELASTICSEARCH_HOST_OVERRIDE', get_docker_host()),
+    os.getenv('ELASTICSEARCH_PORT_OVERRIDE', 9200))]
 
 
 # Password validation
