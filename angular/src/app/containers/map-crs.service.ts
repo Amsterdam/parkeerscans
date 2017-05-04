@@ -77,8 +77,8 @@ export class MapCrs {
      * voor een workaround hier 2 waarden toegevoegd. initiatie schaal in zoom.directive.js
      * https://github.com/Leaflet/Leaflet/issues/4091
      */
-    //this.rd.distance = L.CRS.Earth.distance;
-    //this.rd.R = config.EARTH_RADIUS;
+    this.rd.distance = L.CRS.Earth.distance;
+    this.rd.R = config.EARTH_RADIUS;
   }
 
   public getRd () {
