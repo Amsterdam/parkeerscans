@@ -35,6 +35,10 @@ export class LeafletDirective {
       });
 
       baseLayer.addTo(leafletMap);
+
+      setTimeout(() => {
+        leafletMap.invalidateSize();
+      });
     });
   }
 }
