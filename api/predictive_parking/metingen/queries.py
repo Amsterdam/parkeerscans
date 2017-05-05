@@ -67,3 +67,61 @@ def aggregation_query(
     )
 
     return elk_q
+
+
+def build_bbox(bbox):
+    """
+    build bbox part of query
+    """
+
+    lat, lon, lat1, lon1 = bbox
+
+    bbox_q = """
+
+    """
+
+    return bbox_q
+
+
+def build_wegdeel_query(_bbox, query="", ):
+    """
+
+    Build aggregation determine distinct vakken for each wegdeel
+    per day.
+
+    """
+
+
+    wegdeel_agg = """
+    {
+        %s
+        "aggs": {
+            "scan_by_date": {
+                "date_histogram": {
+                    "field": "@timestamp",
+                    "interval": "1d",
+                    "format": "yyyy-MM-dd",
+                    "keyed": true
+                 },
+                 "aggs": {
+                    "wegdeel": {
+                        "terms": {
+                            "field": "bgt_wegdeel.keyword",
+                            "size": 90
+                        },
+                        "aggs": {
+                            "vakken": {
+                                "cardinality": {
+                                    "field": "parkeervak_id.keyword"
+                                }
+                            }
+                        }
+                    }
+                 }
+
+             }
+        }
+    }
+    """ % (query)
+
+    return wegdeel_agg

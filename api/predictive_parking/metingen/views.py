@@ -1,3 +1,9 @@
+"""
+Collect aggregation information about roadparts / wegdelen.
+
+
+
+"""
 import logging
 import json
 
@@ -78,11 +84,11 @@ class MetingenViewSet(rest.DatapuntViewSet):
     ordering = ('scan_id')
 
 
-def valid_bbox(bbox):
+def valid_bbox(bboxp):
     """
     Check if bbox is a valid bounding box
     """
-    bbox = bbox.split(',')
+    bbox = bboxp.split(',')
 
     # check if we got 4 parametes
     if not len(bbox) == 4:
@@ -121,19 +127,74 @@ def valid_bbox(bbox):
 
 
 def determine_bbox(request):
+    """
+    Create a bounding box if it is given with the request.
+    """
 
-    bbox = None
+    bbox = []
 
     err = "invalid bbox given"
 
     if 'bbox' in request.query_params:
-        bbox = request.query_params['bbox']
-        bbox, err = valid_bbox(bbox)
+        bboxp = request.query_params['bbox']
+        bbox, err = valid_bbox(bboxp)
     else:
         bbox = BBOX
         err = None
 
     return bbox, err
+
+
+def collect_wegdelen(elk_response):
+    """
+    collect all wegdelen ids
+    """
+    wegdelen = {}
+
+
+    for _date, data in elk_response['aggregations']['scan_by_date']['buckets'].items():
+        for wegdeel in data["wegdeel"]["buckets"]:
+            wegdelen[wegdeel['key']] = {}
+
+    return wegdelen
+
+
+def build_wegdelen_data(elk_response: dict, wegdelen: dict):
+    """
+    Enrich wegdelen data
+    """
+
+    for date, data in elk_response['aggregations']['scan_by_date']['buckets'].items():
+        for b_wegdeel in data['wegdeel']['buckets']:
+            key = b_wegdeel['key']
+            db_wegdeel = wegdelen[key]
+            # update how many days this road is observed
+            db_wegdeel['days'] = db_wegdeel.setdefault('days', 0) + 1
+            scans = b_wegdeel['doc_count']
+            # update how many scans have been totally for this wegdeel
+            db_wegdeel['scans'] = db_wegdeel.setdefault('scans', 0) + scans
+            # update distinct vakken for date
+            cardinal_vakken = b_wegdeel['vakken']['value']
+
+            c_vakken = db_wegdeel.setdefault('cardinal_vakken', [])
+            c_vakken.append((date, cardinal_vakken))
+
+    return wegdelen
+
+
+def calculate_pressure(wegdelen):
+    """
+    calculate "bezetting"
+    """
+
+    for _k, wegd in wegdelen.items():
+        totaal_gezien = sum([c for _, c in wegd['cardinal_vakken']])
+
+        if wegd['totaal_vakken']:
+            totaal_mogelijk = wegd['totaal_vakken'] * wegd['days']
+            wegd['bezetting'] = "%.2f" % (float(totaal_gezien) / float(totaal_mogelijk))
+        else:
+            wegd['bezetting'] = "fout"
 
 
 class WegdelenAggregationViewSet(viewsets.ViewSet):
@@ -159,9 +220,15 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         year
         qualcode
         sperscode
+
     """
 
+
     def list(self, request):
+        """
+        List dates with wegdeelen and distinct vakken count
+        combined with meta road information
+        """
 
         err = None
 
@@ -170,59 +237,36 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         if err:
             return Response([f"bbox invalid {err}:{bbox}"])
 
-        # find wegdelen from DB.
-        wegdelen = self.get_wegdelen(bbox)
-
         # get aggregations from elastic
-        elk_response = self.get_aggregations(bbox)
-
-        # count in involved scans
-        count = elk_response.hits.total
+        elk_response = self.do_wegdelen_search(bbox, query="")
 
         if settings.DEBUG:
-            self.debug_sample(elk_response)
+            pass
+            # print(json.dumps(elk_response, indent=4))
+            # return Response(elk_response)
 
-        elk_wegdelen = elk_response.aggregations['wegdelen']
+        # collect all wegdelen id's
+        wegdelen = collect_wegdelen(elk_response)
 
-        wegdelen = {}
+        # find wegdelen from DB.
+        load_db_wegdelen(bbox, wegdelen)
 
-        for wegdeel in elk_wegdelen:
-            # wegdeel.
+        wegdelen_data = build_wegdelen_data(elk_response, wegdelen)
+        calculate_pressure(wegdelen_data)
 
-            i = {
-                "scan_count": wegdeel['doc_count'],
-            }
+        #result = {
+        #    'scancount': count,
+        #    'wegdelen': wegdelen,
+        #}
 
-            # parkeervak count.
-            aggs = list(wegdeel)
-            i['vakken'] = aggs[0]['value']
+        #if settings.DEBUG:
+        #    result['bbox'] = bbox
+        #    result['scans'] = [h.to_dict() for h in elk_response.hits[:10]]
 
-            wegdelen[wegdeel['key']] = i
+        #return Response(elk_response)
+        return Response(wegdelen_data)
 
-        # merge wegdelen information from db
-        self.combine(bbox, wegdelen)
-
-        result = {
-            'scancount': count,
-            'wegdelen': wegdelen,
-        }
-
-        if settings.DEBUG:
-            result['bbox'] = bbox
-            result['scans'] = [h.to_dict() for h in elk_response.hits[:10]]
-
-        return Response(result)
-
-    def debug_sample(self, elk_response):
-        """
-        Show sample of aggregation
-        """
-
-        for agg in elk_response.aggregations:
-            for item in agg['buckets'][:10]:
-                print(item['key'], item['doc_count'])
-
-    def get_aggregations(self, bbox):
+    def do_wegdelen_search(self, bbox, query):
         """
         Given bbox find
 
@@ -231,74 +275,44 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         """
 
-        elk_q = queries.aggregation_query(bbox)
+        elk_q = queries.build_wegdeel_query(bbox, query)
 
-        search = elk_q.to_elasticsearch_object(ELK_CLIENT)
-
-        search = self.add_agg_to_search(search)
-
-        # result = search.execute(ignore_cache=ignore_cache)
-        result = search.execute()
+        try:
+            result = ELK_CLIENT.search(index="scans*", size=0, timeout="1m", body=elk_q)  #noqa
+        except ValueError as exeption:
+            log.debug(exeption)
+            log.debug(elk_q)
 
         return result
 
-    def add_agg_to_search(self, search_object):
-        """
-        Add wegdelen and parkeervak aggregation
-        to seach
-        """
-        wegdeel_agg = A(
-            'terms', field='bgt_wegdeel.keyword', size=500)
 
-        wegdeel_agg.bucket(
-            'vakkken', 'cardinality', field='parkeervak_id.keyword')
+def load_db_wegdelen(bbox, wegdelen):
+    """
+    Given aggregation counts, determine "bezetting"
+    """
+    lat1, lon1, lat2, lon2 = bbox
 
-        # wegdeel
-        search_object.aggs.bucket('wegdelen', wegdeel_agg)
+    print(bbox)
 
-        log.debug(
-            json.dumps(
-                search_object.to_dict(), indent=4, sort_keys=True))
+    bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
 
-        return search_object
+    print(bbox)
 
-    def get_wegdelen(self, bbox):
-        """
-        Get all involved wegdelen within bounding box
-        """
-        assert bbox
+    wd_qs = WegDeel.objects.all().filter(
+        Q(**{"geometrie__bboverlaps": bbox}))
 
-        # do bbox query
-        return []
+    db_wegdelen = wd_qs.filter(id__in=wegdelen.keys())
 
-    def combine(self, bbox, wegdelen):
-        """
-        Given aggregation counts, determine "bezetting"
-        """
-        lat1, lon1, lat2, lon2 = bbox
+    for wegdeel in db_wegdelen:
+        wegdelen[wegdeel.id].update({
+            'bgt_functie': wegdeel.bgt_functie,
+            'totaal_vakken': wegdeel.vakken,
+            'fiscaal': wegdeel.fiscale_vakken,
+        })
 
-        print(bbox)
+    log.debug(wd_qs.count())
 
-        bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
-
-        print(bbox)
-
-        wd = WegDeel.objects.all().filter(
-            Q(**{"geometrie__bboverlaps": bbox}))
-
-        db_wegdelen = wd.filter(id__in=wegdelen.keys())
-
-        for w in db_wegdelen:
-            wegdelen[w.id].update({
-                'bgt_functie': w.bgt_functie,
-                'totaal_vakken': w.vakken,
-                'fiscaal': w.fiscale_vakken,
-            })
-        print(wd.count())
-
-        assert wegdelen
-
-        return []
+    # assert wegdelen
 
 
 class VakkenAggregationViewSet(viewsets.ViewSet):
@@ -307,6 +321,9 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
     """
 
     def list(self, request):
+        """
+        show counts of vakken in the bbox
+        """
 
         err = None
 
@@ -320,9 +337,9 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         # count in involved scans
         count = elk_response.hits.total
 
-        pv = elk_response.aggregations['parkeervaken']
+        pv_elk = elk_response.aggregations['parkeervaken']
 
-        parkeervakken = [(i['key'], i['doc_count']) for i in pv]
+        parkeervakken = [(i['key'], i['doc_count']) for i in pv_elk]
 
         result = {
             'scancount': count,
@@ -353,6 +370,9 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         return result
 
     def add_agg_to_search(self, search_object):
+        """
+        Find x most scanned spots
+        """
 
         parkeervak_agg = A(
             'terms', field='parkeervak_id.keyword', size=2000)
