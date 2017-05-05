@@ -16,18 +16,11 @@ RUN apt-get update \
 	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
-# USER datapunt
-RUN apt-get update \
-	&& apt-get install -y \
-		netcat \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 
 COPY readdb.conf /app/
 COPY geomapping.json /app/
 COPY docker-run.sh /app/
 
-# COPY tables.txt /app/data/
+# COPY tables.txt /app/data/tables.txt
 
 CMD ["/app/docker-run.sh"]
