@@ -28,6 +28,7 @@ class PredictiveParkingView(routers.APIRootView):
 
 
 class PredictiveParkingRouter(routers.DefaultRouter):
+    """The main router"""
     APIRootView = PredictiveParkingView
 
 
@@ -37,6 +38,7 @@ class PredictiveParkingRouter(routers.DefaultRouter):
 predictiveparking = PredictiveParkingRouter()
 
 predictiveparking.register(r'kansen/buurt', kansviews.KansmodelViewSet, 'mvp')
+
 predictiveparking.register(
     r'metingen/scans', metingviews.MetingenViewSet, 'scan')
 
@@ -46,7 +48,7 @@ predictiveparking.register(
 
 
 predictiveparking.register(
-    r'metingen/aggregations/vakkenn',
+    r'metingen/aggregations/vakken',
     metingviews.VakkenAggregationViewSet, 'vakken')
 
 
