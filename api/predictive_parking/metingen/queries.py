@@ -91,7 +91,6 @@ def build_wegdeel_query(_bbox, query="", ):
 
     """
 
-
     wegdeel_agg = """
     {
         %s
@@ -107,7 +106,7 @@ def build_wegdeel_query(_bbox, query="", ):
                     "wegdeel": {
                         "terms": {
                             "field": "bgt_wegdeel.keyword",
-                            "size": 90
+                            "size": 20
                         },
                         "aggs": {
                             "vakken": {
