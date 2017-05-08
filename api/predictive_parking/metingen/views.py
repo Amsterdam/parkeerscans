@@ -190,9 +190,10 @@ def calculate_pressure(wegdelen):
     for _k, wegd in wegdelen.items():
         totaal_gezien = sum([c for _, c in wegd['cardinal_vakken']])
 
-        if wegd['totaal_vakken']:
+        if wegd.get('totaal_vakken'):
             totaal_mogelijk = wegd['totaal_vakken'] * wegd['days']
-            wegd['bezetting'] = "%.2f" % (float(totaal_gezien) / float(totaal_mogelijk))
+            bezetting = float(totaal_gezien) / float(totaal_mogelijk)
+            wegd['bezetting'] = "%.2f" % (bezetting)
         else:
             wegd['bezetting'] = "fout"
 
