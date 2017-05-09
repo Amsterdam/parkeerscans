@@ -37,9 +37,10 @@ class LinksField(serializers.HyperlinkedIdentityField):
         request = self.context.get('request')
 
         result = OrderedDict([
-            ('self', dict(
-                href=self.get_url(value, self.view_name, request, None))
-             ),
+            (
+                'self', dict(
+                    href=self.get_url(value, self.view_name, request, None))
+            ),
         ])
 
         return result
@@ -89,7 +90,7 @@ class DisabledHTMLFilterBackend(filters.DjangoFilterBackend):
     which can be HUGE in our case
     """
 
-    def to_html(self, request, queryset, view):
+    def to_html(self, _request, _queryset, _view):
         return ""
 
 

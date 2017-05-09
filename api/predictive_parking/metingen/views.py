@@ -113,7 +113,7 @@ class MetingenViewSet(rest.DatapuntViewSet):
     queryset = models.Scan.objects.order_by('id')
 
     serializer_class = serializers.ScanList
-    serializers_class_detail = serializers.Scan
+    serializer_detail_class = serializers.Scan
 
     filter_class = MetingenFilter
 
