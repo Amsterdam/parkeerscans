@@ -40,15 +40,14 @@ class VakkenViewSet(rest.DatapuntViewSet):
 
     """
 
-    queryset = models.WegDeel.objects.order_by('id')
+    queryset = models.Parkeervak.objects.order_by('id')
 
-    serializer_class = serializers.WegDeelList
-    serializer_detail_class = serializers.WegDeel
+    serializer_class = serializers.ParkeerVakList
+    serializer_detail_class = serializers.ParkeerVak
 
     lookup_value_regex = '[^/]+'
 
     filter_fields = (
-        'vakken',
         'scan_count',
     )
 

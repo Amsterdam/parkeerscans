@@ -42,3 +42,41 @@ class WegDeel(rest.HALSerializer):
 
             'geometrie',
         )
+
+
+class ParkeerVakList(rest.HALSerializer):
+
+    class Meta(object):
+        model = models.Parkeervak
+
+        fields = (
+            'id',
+            'aantal',
+            'point',
+        )
+
+
+class ParkeerVak(rest.HALSerializer):
+
+    geometrie = rest.MultipleGeometryField()
+
+    class Meta(object):
+        model = models.Parkeervak
+
+        fields = (
+            'id',
+            'aantal',
+            'straatnaam',
+            'soort',
+            'type',
+            'aantal',
+            'geometrie',
+            'bgt_functie',
+            # should be related field!!
+            'bgt_wegdeel',
+            'buurt',
+
+            'scan_count',
+        )
+
+

@@ -24,7 +24,8 @@ class BrowseDatasetsTestCase(APITestCase):
 
     datasets = [
         'predictiveparking/metingen/scans',
-        # 'wegdelen',
+        # 'predcitiveparking/wegdelen',
+        # 'predcitiveparking/vakken',
     ]
 
     def setUp(self):

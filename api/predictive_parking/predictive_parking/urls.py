@@ -45,6 +45,9 @@ predictiveparking.register(
     r'wegdelen', wegdelenViews.WegdelenViewSet, 'wegdeel')
 
 predictiveparking.register(
+    r'vakken', wegdelenViews.WegdelenViewSet, 'wegdeel')
+
+predictiveparking.register(
     r'metingen/scans', metingViews.MetingenViewSet, 'scan')
 
 predictiveparking.register(
