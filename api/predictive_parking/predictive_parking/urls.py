@@ -9,7 +9,8 @@ from django.conf.urls import url, include
 from django.conf import settings
 
 
-from metingen import views as metingviews
+from metingen import views as metingViews
+from wegdelen import views as wegdelenViews
 
 
 class PredictiveParkingView(routers.APIRootView):
@@ -39,17 +40,21 @@ predictiveparking = PredictiveParkingRouter()
 
 predictiveparking.register(r'kansen/buurt', kansviews.KansmodelViewSet, 'mvp')
 
+
 predictiveparking.register(
-    r'metingen/scans', metingviews.MetingenViewSet, 'scan')
+    r'wegdelen', wegdelenViews.WegdelenViewSet, 'wegdeel')
+
+predictiveparking.register(
+    r'metingen/scans', metingViews.MetingenViewSet, 'scan')
 
 predictiveparking.register(
     r'metingen/aggregations/wegdelen',
-    metingviews.WegdelenAggregationViewSet, 'wegdelen')
+    metingViews.WegdelenAggregationViewSet, 'wegdelen')
 
 
 predictiveparking.register(
     r'metingen/aggregations/vakken',
-    metingviews.VakkenAggregationViewSet, 'vakken')
+    metingViews.VakkenAggregationViewSet, 'vakken')
 
 
 # predictiveparking.extend(kansen)

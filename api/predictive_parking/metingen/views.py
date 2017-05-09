@@ -1,11 +1,11 @@
 """
 Collect aggregation information about roadparts / wegdelen.
-
-
+given a bounding box
 
 """
 import logging
-import json
+
+# import json
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -20,6 +20,9 @@ from elasticsearch_dsl import A
 
 # from elasticsearch.exceptions import TransportError
 # from elasticsearch_dsl import Search
+
+from django_filters.rest_framework.filterset import FilterSet
+from django_filters.rest_framework import filters
 
 from datapunt import rest
 
@@ -43,21 +46,67 @@ ELK_CLIENT = Elasticsearch(
 )
 
 
+class MetingenFilter(FilterSet):
+    """
+    Filter metingen op bbox
+    """
+
+    bbox = filters.CharFilter(method="bbox_filter")
+
+    class Meta(object):
+        model = models.Scan
+
+        fields = (
+            'bbox',
+            'scan_moment',
+            'device_id',
+            'scan_source',
+            'nha_hoogte',
+            'nha_nr',
+            'qualcode',
+            'buurtcode',
+            'sperscode',
+            'parkeervak_id',
+            'parkeervak_soort',
+            'bgt_wegdeel',
+            'bgt_wegdeel_functie',
+        )
+
+    def box_filter(self, queryset, _filter_name, value):
+
+        bbox, err = valid_bbox(value)
+
+        if err:
+            return queryset
+
+        lat1, lon1, lat2, lon2 = bbox
+        bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
+
+        return queryset.filter(
+            Q(**{"geometrie__bboverlaps": bbox}))
+
+
 class MetingenViewSet(rest.DatapuntViewSet):
     """
-    Alle scan metingen
+    Scan metingen.
 
-    - scan_id
-    - scan_moment
-    - device_id -  unieke device id / auto id
-    - scan_source - auto of pda
+    Dit is de brondata voor:
 
-    - buurtcode - bag GGW code
-    - sperscode - (vergunning..)
-    - qualcode- status / kwaliteit
-    - nha_nr - naheffings_nummer
-    - nha_hoogte - geldboete
-    - uitval_nachtrun - nachtelijke correctie
+    https://acc.parkeren.data.amsterdam.nl/
+
+    Het is bijzonder onefficient om hier direct mee te werken
+
+        scan_id
+        scan_moment
+        device_id -  unieke device id / auto id
+        scan_source - auto of pda
+
+        buurtcode - bag GGW code
+        sperscode - (vergunning..)
+        qualcode- status / kwaliteit
+        nha_nr - naheffings_nummer
+        nha_hoogte - geldboete
+        uitval_nachtrun - nachtelijke correctie
 
     """
 
@@ -66,20 +115,7 @@ class MetingenViewSet(rest.DatapuntViewSet):
     serializer_class = serializers.ScanList
     serializers_class_detail = serializers.Scan
 
-    filter_fields = (
-        'scan_moment',
-        'device_id',
-        'scan_source',
-        'nha_hoogte',
-        'nha_nr',
-        'qualcode',
-        'buurtcode',
-        'sperscode',
-        'parkeervak_id',
-        'parkeervak_soort',
-        'bgt_wegdeel',
-        'bgt_wegdeel_functie',
-    )
+    filter_class = MetingenFilter
 
     ordering = ('scan_id')
 
@@ -151,8 +187,8 @@ def collect_wegdelen(elk_response):
     """
     wegdelen = {}
 
-
-    for _date, data in elk_response['aggregations']['scan_by_date']['buckets'].items():
+    date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
+    for _date, data in date_buckets.items():
         for wegdeel in data["wegdeel"]["buckets"]:
             wegdelen[wegdeel['key']] = {}
 
@@ -163,8 +199,8 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
     """
     Enrich wegdelen data
     """
-
-    for date, data in elk_response['aggregations']['scan_by_date']['buckets'].items():
+    date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
+    for date, data in date_buckets.items():
         for b_wegdeel in data['wegdeel']['buckets']:
             key = b_wegdeel['key']
             db_wegdeel = wegdelen[key]
@@ -224,7 +260,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
     """
 
-
     def list(self, request):
         """
         List dates with wegdeelen and distinct vakken count
@@ -255,16 +290,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         wegdelen_data = build_wegdelen_data(elk_response, wegdelen)
         calculate_pressure(wegdelen_data)
 
-        #result = {
-        #    'scancount': count,
-        #    'wegdelen': wegdelen,
-        #}
-
-        #if settings.DEBUG:
-        #    result['bbox'] = bbox
-        #    result['scans'] = [h.to_dict() for h in elk_response.hits[:10]]
-
-        #return Response(elk_response)
         return Response(wegdelen_data)
 
     def do_wegdelen_search(self, bbox, query):
@@ -279,7 +304,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         elk_q = queries.build_wegdeel_query(bbox, query)
 
         try:
-            result = ELK_CLIENT.search(index="scans*", size=0, timeout="1m", body=elk_q)  #noqa
+            result = ELK_CLIENT.search(
+                index="scans*", size=0,
+                timeout="1m", body=elk_q)
         except ValueError as exeption:
             log.debug(exeption)
             log.debug(elk_q)
@@ -308,11 +335,12 @@ def load_db_wegdelen(bbox, wegdelen):
         wegdelen[wegdeel.id].update({
             'bgt_functie': wegdeel.bgt_functie,
             'totaal_vakken': wegdeel.vakken,
+            # NOT EFFICIENT !
+            # 'geometry': json.loads(wegdeel.geometrie.json),
             'fiscaal': wegdeel.fiscale_vakken,
         })
 
     log.debug(wd_qs.count())
-
     # assert wegdelen
 
 

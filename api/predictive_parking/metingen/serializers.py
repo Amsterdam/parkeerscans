@@ -4,21 +4,19 @@ from datapunt import rest
 
 from . import models
 
-# from rest_framework.reverse import reverse
-
 
 class ScanList(rest.HALSerializer):
 
     dataset = 'scans'
 
-    _display = rest.DisplayField()
+    # _display = rest.DisplayField()
 
     class Meta(object):
         model = models.Scan
 
         fields = (
             '_links',
-            '_display',
+            # '_display',
             'scan_moment',
             'parkeervak_id',
             'geometrie',
