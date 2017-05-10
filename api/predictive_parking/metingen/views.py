@@ -4,8 +4,8 @@ given a bounding box
 
 """
 import logging
-
-# import json
+import sys
+import json
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -35,7 +35,8 @@ from wegdelen.models import WegDeel
 
 log = logging.getLogger(__name__)
 
-# default amstermdam bbox
+# default amstermdam bbox lon, lat, lon, lat
+
 BBOX = [52.03560, 4.58565,
         52.48769, 5.31360]
 
@@ -128,7 +129,7 @@ def valid_bbox(bboxp):
 
     # check if we got 4 parametes
     if not len(bbox) == 4:
-        return [], "wrong numer of arguments"
+        return [], "wrong numer of arguments (lat, lon, lat, lon)"
 
     # check if we got floats
     try:
@@ -221,6 +222,8 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
 def calculate_pressure(wegdelen):
     """
     calculate "bezetting"
+
+    wegdelen zijn dict objecten met database en elastic data/tellingen
     """
 
     for _k, wegd in wegdelen.items():
@@ -233,6 +236,11 @@ def calculate_pressure(wegdelen):
         else:
             wegd['bezetting'] = "fout"
 
+        totaal_scans = float(wegd.get('scans', 1.0))
+        days = wegd.get('days', 1.0)
+        vakken = wegd.get('totaal_vakken', 1.0)
+        wegd['~scan-momenten-dag'] = "%.2f" % (totaal_scans / days / vakken)
+
 
 class WegdelenAggregationViewSet(viewsets.ViewSet):
     """
@@ -241,20 +249,24 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
     using elasticsearch.
 
-    # BBOX   52.03560, 4.58565  52.48769, 5.31360
 
-    parameters:
+    list:
+                  52.03560, 4.58565  52.48769, 5.31360
+        bbox      bottom,      left,      top,   right
 
-        bbox
-
-        hours
-        minutes
-        weekdays
-        days
-        month
-        stadsdeel
+        hour      [0.. 23]
+        hour_1    [0 .. 23]
+        hour_2    [0 .. 23]
+        minute_1  [0 .. 59]
+        minute_2  [0 .. 59]
+        day       [monday, tuesay..]
+        month     [january, february, match..]
+        stadsdeel [A ..]
         buurtcode
         year
+        parkeervak_soort
+        parkeervak_id
+        bgt_wegdeel
         qualcode
         sperscode
 
@@ -266,20 +278,31 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         combined with meta road information
         """
 
+        must = []
+
         err = None
 
         bbox, err = determine_bbox(request)
 
         if err:
-            return Response([f"bbox invalid {err}:{bbox}"])
+            return Response([f"bbox invalid {err}:{bbox}"], status=400)
+
+        # get filter / must queries parts for elasti
+        must, err = queries.build_must_queries(request)
+
+        if err:
+            return Response([f"invalid parameter {err}"], status=400)
 
         # get aggregations from elastic
-        elk_response = self.do_wegdelen_search(bbox, query="")
+        elk_response, err = self.do_wegdelen_search(bbox, must)
 
         if settings.DEBUG:
-            pass
             # print(json.dumps(elk_response, indent=4))
             # return Response(elk_response)
+            pass
+
+        if err:
+            return Response([err], status=400)
 
         # collect all wegdelen id's
         wegdelen = collect_wegdelen(elk_response)
@@ -292,7 +315,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         return Response(wegdelen_data)
 
-    def do_wegdelen_search(self, bbox, query):
+    def do_wegdelen_search(self, bbox, must=[]):
         """
         Given bbox find
 
@@ -301,17 +324,19 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         """
 
-        elk_q = queries.build_wegdeel_query(bbox, query)
+        elk_q = queries.build_wegdeel_query(bbox, must)
 
         try:
             result = ELK_CLIENT.search(
                 index="scans*", size=0,
                 timeout="1m", body=elk_q)
-        except ValueError as exeption:
+        except Exception as exeption:
             log.debug(exeption)
-            log.debug(elk_q)
+            build_q = json.loads(elk_q)
+            log.debug(json.dumps(build_q, indent=4))
+            return [], 'elasticsearch query failed'
 
-        return result
+        return result, None
 
 
 def load_db_wegdelen(bbox, wegdelen):
@@ -319,12 +344,7 @@ def load_db_wegdelen(bbox, wegdelen):
     Given aggregation counts, determine "bezetting"
     """
     lat1, lon1, lat2, lon2 = bbox
-
-    print(bbox)
-
     bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
-
-    print(bbox)
 
     wd_qs = WegDeel.objects.all().filter(
         Q(**{"geometrie__bboverlaps": bbox}))
@@ -375,9 +395,6 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
             'vakken': parkeervakken,
         }
 
-        if settings.DEBUG:
-            result['bbox'] = bbox
-
         return Response(result)
 
     def get_aggregations(self, bbox):
@@ -392,6 +409,9 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         search = elk_q.to_elasticsearch_object(ELK_CLIENT)
 
         search = self.add_agg_to_search(search)
+
+        if settings.DEBUG:
+            log.debug(json.dumps(search.to_dict(), indent=4))
 
         # result = search.execute(ignore_cache=ignore_cache)
         result = search.execute()
