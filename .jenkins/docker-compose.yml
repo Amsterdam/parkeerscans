@@ -80,6 +80,7 @@ services:
               && pg_dump --clean \
                           -Fc \
                           -t wegdelen* \
+                          -t mvp \
                           -t metingen* \
                           -t scans* \
                           -t django_migrations  \
