@@ -54,6 +54,7 @@ dc run --rm importer ./docker-migrate.sh
 echo "download latest files.."
 dc run --rm importer ./docker-prepare-csvdata.sh
 #
+dc exec -T database pg_restore -c -O -U predictiveparking -d predictiveparking /app/data/mvp.dump
 echo "Load latest parkeervakken.."
 dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
 echo "Load latest wegdelen.."
