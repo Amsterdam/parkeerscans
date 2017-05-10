@@ -236,9 +236,9 @@ def calculate_pressure(wegdelen):
         else:
             wegd['bezetting'] = "fout"
 
-        totaal_scans = float(wegd.get('scans', 1.0))
-        days = wegd.get('days', 1.0)
-        vakken = wegd.get('totaal_vakken', 1.0)
+        totaal_scans = float(wegd.get('scans', 1.0)) or 1
+        days = wegd.get('days', 1.0) or 1
+        vakken = wegd.get('totaal_vakken', 1.0) or 1
         wegd['~scan-momenten-dag'] = "%.2f" % (totaal_scans / days / vakken)
 
 
