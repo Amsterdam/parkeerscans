@@ -72,13 +72,28 @@ export class LeafletDirective implements OnInit {
   private showWegdelen([parkeerkans, wegdelen]) {
     console.log('parkeerkans', parkeerkans);
     console.log('wegdelen', wegdelen);
-    wegdelen.forEach((wegdeel) => {
+    const data = wegdelen.map((wegdeel) => {
       const wegdeelKans = parkeerkans[wegdeel.properties.id];
-      wegdeel.bezetting = wegdeelKans ? wegdeelKans.bezetting : 0;
+      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.bezetting : 0;
+      return wegdeel;
       if (wegdeel.bezetting) {
         this.highlightService.addMarker(this.leafletMap, wegdeel);
       }
-    });
+    }).filter((wegdeel) => wegdeel.properties.bezetting);
+    L.choropleth({
+      type: 'FeatureCollection',
+      features: data
+    }, {
+      valueProperty: 'bezetting',
+      scale: ['white', 'red']
+      steps: 5,
+      mode: 'q',
+      style: {
+        color: '#fff',
+        weight: 2,
+        fillOpacity: 0.8
+      }
+    }).addTo(this.leafletMap);
   }
 
   private showError(error) {
