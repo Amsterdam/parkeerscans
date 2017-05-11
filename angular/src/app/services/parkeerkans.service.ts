@@ -25,7 +25,8 @@ export class ParkeerkansService {
       day: string,
       hour: number): Observable<Parkeerkans> {
 
-    return this.http.get(`${this.API_ROOT}${this.API_PATH}`)
+    return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
+        `bbox=${boundingBox}`)
       .map((res) => res.json() || {})
       .catch((error) => Observable.throw(error.toString()));
   }

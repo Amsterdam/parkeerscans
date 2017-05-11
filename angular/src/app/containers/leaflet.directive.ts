@@ -75,7 +75,9 @@ export class LeafletDirective implements OnInit {
     wegdelen.forEach((wegdeel) => {
       const wegdeelKans = parkeerkans[wegdeel.properties.id];
       wegdeel.bezetting = wegdeelKans ? wegdeelKans.bezetting : 0;
-      this.highlightService.addMarker(this.leafletMap, wegdeel);
+      if (wegdeel.bezetting) {
+        this.highlightService.addMarker(this.leafletMap, wegdeel);
+      }
     });
   }
 
