@@ -126,14 +126,15 @@ def valid_bbox(bboxp):
     Check if bbox is a valid bounding box
     """
     bbox = bboxp.split(',')
+    err = None
 
     # check if we got 4 parametes
     if not len(bbox) == 4:
-        return [], "wrong numer of arguments (lat, lon, lat, lon)"
+        return [], "wrong numer of arguments (lon, lat, lon, lat)"
 
     # check if we got floats
     try:
-        bbox = map(float, bbox)
+        bbox = [float(f) for f in bbox]
     except ValueError:
         return [], "Did not recieve floats"
 
@@ -142,11 +143,14 @@ def valid_bbox(bboxp):
     # WGS             52.03560, 4.58565  52.48769, 5.31360
     lat_min = 52.03560
     lat_max = 52.48769
-    lon_max = 4.58565
-    lon_min = 5.31360
+    lon_min = 4.58565
+    lon_max = 5.31360
 
     # check if coorinates are withing amsterdam
-    lat1, lon1, lat2, lon2 = bbox
+    # lat1, lon1, lat2, lon2 = bbox
+
+    # bbox given by leaflet
+    lon1, lat1, lon2, lat2 = bbox
 
     if not lat_max >= lat1 >= lat_min:
         err = f"lat not within max bbox {lat_max} > {lat1} > {lat_min}"
@@ -159,6 +163,9 @@ def valid_bbox(bboxp):
 
     if not lon_max >= lon1 >= lon_min:
         err = f"lon not within max bbox {lon_max} > {lon1} > {lon_min}"
+
+    # this is how the code expects the bbox
+    bbox = [lat1, lon1, lat2, lon2]
 
     return bbox, err
 
@@ -251,9 +258,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
 
     list:
-        max-boundaties bbox.
-                  52.03560, 4.58565, 52.48769, 5.31360
-        bbox      bottom,      left,      top,   right
+        max-boundaties bbox. (groot Amsterdam)
+                  4.58565,  52.03560,  5.31360, 52.48769,
+        bbox      bottom,       left,      top,    right
 
 
         hour      [0.. 23]
@@ -288,6 +295,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         if err:
             return Response([f"bbox invalid {err}:{bbox}"], status=400)
+
+        if len(bbox) < 4:
+            return Response([f"bbox invalid {bbox}"], status=400)
 
         # get filter / must queries parts for elasti
         must, err = queries.build_must_queries(request)
