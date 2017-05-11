@@ -51,6 +51,7 @@ class ParkeerVakList(rest.HALSerializer):
 
         fields = (
             'id',
+            '_links',
             'aantal',
             'point',
         )
@@ -65,18 +66,16 @@ class ParkeerVak(rest.HALSerializer):
 
         fields = (
             'id',
+            '_links',
             'aantal',
             'straatnaam',
             'soort',
             'type',
             'aantal',
             'geometrie',
-            'bgt_functie',
             # should be related field!!
             'bgt_wegdeel',
             'buurt',
 
             'scan_count',
         )
-
-
