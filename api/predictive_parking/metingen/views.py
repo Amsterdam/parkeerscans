@@ -148,17 +148,17 @@ def valid_bbox(bboxp):
     # check if coorinates are withing amsterdam
     lat1, lon1, lat2, lon2 = bbox
 
-    if not lat_max > lat1 > lat_min:
-        err = "lat not within max bbox"
+    if not lat_max >= lat1 >= lat_min:
+        err = f"lat not within max bbox {lat_max} > {lat1} > {lat_min}"
 
-    if not lat_max > lat2 > lat_min:
-        err = "lat not within max bbox"
+    if not lat_max >= lat2 >= lat_min:
+        err = f"lat not within max bbox {lat_max} > {lat2} > {lat_min}"
 
-    if not lon_max > lon2 > lon_min:
-        err = "lon not within max bbox"
+    if not lon_max >= lon2 >= lon_min:
+        err = f"lon not within max bbox {lon_max} > {lon2} > {lon_min}"
 
-    if not lon_max > lon1 > lon_min:
-        err = "lon not within max bbox"
+    if not lon_max >= lon1 >= lon_min:
+        err = f"lon not within max bbox {lon_max} > {lon1} > {lon_min}"
 
     return bbox, err
 
@@ -251,8 +251,10 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
 
     list:
-                  52.03560, 4.58565  52.48769, 5.31360
+        max-boundaties bbox.
+                  52.03560, 4.58565, 52.48769, 5.31360
         bbox      bottom,      left,      top,   right
+
 
         hour      [0.. 23]
         hour_1    [0 .. 23]
@@ -315,7 +317,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         return Response(wegdelen_data)
 
-    def do_wegdelen_search(self, bbox, must=[]):
+    def do_wegdelen_search(self, bbox, must=()):
         """
         Given bbox find
 
@@ -330,7 +332,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             result = ELK_CLIENT.search(
                 index="scans*", size=0,
                 timeout="1m", body=elk_q)
-        except Exception as exeption:
+        except Exception as exeption:   # pylint: disable=broad-except
             log.debug(exeption)
             build_q = json.loads(elk_q)
             log.debug(json.dumps(build_q, indent=4))
