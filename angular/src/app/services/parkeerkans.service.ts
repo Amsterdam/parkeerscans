@@ -7,13 +7,13 @@ import { Parkeerkans } from '../models/parkeerkans';
 
 @Injectable()
 export class ParkeerkansService {
-  public static const MONDAY = 'monday';
-  public static const TUESDAY = 'tuesday';
-  public static const WEDNESDAY = 'wednesday';
-  public static const THURSDAY = 'thursday';
-  public static const FRIDAY = 'friday';
-  public static const SATURDAY = 'saturday';
-  public static const SUNDAY = 'sunday';
+  public static MONDAY = 'monday';
+  public static TUESDAY = 'tuesday';
+  public static WEDNESDAY = 'wednesday';
+  public static THURSDAY = 'thursday';
+  public static FRIDAY = 'friday';
+  public static SATURDAY = 'saturday';
+  public static SUNDAY = 'sunday';
 
   private API_ROOT = 'https://acc.api.data.amsterdam.nl/';
   private API_PATH = 'predictiveparking/metingen/aggregations/wegdelen/';

@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Rx';
 import { MapCrs } from './map-crs.service';
 import { ParkeerkansService } from '../services/parkeerkans.service';
 import { WegdelenService } from '../services/wegdelen.service';
+import { ParkeervakkenService } from '../services/parkeervakken.service';
 import { HighlightService } from '../services/highlight.service';
 
 const L = window.L;
@@ -32,6 +33,7 @@ export class LeafletDirective implements OnInit {
     private crs: MapCrs,
     private parkeerkansService: ParkeerkansService,
     private wegdelenService: WegdelenService,
+    private parkeervakkenService: ParkeervakkenService,
     private highlightService: HighlightService) {}
 
   public ngOnInit() {
@@ -44,7 +46,7 @@ export class LeafletDirective implements OnInit {
       crs: this.crs.getRd()
     });
     this.leafletMap = L.map(this.el.nativeElement, options)
-      .setView([52.3625052, 4.9080058], 13);
+      .setView([52.3626088, 4.9081912], 13);
     const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd_zw/{z}/{x}/{y}.png', {
       subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4'],
       tms: true,
@@ -76,17 +78,36 @@ export class LeafletDirective implements OnInit {
       const wegdeelKans = parkeerkans[wegdeel.properties.id];
       wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.bezetting : 0;
       return wegdeel;
-      if (wegdeel.bezetting) {
-        this.highlightService.addMarker(this.leafletMap, wegdeel);
-      }
-    }).filter((wegdeel) => wegdeel.properties.bezetting);
+    }).filter((wegdeel) => wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting);
+    console.log('data', data);
     L.choropleth({
       type: 'FeatureCollection',
       features: data
     }, {
       valueProperty: 'bezetting',
       scale: ['white', 'red']
-      steps: 5,
+      steps: 10,
+      mode: 'q',
+      style: {
+        color: '#fff',
+        weight: 2,
+        fillOpacity: 0.8
+      }
+    }).addTo(this.leafletMap);
+
+    const boundingBox = this.leafletMap.getBounds().toBBoxString();
+    this.parkeervakkenService.getVakken(boundingBox)
+      .subscribe(this.showParkeervakken.bind(this), this.showError);
+  }
+
+  private showParkeervakken(parkeervakken) {
+    L.choropleth({
+      type: 'FeatureCollection',
+      features: parkeervakken
+    }, {
+      valueProperty: 'scan_count',
+      scale: ['white', 'green']
+      steps: 10,
       mode: 'q',
       style: {
         color: '#fff',

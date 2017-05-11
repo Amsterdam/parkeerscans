@@ -23,6 +23,8 @@ import { LeafletDirective } from './containers/leaflet.directive';
 import { MapCrs } from './containers/map-crs.service';
 import { ParkeerkansService } from './services/parkeerkans.service';
 import { WegdelenService } from './services/wegdelen.service';
+import { ParkeervakkenService } from './services/parkeervakken.service';
+import { ParkeervakService } from './services/parkeervak.service';
 import { HighlightService } from './services/highlight.service';
 
 /*
@@ -100,6 +102,8 @@ import '../styles/headings.css';
     MapCrs,
     ParkeerkansService,
     WegdelenService,
+    ParkeervakkenService,
+    ParkeervakService,
     HighlightService
   ]
 })
