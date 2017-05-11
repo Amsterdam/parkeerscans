@@ -21,6 +21,9 @@ import { schema } from './db';
 import { MapComponent } from './containers/map.component';
 import { LeafletDirective } from './containers/leaflet.directive';
 import { MapCrs } from './containers/map-crs.service';
+import { ParkeerkansService } from './services/parkeerkans.service';
+import { WegdelenService } from './services/wegdelen.service';
+import { HighlightService } from './services/highlight.service';
 
 /*
  * Platform and Environment providers/directives/pipes
@@ -94,7 +97,10 @@ import '../styles/headings.css';
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
     ENV_PROVIDERS,
-    MapCrs
+    MapCrs,
+    ParkeerkansService,
+    WegdelenService,
+    HighlightService
   ]
 })
 export class AppModule {}
