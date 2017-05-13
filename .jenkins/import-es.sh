@@ -19,3 +19,5 @@ dc() {
 
 dc run --rm logstash
 dc up el-backup
+
+dc stop

@@ -108,4 +108,5 @@ fi
 #
 
 echo "DONE! with scan data import. You are awesome! <3"
-dc stop
+echo "Leaving docker and data around for elastic import"
+# dc stop
