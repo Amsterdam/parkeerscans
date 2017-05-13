@@ -1,6 +1,10 @@
 # load database into elastic search.
 
-# NOTE assumes the all database work is ready
+# NOTE:
+#
+# We assumes the all database work is ready
+# and workspace is still ready and waiting.
+
 
 set -e
 set -u
