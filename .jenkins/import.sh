@@ -13,11 +13,6 @@ echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 echo "Testing import? if (yes)"
 echo $TESTING
 
-echo "Run elastic import? if (yes)"
-echo $RUNELASTIC
-
-
-
 dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
 }
@@ -90,22 +85,11 @@ dc run --rm importer ./docker-scanstats.sh
 echo "DONE! importing scans into database"
 
 echo "create scan db dump"
-dc up -d elasticsearch
 
 # run the DB backup shizzle
 dc up db-backup
 
 # dc up db-backup-scans
-
-#
-if [ $RUNELASTIC == "yes" ]
-then
-
-	dc run --rm logstash
-	dc up el-backup
-fi
-
-#
 
 echo "DONE! with scan data import. You are awesome! <3"
 echo "Leaving docker and data around for elastic import"

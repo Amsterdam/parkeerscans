@@ -13,9 +13,10 @@ DIR="$(dirname $0)"
 echo $0
 
 dc() {
-	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
+	docker-compose -p pp -f ${DIR}/docker-compose-es.yml $*;
 }
 
+dc up -d elasticsearch
 
 dc run --rm logstash
 dc up el-backup
