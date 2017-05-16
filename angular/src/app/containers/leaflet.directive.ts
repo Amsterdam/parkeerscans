@@ -1,4 +1,4 @@
-// import L from 'leaflet';
+import L from 'leaflet';
 import 'rxjs/add/operator/map';
 import { Directive, OnInit, ElementRef, Input, NgZone } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
@@ -7,8 +7,6 @@ import { ParkeerkansService } from '../services/parkeerkans.service';
 import { WegdelenService } from '../services/wegdelen.service';
 import { ParkeervakkenService } from '../services/parkeervakken.service';
 import { HighlightService } from '../services/highlight.service';
-
-const L = window.L;
 
 const mapOptions = {
   maxBounds: [
