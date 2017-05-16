@@ -1,8 +1,6 @@
 import { Directive, ElementRef, Input, NgZone } from '@angular/core';
-// import L from 'leaflet';
+import L from 'leaflet';
 import { MapCrs } from './map-crs.service';
-
-const L = window.L;
 
 const mapOptions = {
   maxBounds: [

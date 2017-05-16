@@ -1,28 +1,7 @@
 import { Injectable } from '@angular/core';
-// import L from 'leaflet';
-// import * as proj4 from 'proj4';
-// import * as proj4leaflet from 'proj4leaflet';
-
-const L = window.L;
-const anyL: any = L;
-// const p4: any = proj4;
-// const p4l: any = proj4leaflet;
-
-/*
-declare namespace L {
-  namespace Proj {
-    interface CRSOptions {
-      origin?: number[];
-      transformation?: L.Transformation;
-      scales?: number[];
-      resolutions?: number[];
-      bounds?: L.Bounds;
-    }
-
-    function CRS(code: string, proj4def: string, options: CRSOptions): L.CRS;
-  }
-}
-*/
+import L from 'leaflet';
+// Make sure the Proj4 Leaflet plugin trys to find its dependencies on the window
+import 'imports-loader?define=>false,module=>false!proj4leaflet';
 
 const config = {
   RD: {
@@ -83,7 +62,7 @@ export class MapCrs {
      * http://leafletjs.com/reference.html#bounds
      */
     rdSettings.transformation.bounds = L.bounds.apply(null, rdSettings.transformation.bounds);
-    this.rd = new anyL.Proj.CRS(
+    this.rd = new L.Proj.CRS(
       rdSettings.code,
       rdSettings.projection,
       rdSettings.transformation
