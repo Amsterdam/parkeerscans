@@ -239,7 +239,7 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
                 # h_scans = hour_d['doc_count']
                 cardinal_vakken = hour_d['vakken']['value']
                 bezetting = int(cardinal_vakken / capacity * 100)
-                date_data.append([hour, cardinal_vakken, bezetting])
+                date_data.append([hour, bezetting])
 
             date_data.sort()
             c_vakken.append((date, date_data))
