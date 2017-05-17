@@ -20,7 +20,7 @@ import { schema } from './db';
 
 import { MapComponent } from './containers/map.component';
 import { LeafletDirective } from './containers/leaflet.directive';
-import { MapCrs } from './containers/map-crs.service';
+import { MapCrs } from './services/map-crs.service';
 
 /*
  * Platform and Environment providers/directives/pipes
