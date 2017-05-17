@@ -59,9 +59,16 @@ export class LeafletDirective implements OnInit {
     setTimeout(() => {
       this.leafletMap.invalidateSize();
     });
+
+    this.leafletMap.on('moveend', this.updateBoundingBox.bind(this));
+    this.leafletMap.on('zoomend', this.updateBoundingBox.bind(this));
   }
 
   private initLayer() {
+    this.updateBoundingBox();
+  }
+
+  private updateBoundingBox() {
     const boundingBox = this.leafletMap.getBounds().toBBoxString();
     Observable
       .zip(
@@ -78,7 +85,6 @@ export class LeafletDirective implements OnInit {
     }).filter((wegdeel) =>
       wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting
     );
-    console.log('data', data);
     L.choropleth({
       type: 'FeatureCollection',
       features: data
