@@ -59,4 +59,3 @@ texttable
 urllib3
 websocket-client
 wrapt
-xlsx2csv

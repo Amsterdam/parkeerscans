@@ -123,7 +123,7 @@ def parse_int(value, _range=()):
     return parsed, err
 
 
-def parse_field(field_name, params, _range):
+def parse_int_field(field_name, params, _range):
     """
     Parse a field from parameters
     """
@@ -150,10 +150,29 @@ POSSIBLE_PARAMS = [
     ('day', DAYS),
 ]
 
+DATE_RANGE_FIELDS = [
+    ('date_gte', 2017),
+    ('date_lte', 2018),
+]
+
+
 RANGE_FIELDS = [
     ('hour_1', 'hour_2'),
     ('minute_1', 'minute_2'),
 ]
+
+
+def parsed_date_range(field, default, req_params):
+    """
+    Check date range given by client.
+    """
+    return
+
+    # TODO
+
+    # value = default
+
+    # if field in req_params:
 
 
 def parse_parameter_input(request):
@@ -163,30 +182,34 @@ def parse_parameter_input(request):
 
     req_params = request.query_params
 
-    parsed_values = {}
+    clean_values = {}
 
     for field_name, _range in POSSIBLE_PARAMS:
 
-        value, err = parse_field(field_name, req_params, req_params)
+        value, err = parse_int_field(field_name, req_params, req_params)
         if err:
             return None, err
         if value:
-            parsed_values[field_name] = value
+            clean_values[field_name] = value
 
-    err = validate_range_fields(parsed_values)
-    return parsed_values, err
+    for field_name, default in DATE_RANGE_FIELDS:
+        clean_values[field_name] = default
+
+    err = validate_range_fields(clean_values)
+
+    return clean_values, err
 
 
-def validate_range_fields(parsed_values):
+def validate_range_fields(clean_values):
 
     err = None
 
     for low, high in RANGE_FIELDS:
-        if low not in parsed_values:
+        if low not in clean_values:
             continue
-        if high in parsed_values:
-            low_value = parsed_values[low]
-            high_value = parsed_values[high]
+        if high in clean_values:
+            low_value = clean_values[low]
+            high_value = clean_values[high]
             if high_value < low_value:
                 err = "!! hour_2 < hour_1"
         err = f'{high} missing'
@@ -249,7 +272,7 @@ def make_range(field, low_field, high_field, cleaned_data):
         return
 
     # is checked in parameter cleanup
-    assert low < high
+    assert low <= high
 
     range_q = {
         "range": {
@@ -279,8 +302,11 @@ def build_must_queries(request):
         return [], err
 
     terms_q = make_terms_queries(cleaned_data)
-    m_range_q = make_range('minute', 'minute_1', 'minute_1', cleaned_data)
+    m_range_q = make_range('minute', 'minute_1', 'minute_2', cleaned_data)
     h_range_q = make_range('hour', 'hour_1', 'hour_2', cleaned_data)
+
+    date_range_q = make_range(
+        '@timestamp', 'date_gte', 'date_lte', cleaned_data)
 
     must.extend(terms_q)
 
@@ -288,6 +314,8 @@ def build_must_queries(request):
         must.append(h_range_q)
     if m_range_q:
         must.append(m_range_q)
+    if date_range_q:
+        must.append(date_range_q)
 
     return must, err
 
@@ -307,6 +335,8 @@ def build_wegdeel_query(bbox, must):
         },
     }
 
+    size = 10
+
     wegdeel_agg = {
         "aggs": {
             "scan_by_date": {
@@ -317,10 +347,11 @@ def build_wegdeel_query(bbox, must):
                     "keyed": True
                 },
                 "aggs": {
+
                     "wegdeel": {
                         "terms": {
                             "field": "bgt_wegdeel.keyword",
-                            "size": 10
+                            "size": size
                         },
                         "aggs": {
                             "hour": {
@@ -346,3 +377,9 @@ def build_wegdeel_query(bbox, must):
     wegdeel_agg["query"] = query_part
 
     return json.dumps(wegdeel_agg)
+
+
+def build_wegdeel_weekday_query(bbix, must):
+    """
+    """
+

@@ -4,8 +4,10 @@ given a bounding box
 
 """
 import logging
-import sys
+# import sys
 import json
+
+from dateutil import parser
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -205,59 +207,104 @@ def collect_wegdelen(elk_response):
 
 def build_wegdelen_data(elk_response: dict, wegdelen: dict):
     """
-    Enrich wegdelen data with aggregated counts from elasticsearch
+    Enrich wegdelen data with aggregated counts
+    from elasticsearch.
+
+    We parse the json structure elastic send back..
     """
     date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
     for date, data in date_buckets.items():
         for b_wegdeel in data['wegdeel']['buckets']:
 
+
             scans = b_wegdeel['doc_count']
             # update how many scans have been totally for this wegdeel
 
             key = b_wegdeel['key']
+
             db_wegdeel = wegdelen[key]
+
+            capacity = db_wegdeel['totaal_vakken']
+
             db_wegdeel['scans'] = db_wegdeel.setdefault('scans', 0) + scans
+
             # update how many days this road is observed
             db_wegdeel['days'] = db_wegdeel.setdefault('days', 0) + 1
 
-            c_vakken = db_wegdeel.setdefault('cardinal_vakken', [])
+            c_vakken = db_wegdeel.setdefault('cardinal_vakken_by_day', [])
 
             # update distinct vakken for date hour
-            date_data = {}
+            date_data = []
 
             for hour_d in b_wegdeel['hour']['buckets']:
                 hour = hour_d['key']
-                h_scans = hour_d['doc_count']
+                # h_scans = hour_d['doc_count']
                 cardinal_vakken = hour_d['vakken']['value']
-                date_data[hour] = [h_scans, cardinal_vakken]
+                bezetting = int(cardinal_vakken / capacity * 100)
+                date_data.append([hour, cardinal_vakken, bezetting])
 
+            date_data.sort()
             c_vakken.append((date, date_data))
 
     return wegdelen
+
+
+WEEKDAYS = {
+    'monday': {},
+    'tuesday': {},
+    'wednesday': {},
+    'thursday': {},
+    'friday': {},
+    'saturday': {},
+    'sunday': {},
+}
+
+
+def calculate_pressure_by_date(wegdeel, day_data):
+    """
+    """
+
+    capacity = wegdeel['totaal_vakken']
+
+    # totaal_gezien
+    # weekday
+
+    return
+    #    for date, hour_measurements in day_data:
+    #        for hour, scans, cardinal_vakken in hour_measurements:
+    #
+
+    #    # totaal_gezien = sum([c for _, c in wegd['cardinal_vakken']])
+
+    #    totaal_mogelijk = wegd['totaal_vakken'] * wegd['days']
+    #    bezetting = float(totaal_gezien) / float(totaal_mogelijk)
+    #    wegd['bezetting'] = "%.2f" % (bezetting)
+    #else:
+    #    wegd['bezetting'] = "fout"
+
+    #totaal_scans = float(wegd.get('scans', 1.0)) or 1
+    #days = wegd.get('days', 1.0) or 1
+    #vakken = wegd.get('totaal_vakken', 1.0) or 1
+    #wegd['~scan-momenten-dag'] = "%.2f" % (totaal_scans / days / vakken)
+
 
 
 def calculate_pressure(wegdelen):
     """
     calculate "bezetting"
 
-    wegdelen zijn dict objecten met database en elastic data/tellingen
+    wegdelen zijn dict objecten met database
+    elastic data/tellingen
     """
-    return
 
     for _k, wegd in wegdelen.items():
-        totaal_gezien = sum([c for _, c in wegd['cardinal_vakken']])
 
-        if wegd.get('totaal_vakken'):
-            totaal_mogelijk = wegd['totaal_vakken'] * wegd['days']
-            bezetting = float(totaal_gezien) / float(totaal_mogelijk)
-            wegd['bezetting'] = "%.2f" % (bezetting)
-        else:
-            wegd['bezetting'] = "fout"
+        if not wegd.get('totaal_vakken'):
+            continue
 
-        totaal_scans = float(wegd.get('scans', 1.0)) or 1
-        days = wegd.get('days', 1.0) or 1
-        vakken = wegd.get('totaal_vakken', 1.0) or 1
-        wegd['~scan-momenten-dag'] = "%.2f" % (totaal_scans / days / vakken)
+        day_data = wegd['cardinal_vakken_by_day']
+
+        calculate_pressure_by_date(wegd, day_data)
 
 
 class WegdelenAggregationViewSet(viewsets.ViewSet):
@@ -268,27 +315,59 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
     using elasticsearch.
 
 
-    list:
+
+    Parameter filter options
+    =======
+
+        (still a work in progress)
+
         max-boundaties bbox. (groot Amsterdam)
                   4.58565,  52.03560,  5.31360, 52.48769,
         bbox      bottom,       left,      top,    right
 
 
-        hour      [0 .. 23]
-        hour_1    [0 .. 23]
-        hour_2    [0 .. 23]
-        minute_1  [0 .. 59]
-        minute_2  [0 .. 59]
-        day       [monday, tuesay..]
-        month     [january, february, match..]
-        stadsdeel [A ..]
+        hour         [0 .. 23]
+        hour_1       [0 .. 23]
+        hour_2       [0 .. 23]
+        minute_1     [0 .. 59]
+        minute_2     [0 .. 59]
+        day          [monday, tuesay..]
+        month        [january, february, match..]
+        date_gte     [2017, 2016-11-1]   # greater then equal
+        date_lte     [2018, 2016-11-1]   # less then equal
+        wegdelen_sze [ < 30 ]         # amount of wegdelen to ask
+        stadsdeel    [A ..]
+
         buurtcode
+        buurtcombinatie
         year
-        parkeervak_soort
         parkeervak_id
         bgt_wegdeel
         qualcode
         sperscode
+
+
+    Response explanation
+    =========
+
+        WIP could still change.
+
+        "wegdeelID": {
+           wegdeelDataX:
+           wegdeelDataFoo:
+           wegdeelDataBar:
+                ...
+           "cardinal_vakken_by_day": [
+            [
+                "2017-02-01",
+                [
+                    [
+                        11,    # hour of the day
+                        60     # percentage
+                    ],
+                ...
+             ...
+        ...
 
     """
 
@@ -320,6 +399,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         elk_response, err = self.do_wegdelen_search(bbox, must)
 
         if settings.DEBUG:
+            # Print elk response to console
             # print(json.dumps(elk_response, indent=4))
             # return Response(elk_response)
             pass
@@ -334,7 +414,8 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         load_db_wegdelen(bbox, wegdelen)
 
         wegdelen_data = build_wegdelen_data(elk_response, wegdelen)
-        calculate_pressure(wegdelen_data)
+
+        # calculate_pressure(wegdelen_data)
 
         return Response(wegdelen_data)
 
