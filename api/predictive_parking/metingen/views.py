@@ -205,23 +205,33 @@ def collect_wegdelen(elk_response):
 
 def build_wegdelen_data(elk_response: dict, wegdelen: dict):
     """
-    Enrich wegdelen data
+    Enrich wegdelen data with aggregated counts from elasticsearch
     """
     date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
     for date, data in date_buckets.items():
         for b_wegdeel in data['wegdeel']['buckets']:
-            key = b_wegdeel['key']
-            db_wegdeel = wegdelen[key]
-            # update how many days this road is observed
-            db_wegdeel['days'] = db_wegdeel.setdefault('days', 0) + 1
+
             scans = b_wegdeel['doc_count']
             # update how many scans have been totally for this wegdeel
+
+            key = b_wegdeel['key']
+            db_wegdeel = wegdelen[key]
             db_wegdeel['scans'] = db_wegdeel.setdefault('scans', 0) + scans
-            # update distinct vakken for date
-            cardinal_vakken = b_wegdeel['vakken']['value']
+            # update how many days this road is observed
+            db_wegdeel['days'] = db_wegdeel.setdefault('days', 0) + 1
 
             c_vakken = db_wegdeel.setdefault('cardinal_vakken', [])
-            c_vakken.append((date, cardinal_vakken))
+
+            # update distinct vakken for date hour
+            date_data = {}
+
+            for hour_d in b_wegdeel['hour']['buckets']:
+                hour = hour_d['key']
+                h_scans = hour_d['doc_count']
+                cardinal_vakken = hour_d['vakken']['value']
+                date_data[hour] = [h_scans, cardinal_vakken]
+
+            c_vakken.append((date, date_data))
 
     return wegdelen
 
@@ -232,6 +242,7 @@ def calculate_pressure(wegdelen):
 
     wegdelen zijn dict objecten met database en elastic data/tellingen
     """
+    return
 
     for _k, wegd in wegdelen.items():
         totaal_gezien = sum([c for _, c in wegd['cardinal_vakken']])
@@ -263,7 +274,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         bbox      bottom,       left,      top,    right
 
 
-        hour      [0.. 23]
+        hour      [0 .. 23]
         hour_1    [0 .. 23]
         hour_2    [0 .. 23]
         minute_1  [0 .. 59]
@@ -333,10 +344,12 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         - distinct wegdelen seen
         - distinct vakken seen for each wegdeel with counts
-
         """
 
         elk_q = queries.build_wegdeel_query(bbox, must)
+
+        build_q = json.loads(elk_q)
+        log.debug(json.dumps(build_q, indent=4))
 
         try:
             result = ELK_CLIENT.search(

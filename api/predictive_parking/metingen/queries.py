@@ -320,12 +320,20 @@ def build_wegdeel_query(bbox, must):
                     "wegdeel": {
                         "terms": {
                             "field": "bgt_wegdeel.keyword",
-                            "size": 12
+                            "size": 10
                         },
                         "aggs": {
-                            "vakken": {
-                                "cardinality": {
-                                    "field": "parkeervak_id.keyword"
+                            "hour": {
+                                "terms": {
+                                    "field": "hour",
+                                    "size": 20,
+                                },
+                                "aggs": {
+                                    "vakken": {
+                                        "cardinality": {
+                                            "field": "parkeervak_id.keyword"
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -6,14 +6,8 @@ ENV PYTHONUNBUFFERED 1
 EXPOSE 8000
 
 RUN apt-get install -y \
-	netcat \
-	gdal-bin \
-	libgeos-dev \
-	unzip \
 	unrar \
-	postgresql-client-9.4 \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+	&& apt-get clean
 
 
 RUN adduser --system datapunt \
@@ -35,4 +29,3 @@ USER datapunt
 COPY predictive_parking /app/
 
 CMD ["/app/docker-run.sh"]
-#CMD ["/app/docker-run.sh"]
