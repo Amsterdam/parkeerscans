@@ -43,7 +43,7 @@ import * as fromMap from './map';
  * our top level state interface is just a map of keys to inner state types.
  */
 export interface State {
-  // map: fromMap.State;
+  map: fromMap.State;
 }
 
 /**

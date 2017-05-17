@@ -37,7 +37,7 @@ export class MapCrs {
     this.setRd();
   }
 
-  public getRd () {
+  public getRd() {
     return this.rd;
   }
 
@@ -45,7 +45,7 @@ export class MapCrs {
    * @returns {Object} - An object used to identify the CRS of a GeoJSON object:
    * http://geojson.org/geojson-spec.html#coordinate-reference-system-objects
    */
-  public getRdObject () {
+  public getRdObject() {
     return {
       type: 'name',
       properties: {
