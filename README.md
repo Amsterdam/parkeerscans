@@ -110,3 +110,5 @@ Step2, Visualization
    - start a local accesible elasticsearch docker with parking data from step1.
    - for plugin development npm is used and I suggest looking into the pluging develop
      ment documentation pages of kibana
+
+  A new `angular` frontend is in development now.
