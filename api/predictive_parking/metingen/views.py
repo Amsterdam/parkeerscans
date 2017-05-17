@@ -177,8 +177,6 @@ def determine_bbox(request):
     Create a bounding box if it is given with the request.
     """
 
-    bbox = []
-
     err = "invalid bbox given"
 
     if 'bbox' in request.query_params:
