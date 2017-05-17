@@ -871,6 +871,10 @@ chokidar@^1.4.1, chokidar@^1.4.3, chokidar@^1.6.0:
   optionalDependencies:
     fsevents "^1.0.0"
 
+chroma-js@^1.1.1:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/chroma-js/-/chroma-js-1.3.3.tgz#91b3a2b3856c18443ebd8c9719faea108b56263b"
+
 cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/cipher-base/-/cipher-base-1.0.3.tgz#eeabf194419ce900da3018c207d212f2a6df0a07"
@@ -3011,7 +3015,23 @@ lcid@^1.0.0:
   dependencies:
     invert-kv "^1.0.0"
 
-leaflet@^1.0.3:
+leaflet-choropleth@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/leaflet-choropleth/-/leaflet-choropleth-1.1.3.tgz#5885a4bf99b58fd400901af35f2d7dd1a902a952"
+  dependencies:
+    chroma-js "^1.1.1"
+    leaflet "^1.0.2"
+    lodash "^3.10.1"
+
+"leaflet-choropleth@https://github.com/DatapuntAmsterdam/leaflet-choropleth.git#upgrade":
+  version "1.1.3"
+  resolved "https://github.com/DatapuntAmsterdam/leaflet-choropleth.git#b6484149bbfd59d1dd9e595973c4fa4c8bdb2f87"
+  dependencies:
+    chroma-js "^1.1.1"
+    leaflet "^1.0.2"
+    lodash "^4.17.4"
+
+leaflet@^1.0.2, leaflet@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/leaflet/-/leaflet-1.0.3.tgz#1f401b98b45c8192134c6c8d69686253805007c8"
 

@@ -268,7 +268,7 @@ module.exports = function (options) {
         { from: 'src/assets', to: 'assets' },
         { from: 'src/meta' },
         { from: 'node_modules/leaflet/dist/leaflet.css', to: 'styles' },
-        { from: 'node_modules/proj4/dist/proj4.js', to: 'scripts' }
+        { from: 'node_modules/proj4/dist/proj4.js', to: 'scripts' },
       ]),
 
 

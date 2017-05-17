@@ -1553,6 +1553,22 @@ declare namespace L {
 
         function CRS(code: string, proj4def: string, options: CRSOptions): void;
     }
+
+    interface ChoroplethOptions {
+        valueProperty: string;
+        scale: string[];
+        steps: number;
+        mode: string;
+        style: {
+            color: string;
+            weight: number;
+            fillOpacity: number;
+        }
+    }
+
+    function choropleth(
+        geojson: GeoJSONFeatureCollection<GeoJSONPolygon>,
+        opts: ChoroplethOptions): GeoJSON;
 }
 
 declare module 'leaflet' {

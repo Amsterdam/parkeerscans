@@ -16,9 +16,9 @@
 module.exports = {
   link: [
     { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/assets/icon/favicon.png' },
-    { rel: 'stylesheet', href: '/styles/leaflet.css' }
+    { rel: 'stylesheet', href: '/styles/leaflet.css' },
   ],
   script: [
-    { type: 'text/javascript', src: '/scripts/proj4.js' }
+    { type: 'text/javascript', src: '/scripts/proj4.js' },
   ]
 };

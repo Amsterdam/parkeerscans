@@ -1,4 +1,5 @@
 import L from 'leaflet';
+import 'leaflet-choropleth';
 import 'rxjs/add/operator/map';
 import { Directive, OnInit, ElementRef, Input, NgZone } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
@@ -70,20 +71,20 @@ export class LeafletDirective implements OnInit {
   }
 
   private showWegdelen([parkeerkans, wegdelen]) {
-    console.log('parkeerkans', parkeerkans);
-    console.log('wegdelen', wegdelen);
     const data = wegdelen.map((wegdeel) => {
       const wegdeelKans = parkeerkans[wegdeel.properties.id];
       wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.bezetting : 0;
       return wegdeel;
-    }).filter((wegdeel) => wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting);
+    }).filter((wegdeel) =>
+      wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting
+    );
     console.log('data', data);
     L.choropleth({
       type: 'FeatureCollection',
       features: data
     }, {
       valueProperty: 'bezetting',
-      scale: ['white', 'red']
+      scale: ['white', 'red'],
       steps: 10,
       mode: 'q',
       style: {
@@ -104,7 +105,7 @@ export class LeafletDirective implements OnInit {
       features: parkeervakken
     }, {
       valueProperty: 'scan_count',
-      scale: ['white', 'green']
+      scale: ['white', 'green'],
       steps: 10,
       mode: 'q',
       style: {
