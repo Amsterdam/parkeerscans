@@ -36,21 +36,14 @@ import { combineReducers } from '@ngrx/store';
  * the state of the reducer plus any selector functions. The `* as`
  * notation packages up all of the exports into a single object.
  */
-// import * as fromSearch from './search';
 import * as fromMap from './map';
-// import * as fromCollection from './collection';
-// import * as fromLayout from './layout';
 
 /**
  * As mentioned, we treat each reducer like a table in a database. This means
  * our top level state interface is just a map of keys to inner state types.
  */
 export interface State {
-  // search: fromSearch.State;
   // map: fromMap.State;
-  // collection: fromCollection.State;
-  // layout: fromLayout.State;
-  // router: fromRouter.RouterState;
 }
 
 /**
