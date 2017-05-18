@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Voute Fakken</title>
+
+</head>
+
+<body>
+	<h3>
+	    Verdachte Vakken Centrum {{totaal_fout}} van de {{totaal_beschikbaar}} ingetekende Fiscale vakken.
+	</h3>
+
+      	{% for vak in vakken %}
+
+	    <img src=https://api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.point.y}}&lon={{vak.point.x}}&horizon=0.8&radius=10>
+
+	    <!-- if last column in row -->
+
+	    {% if forloop.counter|divisibleby:4 and not forloop.last %}
+
+	    {% endif %}
+
+      	{% endfor %}
+
+</body>
+
+</html>

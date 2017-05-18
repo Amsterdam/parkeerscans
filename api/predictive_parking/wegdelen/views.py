@@ -2,6 +2,10 @@
 
 from datapunt import rest
 
+from django.http import HttpResponse
+from django.template import loader
+
+
 from . import models
 from . import serializers
 
@@ -51,3 +55,30 @@ class VakkenViewSet(rest.DatapuntViewSet):
         'scan_count',
     )
 
+
+def verdachte_vakken_view(request):
+    """
+    Show simple view of bad vakken
+    with panorama image.
+    """
+
+    template = loader.get_template('wegdelen/simple.html')
+
+    queryset = models.Parkeervak.objects.all()
+    queryset = queryset.filter(buurt__startswith='A')
+    queryset = queryset.filter(soort='FISCAAL')
+
+    totaal_count = queryset.count()
+    vakken = queryset.filter(scan_count__lte=10)
+
+    null_vakken = queryset.filter(scan_count=None)
+    vout = vakken | null_vakken
+
+    print(vout.count())
+
+    context = {
+            'totaal_beschikbaar': totaal_count,
+            'totaal_fout': vout.count(),
+            'vakken': vout[:1000]}
+
+    return HttpResponse(template.render(context, request))
