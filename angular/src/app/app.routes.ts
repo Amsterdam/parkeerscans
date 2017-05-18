@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { MapComponent } from './containers/map.component';
+import { MapComponent } from './containers/map';
 
 import { DataResolver } from './app.resolver';
 
