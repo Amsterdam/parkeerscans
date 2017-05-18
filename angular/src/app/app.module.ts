@@ -17,11 +17,6 @@ import { reducer } from './reducers';
 import { schema } from './db';
 
 import { MapModule } from './containers/map';
-import { ParkeerkansService } from './services/parkeerkans.service';
-import { WegdelenService } from './services/wegdelen.service';
-import { ParkeervakkenService } from './services/parkeervakken.service';
-import { ParkeervakService } from './services/parkeervak.service';
-import { HighlightService } from './services/highlight.service';
 
 /*
  * Platform and Environment providers/directives/pipes
@@ -94,12 +89,7 @@ import '../styles/headings.css';
     MapModule
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
-    ENV_PROVIDERS,
-    ParkeerkansService,
-    WegdelenService,
-    ParkeervakkenService,
-    ParkeervakService,
-    HighlightService
+    ENV_PROVIDERS
   ]
 
 })

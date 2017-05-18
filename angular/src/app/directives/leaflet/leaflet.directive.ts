@@ -5,10 +5,9 @@ import { Directive, OnInit, ElementRef, Input, NgZone } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 
 import { MapCrs } from '../../services/map-crs';
-import { ParkeerkansService } from '../../services/parkeerkans.service';
-import { WegdelenService } from '../../services/wegdelen.service';
-import { ParkeervakkenService } from '../../services/parkeervakken.service';
-import { HighlightService } from '../../services/highlight.service';
+import { ParkeerkansService } from '../../services/parkeerkans';
+import { WegdelenService } from '../../services/wegdelen';
+import { ParkeervakkenService } from '../../services/parkeervakken';
 
 const mapOptions = {
   maxBounds: [
@@ -33,8 +32,7 @@ export class LeafletDirective implements OnInit {
     private crs: MapCrs,
     private parkeerkansService: ParkeerkansService,
     private wegdelenService: WegdelenService,
-    private parkeervakkenService: ParkeervakkenService,
-    private highlightService: HighlightService) {}
+    private parkeervakkenService: ParkeervakkenService) {}
 
   public ngOnInit() {
     this.initLeaflet();
