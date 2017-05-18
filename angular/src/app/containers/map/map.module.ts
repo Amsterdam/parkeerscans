@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { LeafletModule } from '../../directives/leaflet';
+import { LeafletModule } from '../leaflet';
 
 import { MapComponent } from './map.component';
 

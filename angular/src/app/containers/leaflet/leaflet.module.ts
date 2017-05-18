@@ -1,17 +1,17 @@
 import { NgModule } from '@angular/core';
 import { MapCrsModule } from 'app/services/map-crs';
 
-import { LeafletDirective } from './leaflet.directive';
+import { LeafletComponent } from './leaflet.component';
 
 @NgModule({
   imports: [
     MapCrsModule
   ],
   declarations: [
-    LeafletDirective
+    LeafletComponent
   ],
   exports: [
-    LeafletDirective
+    LeafletComponent
   ]
 })
 export class LeafletModule {}

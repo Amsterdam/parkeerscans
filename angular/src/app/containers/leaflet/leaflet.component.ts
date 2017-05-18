@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, NgZone } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, NgZone } from '@angular/core';
 import L from 'leaflet';
 import { MapCrs } from '../../services/map-crs';
 
@@ -14,14 +14,23 @@ const mapOptions = {
   zoomControl: false
 };
 
-@Directive({ selector: '[dp-leaflet]' })
-export class LeafletDirective {
-  constructor(el: ElementRef, zone: NgZone, private crs: MapCrs) {
-    zone.run(() => {
+@Component({
+  selector: 'dp-leaflet',
+  template: '',
+  styleUrls: [
+    './leaflet.scss'
+  ]
+})
+export class LeafletComponent implements AfterViewInit {
+  constructor(private host: ElementRef, private zone: NgZone, private crs: MapCrs) {
+  }
+
+  public ngAfterViewInit() {
+    this.zone.run(() => {
       const options = Object.assign({}, mapOptions, {
         crs: this.crs.getRd()
       });
-      const leafletMap: L.Map = L.map(el.nativeElement, options)
+      const leafletMap: L.Map = L.map(this.host.nativeElement, options)
         .setView([52.3731081, 4.8932945], 11);
       const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd/{z}/{x}/{y}.png', {
         subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4'],
