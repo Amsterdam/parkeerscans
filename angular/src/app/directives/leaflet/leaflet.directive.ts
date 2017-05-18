@@ -3,11 +3,12 @@ import 'leaflet-choropleth';
 import 'rxjs/add/operator/map';
 import { Directive, OnInit, ElementRef, Input, NgZone } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
-import { MapCrs } from './map-crs.service';
-import { ParkeerkansService } from '../services/parkeerkans.service';
-import { WegdelenService } from '../services/wegdelen.service';
-import { ParkeervakkenService } from '../services/parkeervakken.service';
-import { HighlightService } from '../services/highlight.service';
+
+import { MapCrs } from '../../services/map-crs';
+import { ParkeerkansService } from '../../services/parkeerkans.service';
+import { WegdelenService } from '../../services/wegdelen.service';
+import { ParkeervakkenService } from '../../services/parkeervakken.service';
+import { HighlightService } from '../../services/highlight.service';
 
 const mapOptions = {
   maxBounds: [

@@ -1,9 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import {
-  NgModule
-} from '@angular/core';
+import { NgModule } from '@angular/core';
 import {
   RouterModule,
   PreloadAllModules
@@ -18,9 +16,7 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { reducer } from './reducers';
 import { schema } from './db';
 
-import { MapComponent } from './containers/map.component';
-import { LeafletDirective } from './containers/leaflet.directive';
-import { MapCrs } from './containers/map-crs.service';
+import { MapModule } from './containers/map';
 import { ParkeerkansService } from './services/parkeerkans.service';
 import { WegdelenService } from './services/wegdelen.service';
 import { ParkeervakkenService } from './services/parkeervakken.service';
@@ -45,9 +41,7 @@ import '../styles/headings.css';
 @NgModule({
   bootstrap: [ AppComponent ],
   declarations: [
-    AppComponent,
-    MapComponent,
-    LeafletDirective
+    AppComponent
   ],
   imports: [ // import Angular's modules
     BrowserModule,
@@ -95,16 +89,18 @@ import '../styles/headings.css';
      * `provideDB` sets up @ngrx/db with the provided schema and makes the Database
      * service available.
      */
-    DBModule.provideDB(schema)
+    DBModule.provideDB(schema),
+
+    MapModule
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
     ENV_PROVIDERS,
-    MapCrs,
     ParkeerkansService,
     WegdelenService,
     ParkeervakkenService,
     ParkeervakService,
     HighlightService
   ]
+
 })
 export class AppModule {}
