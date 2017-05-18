@@ -227,7 +227,7 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
 
             db_wegdeel = wegdelen[key]
 
-            capacity = db_wegdeel['totaal_vakken']
+            capacity = db_wegdeel.get('totaal_vakken')
 
             db_wegdeel['scans'] = db_wegdeel.setdefault('scans', 0) + scans
 
@@ -243,7 +243,11 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
                 hour = hour_d['key']
                 # h_scans = hour_d['doc_count']
                 cardinal_vakken = hour_d['vakken']['value']
-                bezetting = int(cardinal_vakken / capacity * 100)
+                if capacity:
+                    bezetting = int(cardinal_vakken / capacity * 100)
+                else:
+                    bezetting = 1000
+
                 date_data.append([hour, bezetting])
 
             date_data.sort()
