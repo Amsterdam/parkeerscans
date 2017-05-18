@@ -9,7 +9,6 @@ import {
 
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
-import { DBModule } from '@ngrx/db';
 import { RouterStoreModule } from '@ngrx/router-store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
@@ -79,12 +78,6 @@ import '../styles/headings.css';
      */
     // EffectsModule.run(BookEffects),
     // EffectsModule.run(CollectionEffects),
-
-    /**
-     * `provideDB` sets up @ngrx/db with the provided schema and makes the Database
-     * service available.
-     */
-    DBModule.provideDB(schema),
 
     MapModule
   ],
