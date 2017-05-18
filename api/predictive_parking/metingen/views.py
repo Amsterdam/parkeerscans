@@ -195,12 +195,18 @@ def collect_wegdelen(elk_response):
     """
     wegdelen = {}
 
-    date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
+    aggs = elk_response.get('aggregations')
+
+    if not aggs:
+        return {}, "no results.."
+
+    date_buckets = aggs.get('scan_by_date')['buckets']
+
     for _date, data in date_buckets.items():
         for wegdeel in data["wegdeel"]["buckets"]:
             wegdelen[wegdeel['key']] = {}
 
-    return wegdelen
+    return wegdelen, None
 
 
 def build_wegdelen_data(elk_response: dict, wegdelen: dict):
@@ -213,7 +219,6 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
     date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
     for date, data in date_buckets.items():
         for b_wegdeel in data['wegdeel']['buckets']:
-
 
             scans = b_wegdeel['doc_count']
             # update how many scans have been totally for this wegdeel
@@ -398,15 +403,18 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         if settings.DEBUG:
             # Print elk response to console
-            # print(json.dumps(elk_response, indent=4))
-            # return Response(elk_response)
+            #print(json.dumps(elk_response, indent=4))
+            #return Response(elk_response)
             pass
 
         if err:
             return Response([err], status=400)
 
         # collect all wegdelen id's
-        wegdelen = collect_wegdelen(elk_response)
+        wegdelen, err = collect_wegdelen(elk_response)
+
+        if err:
+            return Response([err], status=400)
 
         # find wegdelen from DB.
         load_db_wegdelen(bbox, wegdelen)
