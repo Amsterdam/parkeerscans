@@ -1,9 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import {
-  NgModule
-} from '@angular/core';
+import { NgModule } from '@angular/core';
 import {
   RouterModule,
   PreloadAllModules
@@ -11,21 +9,19 @@ import {
 
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
-import { DBModule } from '@ngrx/db';
 import { RouterStoreModule } from '@ngrx/router-store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
 import { reducer } from './reducers';
 import { schema } from './db';
 
-import { MapComponent } from './containers/map.component';
-import { LeafletDirective } from './containers/leaflet.directive';
+import { MapModule } from './containers/map';
 
 /*
  * Platform and Environment providers/directives/pipes
  */
 import { ENV_PROVIDERS } from './environment';
-import { ROUTES } from './app.routes';
+import { ROUTES } from './app.component.routes';
 // App is our top level component
 import { AppComponent } from './app.component';
 import { APP_RESOLVER_PROVIDERS } from './app.resolver';
@@ -39,9 +35,7 @@ import '../styles/headings.css';
 @NgModule({
   bootstrap: [ AppComponent ],
   declarations: [
-    AppComponent,
-    MapComponent,
-    LeafletDirective
+    AppComponent
   ],
   imports: [ // import Angular's modules
     BrowserModule,
@@ -82,17 +76,14 @@ import '../styles/headings.css';
      *
      * See: https://github.com/ngrx/effects/blob/master/docs/api.md#run
      */
-    //EffectsModule.run(BookEffects),
-    //EffectsModule.run(CollectionEffects),
+    // EffectsModule.run(BookEffects),
+    // EffectsModule.run(CollectionEffects),
 
-    /**
-     * `provideDB` sets up @ngrx/db with the provided schema and makes the Database
-     * service available.
-     */
-    DBModule.provideDB(schema)
+    MapModule
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
     ENV_PROVIDERS
   ]
+
 })
 export class AppModule {}
