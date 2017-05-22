@@ -62,6 +62,9 @@ predictiveparking.register(
 predictiveparking.urls.append(
     url(r'voutevakken', wegdelenViews.verdachte_vakken_view))
 
+predictiveparking.urls.append(
+    url(r'gratis', wegdelenViews.verdachte_bgt_parkeervlak))
+
 
 # predictiveparking.extend(kansen)
 

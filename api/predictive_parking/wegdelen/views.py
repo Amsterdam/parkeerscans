@@ -69,16 +69,40 @@ def verdachte_vakken_view(request):
     queryset = queryset.filter(soort='FISCAAL')
 
     totaal_count = queryset.count()
+
     vakken = queryset.filter(scan_count__lte=10)
 
     null_vakken = queryset.filter(scan_count=None)
     vout = vakken | null_vakken
 
-    print(vout.count())
+    # print(vout.count())
 
     context = {
-            'totaal_beschikbaar': totaal_count,
-            'totaal_fout': vout.count(),
-            'vakken': vout[:1000]}
+        'totaal_beschikbaar': totaal_count,
+        'totaal_fout': vout.count(),
+        'vakken': vout[:1000]}
 
     return HttpResponse(template.render(context, request))
+
+
+def verdachte_bgt_parkeervlak(request):
+    """
+    Show waarschijnlijk niet goed ingetekende bgt parkeervlakken
+    GRATIS PARKEREN.
+    """
+    template = loader.get_template('wegdelen/gratis.html')
+
+    parkeervlakken = models.WegDeel.objects.filter(bgt_functie='parkeervlak')
+    qs = parkeervlakken.filter(scan_count__gte=15)
+    gratis = qs.order_by('-scan_count')
+
+    vlakken_count = parkeervlakken.count()
+
+    context = {
+        'totaal_vlakken': vlakken_count,
+        'totaal_fout': gratis.count(),
+        'vakken': gratis}
+
+    return HttpResponse(template.render(context, request))
+
+

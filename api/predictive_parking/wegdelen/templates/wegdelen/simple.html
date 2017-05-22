@@ -3,6 +3,13 @@
 <head>
 	<title>Voute Fakken</title>
 
+	<style>
+		.vakje {
+			display: inline-block;
+			max-width: 600px;
+			height: 455px;
+		}
+	</style>
 </head>
 
 <body>
@@ -12,13 +19,24 @@
 
       	{% for vak in vakken %}
 
-	    <img src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.point.y}}&lon={{vak.point.x}}&horizon=0.8&radius=10">
+	    <div class="vakje">
 
-	    <!-- if last column in row -->
+	    <img width="600px" height="400px" src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.point.y}}&lon={{vak.point.x}}&horizon=0.8&radius=10" onerror="this.src='https://s-media-cache-ak0.pinimg.com/564x/8d/f0/56/8df05604b0f42d899e788d6e843f6c75.jpg'">
 
 	    {% if forloop.counter|divisibleby:4 and not forloop.last %}
 
 	    {% endif %}
+
+	    <p>
+	    	{{ vak.straatnaam }}:
+	    	{{ vak.scan_count }}:
+	    </p>
+
+	    <p>
+		{{vak.point.y}},{{vak.point.x}}
+	    </p>
+
+	    </div>
 
       	{% endfor %}
 
