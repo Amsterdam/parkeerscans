@@ -1,18 +1,7 @@
 import { Component, AfterViewInit, ElementRef, NgZone } from '@angular/core';
 import L from 'leaflet';
 import { MapCrs } from '../../services/map-crs';
-
-const mapOptions = {
-  maxBounds: [
-    [52.269470, 4.72876],
-    [52.4322, 5.07916]
-  ],
-  // 1.0 makes the bounds fully solid, preventing the user from dragging outside the bounds
-  maxBoundsViscosity: 1.0,
-  bounceAtZoomLimits: false,
-  attributionControl: false,
-  zoomControl: false
-};
+import { config } from './leaflet.component.config';
 
 @Component({
   selector: 'dp-leaflet',
@@ -27,7 +16,7 @@ export class LeafletComponent implements AfterViewInit {
 
   public ngAfterViewInit() {
     this.zone.run(() => {
-      const options = Object.assign({}, mapOptions, {
+      const options = Object.assign({}, config, {
         crs: this.crs.getRd()
       });
       const leafletMap: L.Map = L.map(this.host.nativeElement, options)
@@ -37,7 +26,7 @@ export class LeafletComponent implements AfterViewInit {
         tms: true,
         minZoom: 8,
         maxZoom: 16,
-        bounds: mapOptions.maxBounds
+        bounds: config.maxBounds
       });
 
       baseLayer.addTo(leafletMap);
