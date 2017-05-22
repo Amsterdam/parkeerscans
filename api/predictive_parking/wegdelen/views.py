@@ -5,6 +5,7 @@ from datapunt import rest
 from django.http import HttpResponse
 from django.template import loader
 
+from django.contrib.gis.db.models.functions import Transform
 
 from . import models
 from . import serializers
@@ -80,13 +81,21 @@ def verdachte_vakken_view(request):
     null_vakken = queryset.filter(scan_count=None)
     vout = vakken | null_vakken
 
-    # print(vout.count())
+    latlon = []
+
+    for vlak in vout:
+        lat = vlak.geometrie.centroid.y
+        lon = vlak.geometrie.centroid.x
+        latlon.append((lat, lon))
+
+    for vlak in vout:
+        vlak.geometrie.transform(28992)
 
     context = {
         'totaal_beschikbaar': totaal_count,
         'totaal_fout': vout.count(),
         'buurt': buurt,
-        'vakken': vout[:1000]}
+        'vakken': zip(latlon, vout)}
 
     return HttpResponse(template.render(context, request))
 
