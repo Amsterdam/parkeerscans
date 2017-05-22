@@ -31,9 +31,12 @@
 	        {{ vak.id }} scans {{ vak.scan_count}}
 	    </p>
 
-	    <p>
+	    <p> latlon:
 		{{ vak.geometrie.centroid.y }} -
 		{{ vak.geometrie.centroid.x }} -
+	    </p>
+	    <p> rd:
+		{{latlon.0}},{{latlon.1}}
 	    </p>
 
 	    </div>
