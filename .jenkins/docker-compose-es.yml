@@ -1,0 +1,38 @@
+version: '2.1'
+services:
+
+  elasticsearch:
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
+    environment:
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    volumes:
+      - ./backups/elasticsearch:/tmp/backups
+
+  logstash:
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
+    # build: ../logstash
+    volumes:
+      - data-volume:/app/data
+    environment:
+      TABLE:
+
+  el-backup:
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
+    volumes:
+      - ./backups/elasticsearch:/tmp/backups
+    user: root
+    command: >
+      bash -c "chmod -R 777 /tmp/backups  \
+              && rm -f /tmp/backups/* \
+              && curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
+              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }'"
+
+volumes:
+  data-volume:
+
+
+networks:
+  default:
+    external:
+      name: pp_predictiveparking

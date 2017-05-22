@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Voute Fakken</title>
+
+	<style>{% include "wegdelen/simple-grid.css" %}</style>
+
+	<script>{% include "wegdelen/loadpanos.js" %}</script>
+
+</head>
+
+<body>
+
+	<div class="container">
+
+
+	<div class="row">
+		<div class="col-2 hidden-sm"></div>
+		<div class="col-8">
+			<h3 class="center"> Verdachte Vakken Centrum {{totaal}} </h3>
+		</div>
+		<div class="col-2 hidden-sm"></div>
+	</div>
+
+
+	<div class="row">
+
+      	{% for vak in vakken %}
+
+	    <img  class="col-3" src=https://api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.point.y}}&lon={{vak.point.x}}&horizon=0.8&radius=10>
+
+	    <!-- if last column in row -->
+
+	    {% if forloop.counter|divisibleby:4 and not forloop.last %}
+
+	    </div><div class="row">
+
+	    {% endif %}
+
+      	{% endfor %}
+
+	</div>
+
+	</div>
+
+</body>
+
+</html>
