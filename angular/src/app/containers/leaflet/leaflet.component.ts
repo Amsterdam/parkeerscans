@@ -74,7 +74,7 @@ export class LeafletComponent implements AfterViewInit {
   private showWegdelen([parkeerkans, wegdelen]) {
     const data = wegdelen.map((wegdeel) => {
       const wegdeelKans = parkeerkans[wegdeel.properties.id];
-      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.bezetting : 0;
+      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.scans : 0;
       return wegdeel;
     }).filter((wegdeel) =>
       wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting
