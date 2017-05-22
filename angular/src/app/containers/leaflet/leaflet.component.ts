@@ -1,5 +1,8 @@
 import { Component, AfterViewInit, ElementRef, NgZone } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
 import L from 'leaflet';
+import 'leaflet-choropleth';
 import { MapCrs } from '../../services/map-crs';
 import { config } from './leaflet.component.config';
 import { ParkeerkansService } from '../../services/parkeerkans';
@@ -14,6 +17,8 @@ import { ParkeervakkenService } from '../../services/parkeervakken';
   ]
 })
 export class LeafletComponent implements AfterViewInit {
+  private leafletMap: L.Map;
+
   constructor(
     private host: ElementRef,
     private zone: NgZone,
@@ -32,7 +37,7 @@ export class LeafletComponent implements AfterViewInit {
       const options = Object.assign({}, config, {
         crs: this.crs.getRd()
       });
-      const leafletMap: L.Map = L.map(this.host.nativeElement, options)
+      this.leafletMap = L.map(this.host.nativeElement, options)
         .setView([52.3731081, 4.8932945], 11);
       const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd/{z}/{x}/{y}.png', {
         subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4'],
@@ -42,10 +47,10 @@ export class LeafletComponent implements AfterViewInit {
         bounds: config.maxBounds
       });
 
-      baseLayer.addTo(leafletMap);
+      baseLayer.addTo(this.leafletMap);
 
       setTimeout(() => {
-        leafletMap.invalidateSize();
+        this.leafletMap.invalidateSize();
       });
 
       this.leafletMap.on('moveend', this.updateBoundingBox.bind(this));
