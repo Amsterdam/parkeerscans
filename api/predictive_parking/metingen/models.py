@@ -69,6 +69,9 @@ class Scan(models.Model):
 
     objects = geo.GeoManager()
 
+    def __str__(self):
+        return f"{self.scan_id} - {self.parkeervak_id}"
+
 
 class ScanRaw(models.Model):
     """

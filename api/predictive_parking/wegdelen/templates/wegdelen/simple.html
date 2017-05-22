@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Voute Fakken</title>
+
+	<style>
+		.vakje {
+			display: inline-block;
+			max-width: 600px;
+			height: 455px;
+		}
+	</style>
+</head>
+
+<body>
+	<h3>
+		Verdachte Vakken {{buurt}} {{totaal_fout}} van de {{totaal_beschikbaar}} ingetekende Fiscale vakken.
+	</h3>
+	<p>
+		Per stadsdeel:
+		<a href="{{ request.path }}?buurt=A">Centrum</a>
+		<a href="{{ request.path }}?buurt=K">Zuid</a>
+		<a href="{{ request.path }}?buurt=E&aantal=0">West</a>
+		<a href="{{ request.path }}?buurt=N&aantal=0">Noord</a>
+		<a href="{{ request.path }}?buurt=F&aantal=0">Nieuw-West</a>
+		<a href="{{ request.path }}?buurt=T&aantal=0">Zuidoost</a>
+	</p>
+
+      	{% for vak in vakken %}
+
+	    <div class="vakje">
+
+	    <img width="600px" height="400px" src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.point.y}}&lon={{vak.point.x}}&horizon=0.8&radius=10" onerror="this.src='https://s-media-cache-ak0.pinimg.com/564x/8d/f0/56/8df05604b0f42d899e788d6e843f6c75.jpg'">
+
+	    {% if forloop.counter|divisibleby:4 and not forloop.last %}
+
+	    {% endif %}
+
+	    <p>
+	    	{{ vak.straatnaam }}
+
+	    	 scans: {{ vak.scan_count }}:
+	    </p>
+
+	    <p>
+		{{vak.point.y}},{{vak.point.x}}
+	    </p>
+
+	    </div>
+
+      	{% endfor %}
+
+</body>
+
+</html>

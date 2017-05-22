@@ -6,9 +6,11 @@ from parkeerkans import views as kansviews
 from rest_framework import routers
 
 from django.conf.urls import url, include
+from django.conf import settings
 
 
-from metingen import views as metingviews
+from metingen import views as metingViews
+from wegdelen import views as wegdelenViews
 
 
 class PredictiveParkingView(routers.APIRootView):
@@ -27,6 +29,7 @@ class PredictiveParkingView(routers.APIRootView):
 
 
 class PredictiveParkingRouter(routers.DefaultRouter):
+    """The main router"""
     APIRootView = PredictiveParkingView
 
 
@@ -36,8 +39,33 @@ class PredictiveParkingRouter(routers.DefaultRouter):
 predictiveparking = PredictiveParkingRouter()
 
 predictiveparking.register(r'kansen/buurt', kansviews.KansmodelViewSet, 'mvp')
+
+
 predictiveparking.register(
-    r'metingen/scans', metingviews.MetingenViewSet, 'Scan')
+    r'wegdelen', wegdelenViews.WegdelenViewSet, 'wegdeel')
+
+predictiveparking.register(
+    r'vakken', wegdelenViews.VakkenViewSet, 'parkeervak')
+
+predictiveparking.register(
+    r'metingen/scans', metingViews.MetingenViewSet, 'scan')
+
+predictiveparking.register(
+    r'metingen/aggregations/wegdelen',
+    metingViews.WegdelenAggregationViewSet, 'wegdelen')
+
+
+predictiveparking.register(
+    r'metingen/aggregations/vakken',
+    metingViews.VakkenAggregationViewSet, 'vakken')
+
+predictiveparking.urls.append(url(
+    r'voutevakken',
+    wegdelenViews.verdachte_vakken_view))
+
+predictiveparking.urls.append(
+    url(r'gratis', wegdelenViews.verdachte_bgt_parkeervlak))
+
 
 # predictiveparking.extend(kansen)
 
@@ -47,5 +75,12 @@ urlpatterns = [
     url(r'^status/', include('health.urls', namespace='health')),
     url(r'^predictiveparking/', include(predictiveparking.urls)),
 
+
     # url(r'^metingen/', include(kansen.urls)),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar  # noqa
+    urlpatterns = [
+        url(r'^__debug__/', include(debug_toolbar.urls))
+    ] + urlpatterns

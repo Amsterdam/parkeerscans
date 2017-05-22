@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Gratis parkeren</title>
+
+	<style>
+		.vakje {
+			display: inline-block;
+			max-width: 600px;
+			height: 455px;
+		}
+	</style>
+
+</head>
+
+<body>
+	<h3>
+	    Gratis pakeren in  Amsterdam {{totaal_fout}} van de {{totaal_vlakken}} ontbreken van vakken in parkeerkaart
+	</h3>
+
+      	{% for vak in vakken %}
+
+	    <div class="vakje">
+
+	    <img width="600px" height="400px" src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.geometrie.centroid.y}}&lon={{vak.geometrie.centroid.x}}&horizon=0.8&radius=10" onerror="this.src='https://s-media-cache-ak0.pinimg.com/564x/8d/f0/56/8df05604b0f42d899e788d6e843f6c75.jpg'">
+
+	    {% if forloop.counter|divisibleby:4 and not forloop.last %}
+
+	    {% endif %}
+	    <p>
+	        {{ vak.id }} scans {{ vak.scan_count}}
+	    </p>
+
+	    <p>
+		{{ vak.geometrie.centroid.y }} -
+		{{ vak.geometrie.centroid.x }} -
+	    </p>
+
+	    </div>
+
+      	{% endfor %}
+
+</body>
+
+</html>

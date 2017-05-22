@@ -47,7 +47,94 @@ func dbConnect(connStr string) (*sql.DB, error) {
 //devide in batch jobs.
 //index scans in jobs
 
-func fetchScans() {
+func makeScanDoc(row *sql.Rows) (string, Scan) {
+	var ID int
+	var scanID string
+	var moment time.Time
+	var scanSource string
+	var deviceID string
+
+	var qualcode sql.NullString
+	var sperscode sql.NullString
+
+	var parkeervakID sql.NullString
+	var parkeervakSoort sql.NullString
+
+	var BGTwegdeel sql.NullString
+	var BGTwegdeelFunctie sql.NullString
+
+	var nhaHoogte sql.NullFloat64
+	var ffdf sql.NullString
+
+	var lat float64
+	var lon float64
+
+	err := row.Scan(
+		&ID,
+		&scanID,
+		&moment,
+		&scanSource,
+		&deviceID,
+
+		&qualcode,
+		&sperscode,
+
+		&parkeervakID,
+		&parkeervakSoort,
+
+		&BGTwegdeel,
+		&BGTwegdeelFunctie,
+
+		&nhaHoogte,
+		&ffdf,
+
+		&lat,
+		&lon,
+	)
+
+	panicOnErr(err)
+
+	scan := Scan{
+		ID:         fmt.Sprintf("%d-%s", ID, scanID),
+		DeviceID:   deviceID,
+		ScanSource: scanSource,
+
+		//Qualcode:   qualcode,
+		//Sperscode:  sperscode,
+		ScanMoment: moment,
+		Minute:     moment.Minute(),
+		Second:     moment.Second(),
+		Hour:       moment.Hour(),
+		Day:        moment.Weekday().String(),
+		Month:      moment.Month().String(),
+		DayOfYear:  moment.YearDay(),
+		Year:       moment.Year(),
+
+		Geo: elastic.GeoPoint{Lat: lat, Lon: lon},
+	}
+
+	if qualcode.Valid {
+		scan.Qualcode = qualcode.String
+	}
+
+	if sperscode.Valid {
+		scan.Sperscode = sperscode.String
+	}
+	if nhaHoogte.Valid {
+		scan.NHAHoogte = nhaHoogte.Float64
+	}
+
+	if BGTwegdeel.Valid {
+		scan.BGTwegdeel = BGTwegdeel.String
+	}
+
+	if BGTwegdeelFunctie.Valid {
+		scan.BGTwegdeelFunctie = BGTwegdeel.String
+	}
+	return moment.Format("2006-01-02"), scan
+}
+
+func fetchScans(jsonscans chan momentScan) {
 
 	scansql := fmt.Sprintf(`
 	SELECT  id,
@@ -80,91 +167,19 @@ func fetchScans() {
 
 	for rows.Next() {
 
-		var ID int
-		var scanID string
-		var moment time.Time
-		var scanSource string
-		var deviceID string
-
-		var qualcode sql.NullString
-		var sperscode sql.NullString
-
-		var parkeervakID sql.NullString
-		var parkeervakSoort sql.NullString
-
-		var BGTwegdeel sql.NullString
-		var BGTwegdeelFunctie sql.NullString
-
-		var nhaHoogte sql.NullFloat64
-		var ffdf sql.NullString
-
-		var lat float64
-		var lon float64
-
-		err = rows.Scan(
-			&ID,
-			&scanID,
-			&moment,
-			&scanSource,
-			&deviceID,
-
-			&qualcode,
-			&sperscode,
-
-			&parkeervakID,
-			&parkeervakSoort,
-
-			&BGTwegdeel,
-			&BGTwegdeelFunctie,
-
-			&nhaHoogte,
-			&ffdf,
-
-			&lat,
-			&lon,
-		)
-
-		panicOnErr(err)
-
-		scan := Scan{
-			ID:         fmt.Sprintf("%d-%s", ID, scanID),
-			DeviceID:   deviceID,
-			ScanSource: scanSource,
-
-			//Qualcode:   qualcode,
-			//Sperscode:  sperscode,
-			ScanMoment: moment,
-			Minute:     moment.Minute(),
-			Second:     moment.Second(),
-			Hour:       moment.Hour(),
-			Day:        moment.Weekday().String(),
-			Month:      moment.Month().String(),
-			DayOfYear:  moment.YearDay(),
-			Year:       moment.Year(),
-
-			Geo: elastic.GeoPoint{Lat: lat, Lon: lon},
-		}
-
-		if qualcode.Valid {
-			scan.Qualcode = qualcode.String
-		}
-
-		if sperscode.Valid {
-			scan.Sperscode = sperscode.String
-		}
-		if nhaHoogte.Valid {
-			scan.NHAHoogte = nhaHoogte.Float64
-		}
-
-		if BGTwegdeel.Valid {
-			scan.BGTwegdeel = BGTwegdeel.String
-		}
-
-		if BGTwegdeelFunctie.Valid {
-			scan.BGTwegdeelFunctie = BGTwegdeel.String
-		}
+		date, scan := makeScanDoc(rows)
 
 		fmt.Println(scan)
-		fmt.Printf("\nscans-%s\n", moment.Format("2006-01-02"))
+		fmt.Printf("\nscans-%s\n", date)
+
+		mscan := momentScan{
+			scan:  scan,
+			index: date,
+		}
+
+		jsonscans <- mscan
 	}
+
+	defer wg.Done()
+	close(jsonscans)
 }
