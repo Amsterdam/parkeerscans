@@ -4,7 +4,7 @@ import { ParkeerkansModule } from '../../services/parkeerkans';
 import { WegdelenModule } from '../../services/wegdelen';
 import { ParkeervakkenModule } from '../../services/parkeervakken';
 
-import { LeafletDirective } from './leaflet.directive';
+import { LeafletComponent } from './leaflet.component';
 
 @NgModule({
   imports: [
@@ -14,10 +14,10 @@ import { LeafletDirective } from './leaflet.directive';
     ParkeervakkenModule
   ],
   declarations: [
-    LeafletDirective
+    LeafletComponent
   ],
   exports: [
-    LeafletDirective
+    LeafletComponent
   ]
 })
 export class LeafletModule {}

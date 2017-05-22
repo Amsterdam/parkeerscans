@@ -1,66 +1,56 @@
+import { Component, AfterViewInit, ElementRef, NgZone } from '@angular/core';
 import L from 'leaflet';
-import 'leaflet-choropleth';
-import 'rxjs/add/operator/map';
-import { Directive, OnInit, ElementRef, Input, NgZone } from '@angular/core';
-import { Observable } from 'rxjs/Rx';
-
 import { MapCrs } from '../../services/map-crs';
+import { config } from './leaflet.component.config';
 import { ParkeerkansService } from '../../services/parkeerkans';
 import { WegdelenService } from '../../services/wegdelen';
 import { ParkeervakkenService } from '../../services/parkeervakken';
 
-const mapOptions = {
-  maxBounds: [
-    [52.269470, 4.72876],
-    [52.4322, 5.07916]
-  ],
-  // 1.0 makes the bounds fully solid, preventing the user from dragging outside the bounds
-  maxBoundsViscosity: 1.0,
-  bounceAtZoomLimits: false,
-  attributionControl: false,
-  zoomControl: false
-};
-
-@Directive({ selector: '[dp-leaflet]' })
-export class LeafletDirective implements OnInit {
-  private leafletMap: L.Map;
-  private parkeerkans;
-
+@Component({
+  selector: 'dp-leaflet',
+  template: '',
+  styleUrls: [
+    './leaflet.scss'
+  ]
+})
+export class LeafletComponent implements AfterViewInit {
   constructor(
-    private el: ElementRef,
+    private host: ElementRef,
     private zone: NgZone,
     private crs: MapCrs,
     private parkeerkansService: ParkeerkansService,
     private wegdelenService: WegdelenService,
     private parkeervakkenService: ParkeervakkenService) {}
 
-  public ngOnInit() {
+  public ngAfterViewInit() {
     this.initLeaflet();
     this.initLayer();
   }
 
   private initLeaflet() {
-    const options = Object.assign({}, mapOptions, {
-      crs: this.crs.getRd()
-    });
-    this.leafletMap = L.map(this.el.nativeElement, options)
-      .setView([52.3626088, 4.9081912], 13);
-    const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd_zw/{z}/{x}/{y}.png', {
-      subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4'],
-      tms: true,
-      minZoom: 8,
-      maxZoom: 16,
-      bounds: mapOptions.maxBounds
-    });
+    this.zone.run(() => {
+      const options = Object.assign({}, config, {
+        crs: this.crs.getRd()
+      });
+      const leafletMap: L.Map = L.map(this.host.nativeElement, options)
+        .setView([52.3731081, 4.8932945], 11);
+      const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd/{z}/{x}/{y}.png', {
+        subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4'],
+        tms: true,
+        minZoom: 8,
+        maxZoom: 16,
+        bounds: config.maxBounds
+      });
 
-    baseLayer.addTo(this.leafletMap);
+      baseLayer.addTo(leafletMap);
 
-    setTimeout(() => {
-      this.leafletMap.invalidateSize();
+      setTimeout(() => {
+        leafletMap.invalidateSize();
+      });
+
+      this.leafletMap.on('moveend', this.updateBoundingBox.bind(this));
+      this.leafletMap.on('zoomend', this.updateBoundingBox.bind(this));
     });
-
-    this.leafletMap.on('moveend', this.updateBoundingBox.bind(this));
-    this.leafletMap.on('zoomend', this.updateBoundingBox.bind(this));
   }
 
   private initLayer() {

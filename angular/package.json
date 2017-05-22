@@ -72,7 +72,6 @@
     "@angularclass/hmr": "~1.2.2",
     "@angularclass/hmr-loader": "~3.0.2",
     "@ngrx/core": "^1.2.0",
-    "@ngrx/db": "^2.0.2",
     "@ngrx/effects": "^2.0.3",
     "@ngrx/router-store": "^1.2.6",
     "@ngrx/store": "^2.2.2",
