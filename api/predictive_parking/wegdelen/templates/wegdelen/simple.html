@@ -30,14 +30,14 @@
 
 	    <div class="vakje">
 
-	    <img width="600px" height="400px" src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.point.y}}&lon={{vak.point.x}}&horizon=0.8&radius=10" onerror="this.src='https://s-media-cache-ak0.pinimg.com/564x/8d/f0/56/8df05604b0f42d899e788d6e843f6c75.jpg'">
+	    <img width="600px" height="400px" src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.point.y}}&lon={{vak.point.x}}&horizon=0.8&radius=10&image_redirect" onerror="this.src='https://s-media-cache-ak0.pinimg.com/564x/8d/f0/56/8df05604b0f42d899e788d6e843f6c75.jpg'">
 
 	    {% if forloop.counter|divisibleby:4 and not forloop.last %}
 
 	    {% endif %}
 
 	    <p>
-	    	{{ vak.straatnaam }}
+	    {{ vak.straatnaam }} parkeervak id: {{vak.id}}
 
 	    	 scans: {{ vak.scan_count }}:
 	    </p>
