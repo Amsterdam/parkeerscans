@@ -13,11 +13,6 @@ echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 echo "Testing import? if (yes)"
 echo $TESTING
 
-echo "Run elastic import? if (yes)"
-echo $RUNELASTIC
-
-
-
 dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
 }
@@ -54,6 +49,7 @@ dc run --rm importer ./docker-migrate.sh
 echo "download latest files.."
 dc run --rm importer ./docker-prepare-csvdata.sh
 #
+dc exec -T database pg_restore -O -U predictiveparking -d predictiveparking /app/data/mvp.dump
 echo "Load latest parkeervakken.."
 dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
 echo "Load latest wegdelen.."
@@ -89,22 +85,12 @@ dc run --rm importer ./docker-scanstats.sh
 echo "DONE! importing scans into database"
 
 echo "create scan db dump"
-dc up -d elasticsearch
 
 # run the DB backup shizzle
 dc up db-backup
 
 # dc up db-backup-scans
 
-#
-if [ $RUNELASTIC == "yes" ]
-then
-
-	dc run --rm logstash
-	dc up el-backup
-fi
-
-#
-
 echo "DONE! with scan data import. You are awesome! <3"
-dc stop
+echo "Leaving docker and data around for elastic import"
+# dc stop

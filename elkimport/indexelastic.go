@@ -14,13 +14,18 @@ import (
 	"fmt"
 	_ "github.com/lib/pq"
 	"golang.org/x/net/context"
-	//"sync"
+	"sync"
 
 	"log"
 	"time"
 
 	elastic "gopkg.in/olivere/elastic.v5"
 )
+
+type momentScan struct {
+	scan  Scan
+	index string
+}
 
 //Scan a single licence plate scan
 type Scan struct {
@@ -59,9 +64,9 @@ var (
 	ctx context.Context
 
 	//Db object we use all over the place
-	Db *sql.DB
-
+	Db     *sql.DB
 	client elastic.Client
+	wg     sync.WaitGroup
 )
 
 func init() {
@@ -95,7 +100,14 @@ func main() {
 	}
 	fmt.Printf("\n Elasticsearch returned with code %d and version %s \n", code, info.Version.Number)
 
-	fetchScans()
+	jsonscans := make(chan momentScan, 5000)
+
+	wg.Add(1)
+	go fetchScans(jsonscans)
+	wg.Add(1)
+	go indexScans(jsonscans)
+
+	wg.Wait()
 
 }
 

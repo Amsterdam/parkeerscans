@@ -1,11 +1,14 @@
 from collections import OrderedDict
 
+import json
+
 from rest_framework import pagination, response
 from rest_framework import renderers, serializers
 from rest_framework import viewsets, filters
 from rest_framework.reverse import reverse
 from rest_framework.utils.urls import replace_query_param
-#from rest_framework_extensions.mixins import DetailSerializerMixin
+
+from rest_framework_extensions.mixins import DetailSerializerMixin
 
 DEFAULT_RENDERERS = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
 FORMATS = [dict(format=r.format, type=r.media_type) for r in DEFAULT_RENDERERS]
@@ -34,9 +37,10 @@ class LinksField(serializers.HyperlinkedIdentityField):
         request = self.context.get('request')
 
         result = OrderedDict([
-            ('self', dict(
-                href=self.get_url(value, self.view_name, request, None))
-             ),
+            (
+                'self', dict(
+                    href=self.get_url(value, self.view_name, request, None))
+            ),
         ])
 
         return result
@@ -82,14 +86,15 @@ class HALPagination(pagination.PageNumberPagination):
 class DisabledHTMLFilterBackend(filters.DjangoFilterBackend):
     """
     See https://github.com/tomchristie/django-rest-framework/issues/3766
-    This prevents DRF from generating the filter dropdowns (which can be HUGE in our case)
+    This prevents DRF from generating the filter dropdowns
+    which can be HUGE in our case
     """
 
-    def to_html(self, request, queryset, view):
+    def to_html(self, _request, _queryset, _view):
         return ""
 
 
-class DatapuntViewSet(viewsets.ReadOnlyModelViewSet):
+class DatapuntViewSet(DetailSerializerMixin, viewsets.ReadOnlyModelViewSet):
     renderer_classes = DEFAULT_RENDERERS
     pagination_class = HALPagination
     filter_backends = (DisabledHTMLFilterBackend,)
@@ -120,3 +125,21 @@ class DisplayField(serializers.Field):
 
     def to_representation(self, value):
         return str(value)
+
+
+class MultipleGeometryField(serializers.Field):
+
+    read_only = True
+
+    def get_attribute(self, obj):
+        # Checking if point geometry exists. If not returning the
+        # regular multipoly geometry
+        return obj.geometrie
+
+    def to_representation(self, value):
+        # Serilaize the GeoField. Value could be either None,
+        # Point or MultiPoly
+        res = ''
+        if value:
+            res = json.loads(value.geojson)
+        return res

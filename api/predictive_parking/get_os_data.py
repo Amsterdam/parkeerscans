@@ -117,4 +117,32 @@ def get_latest_rarfile():
             outputzip.write(latest_zip)
 
 
+def get_parkeerkans_db_dumps():
+    """
+    Find database dumps
+    """
+
+    meta_data = get_full_container_list(
+        parkeren_conn, 'predictive')
+
+    for object_meta_data in meta_data:
+
+        if not object_meta_data['name'].startswith('parkeerkans'):
+            continue
+
+        if object_meta_data['content_type'] not in [
+                'application/octet-stream',
+                'application/rar']:
+            continue
+
+        dumpname = object_meta_data['name'].split('/')[-1]
+        dt = parser.parse(object_meta_data['last_modified'])
+        log.info('Downloading: %s %s', dt, dumpname)
+        pg_dump_file = get_store_object(object_meta_data)
+
+        with open('{}/{}.dump'.format(DATA_DIR, dumpname), 'wb') as output:
+            output.write(pg_dump_file)
+
+
+get_parkeerkans_db_dumps()
 get_latest_rarfile()

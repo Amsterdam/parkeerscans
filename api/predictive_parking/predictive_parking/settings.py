@@ -38,8 +38,8 @@ INTERNAL_IPS = ('127.0.0.1', '0.0.0.0')
 OVERRIDE_HOST_ENV_VAR = 'DATABASE_HOST_OVERRIDE'
 OVERRIDE_PORT_ENV_VAR = 'DATABASE_PORT_OVERRIDE'
 
-OVERRIDE_EL_HOST_VAR = 'ELASTIC_HOST_OVERRIDE'
-OVERRIDE_EL_PORT_VAR = 'ELASTIC_PORT_OVERRIDE'
+OVERRIDE_EL_HOST_VAR = 'ELASTICSEARCH_HOST_OVERRIDE'
+OVERRIDE_EL_PORT_VAR = 'ELASTICSEARCH_PORT_OVERRIDE'
 
 
 SITE_ID = 1
@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'django.contrib.auth',
 
     'django_extensions',
     'django_filters',
@@ -67,6 +66,10 @@ INSTALLED_APPS = [
     'predictive_parking',
 ]
 
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -74,7 +77,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+if DEBUG:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+
+
 ROOT_URLCONF = 'predictive_parking.urls'
+
+INTERNAL_IPS = ['127.0.0.1']
 
 TEMPLATES = [
     {
@@ -85,7 +95,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
+                # 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
@@ -119,7 +129,7 @@ def in_docker():
         return False
 
 
-class LocationKey:
+class LocationKey(object):
     local = 'local'
     docker = 'docker'
     override = 'override'
@@ -165,6 +175,15 @@ DATABASES = {
 
 DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
 
+ELASTIC_INDICES = {
+    'scans': 'scans-*',
+}
+
+
+ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
+    os.getenv('ELASTICSEARCH_HOST_OVERRIDE', get_docker_host()),
+    os.getenv('ELASTICSEARCH_PORT_OVERRIDE', 9200))]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -186,6 +205,9 @@ REST_FRAMEWORK = dict(
     PAGE_SIZE=20,
 
     MAX_PAGINATE_BY=100,
+
+    UNAUTHENTICATED_USER=None,
+    UNAUTHENTICATED_TOKE=None,
 
     DEFAULT_RENDERER_CLASSES=(
         'rest_framework.renderers.JSONRenderer',
@@ -247,7 +269,7 @@ LOGGING = {
 
         'search': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
 
@@ -284,7 +306,7 @@ LOGGING = {
         # Log all unhandled exceptions
         'django.request': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': False,
         },
 
