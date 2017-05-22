@@ -1,1 +1,1 @@
-export * from './leaflet.module';
+export * from './leaflet.component.module';

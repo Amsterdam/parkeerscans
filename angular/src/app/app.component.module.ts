@@ -21,7 +21,7 @@ import { MapModule } from './containers/map';
  * Platform and Environment providers/directives/pipes
  */
 import { ENV_PROVIDERS } from './environment';
-import { ROUTES } from './app.routes';
+import { ROUTES } from './app.component.routes';
 // App is our top level component
 import { AppComponent } from './app.component';
 import { APP_RESOLVER_PROVIDERS } from './app.resolver';
