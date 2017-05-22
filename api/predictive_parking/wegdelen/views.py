@@ -104,10 +104,20 @@ def verdachte_bgt_parkeervlak(request):
 
     vlakken_count = parkeervlakken.count()
 
+    latlon = []
+
+    for vlak in gratis:
+        lat = vlak.geometrie.centroid.y
+        lon = vlak.geometrie.centroid.x
+        latlon.append((lat, lon))
+
+    for vlak in gratis:
+        vlak.geometrie.transform(28992)
+
     context = {
         'totaal_vlakken': vlakken_count,
         'totaal_fout': gratis.count(),
-        'vakken': gratis}
+        'vakken': zip(latlon, gratis)}
 
     return HttpResponse(template.render(context, request))
 
