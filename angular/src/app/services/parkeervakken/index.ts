@@ -1,4 +1,4 @@
-import { ParkeervakkenModule } from './parkeervakken.module';
+import { ParkeervakkenModule } from './parkeervakken.service.module';
 import { ParkeervakkenService } from './parkeervakken.service';
 
 export { ParkeervakkenModule, ParkeervakkenService };
