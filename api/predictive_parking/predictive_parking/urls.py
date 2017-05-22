@@ -59,8 +59,9 @@ predictiveparking.register(
     r'metingen/aggregations/vakken',
     metingViews.VakkenAggregationViewSet, 'vakken')
 
-predictiveparking.urls.append(
-    url(r'voutevakken', wegdelenViews.verdachte_vakken_view))
+predictiveparking.urls.append(url(
+    r'voutevakken',
+    wegdelenViews.verdachte_vakken_view))
 
 predictiveparking.urls.append(
     url(r'gratis', wegdelenViews.verdachte_bgt_parkeervlak))

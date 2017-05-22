@@ -14,8 +14,17 @@
 
 <body>
 	<h3>
-	    Verdachte Vakken Centrum {{totaal_fout}} van de {{totaal_beschikbaar}} ingetekende Fiscale vakken.
+		Verdachte Vakken {{buurt}} {{totaal_fout}} van de {{totaal_beschikbaar}} ingetekende Fiscale vakken.
 	</h3>
+	<p>
+		Per stadsdeel:
+		<a href="{{ request.path }}?buurt=A">Centrum</a>
+		<a href="{{ request.path }}?buurt=K">Zuid</a>
+		<a href="{{ request.path }}?buurt=E">West</a>
+		<a href="{{ request.path }}?buurt=N">Noord</a>
+		<a href="{{ request.path }}?buurt=F">Nieuw-West</a>
+		<a href="{{ request.path }}?buurt=T">Zuidoost</a>
+	</p>
 
       	{% for vak in vakken %}
 
@@ -28,8 +37,9 @@
 	    {% endif %}
 
 	    <p>
-	    	{{ vak.straatnaam }}:
-	    	{{ vak.scan_count }}:
+	    	{{ vak.straatnaam }}
+
+	    	 scans: {{ vak.scan_count }}:
 	    </p>
 
 	    <p>

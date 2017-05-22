@@ -64,13 +64,17 @@ def verdachte_vakken_view(request):
 
     template = loader.get_template('wegdelen/simple.html')
 
+    buurt = request.GET.get('buurt', 'A')
+
+    assert len(buurt) <= 4
+
     queryset = models.Parkeervak.objects.all()
-    queryset = queryset.filter(buurt__startswith='A')
+    queryset = queryset.filter(buurt__startswith=buurt)
     queryset = queryset.filter(soort='FISCAAL')
 
     totaal_count = queryset.count()
 
-    vakken = queryset.filter(scan_count__lte=10)
+    vakken = queryset.filter(scan_count__lte=9)
 
     null_vakken = queryset.filter(scan_count=None)
     vout = vakken | null_vakken
@@ -80,6 +84,7 @@ def verdachte_vakken_view(request):
     context = {
         'totaal_beschikbaar': totaal_count,
         'totaal_fout': vout.count(),
+        'buurt': buurt,
         'vakken': vout[:1000]}
 
     return HttpResponse(template.render(context, request))
