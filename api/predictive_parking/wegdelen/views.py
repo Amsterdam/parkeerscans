@@ -65,6 +65,7 @@ def verdachte_vakken_view(request):
     template = loader.get_template('wegdelen/simple.html')
 
     buurt = request.GET.get('buurt', 'A')
+    aantal = int(request.GET.get('aantal', '5'))
 
     assert len(buurt) <= 4
 
@@ -74,7 +75,7 @@ def verdachte_vakken_view(request):
 
     totaal_count = queryset.count()
 
-    vakken = queryset.filter(scan_count__lte=9)
+    vakken = queryset.filter(scan_count__lte=aantal)
 
     null_vakken = queryset.filter(scan_count=None)
     vout = vakken | null_vakken
