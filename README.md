@@ -1,6 +1,6 @@
 # Predictive Parking
 
-This is a project about the scan data analysis. Making maps of the parking "pressure" 
+This is a project about the scan data analysis. Making maps of the parking "pressure"
 in the city is the main goal.
 
 The project is devided in a few docker-containers with their own functions.
