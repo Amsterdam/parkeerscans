@@ -15,6 +15,7 @@
 <body>
 	<h3>
 		Verdachte Vakken {{buurt}} {{totaal_fout}} van de {{totaal_beschikbaar}} ingetekende Fiscale vakken.
+		Dit zijn vakken die niet of te weinig zijn gezien.
 	</h3>
 	<p>
 		Per stadsdeel:
@@ -38,9 +39,9 @@
 
 	    <p>
 
-	    {{ vak.straatnaam }} parkeervak id: {{vak.id}}
+	    straat:{{ vak.straatnaam }}, parkeervak id: {{vak.id}}, scans: {{ vak.scan_count }}
+	      <a href=https://atlas.amsterdam.nl/#?lse=T&mpb=topografie&mpz=16&mpfs=T&mpo=pv::T:pvb::T:pvr::T&mpv={{latlon.0}}:{{latlon.1}}&pgn=home"> Atlas </a>
 
-	    	 scans: {{ vak.scan_count }}:
 	    </p>
 
 	    <p>

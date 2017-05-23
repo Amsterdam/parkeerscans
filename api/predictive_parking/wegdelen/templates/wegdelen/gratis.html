@@ -16,6 +16,7 @@
 <body>
 	<h3>
 	    Gratis pakeren in  Amsterdam {{totaal_fout}} van de {{totaal_vlakken}} ontbreken van vakken in parkeerkaart
+	    BGT_parkeervlakken die veel zijn gezien en dus niet goed afgedekt door de parkeerkaart, waar je dus gratis kunt staan
 	</h3>
 
       	{% for latlon, vak in vakken %}
@@ -29,6 +30,7 @@
 	    {% endif %}
 	    <p>
 	        {{ vak.id }} scans {{ vak.scan_count}}
+	        <a href=https://atlas.amsterdam.nl/#?lse=T&mpb=topografie&mpz=16&mpfs=T&mpo=pv::T:pvb::T:pvr::T&mpv={{latlon.0}}:{{latlon.1}}&pgn=home"> Atlas </a>
 	    </p>
 
 	    <p> latlon:
