@@ -33,6 +33,13 @@ class Command(BaseCommand):
             help='set scan tables unlogged decreases diskwrites')
 
         parser.add_argument(
+            '--setlogged',
+            action='store_true',
+            dest='logged',
+            default=False,
+            help='set scan tables logged so they get saved on disk')
+
+        parser.add_argument(
             '--wegdelen',
             action='store_true',
             dest='wegdelen',
@@ -132,6 +139,8 @@ class Command(BaseCommand):
             import_wegdelen.import_wegdelen()
         elif options['unlogged']:
             import_wegdelen.make_scans_unlogged()
+        elif options['logged']:
+            import_wegdelen.make_scans_logged()
         elif options['vakken']:
             # Convert to wgs84
             import_wegdelen.import_parkeervakken()

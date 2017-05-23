@@ -1,16 +1,16 @@
 import logging
 import json
+import subprocess
 
 # Packages
 from rest_framework.test import APITestCase
-# from rest_framework.reverse import reverse
-# Project
-from metingen.tests import factories as scan_factories
 
-# from wegdelen.tests import factories as bgt_factories
+from django import db
 
+from metingen.models import Scan
+from wegdelen.models import WegDeel, Parkeervak
 
-LOG = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def pretty_data(data):
@@ -24,16 +24,19 @@ class BrowseDatasetsTestCase(APITestCase):
 
     datasets = [
         'predictiveparking/metingen/scans',
-        'predcitiveparking/wegdelen',
-        'predcitiveparking/vakken',
+        'predictiveparking/wegdelen',
+        'predictiveparking/vakken',
     ]
 
-    extra_endpoitns = [
+    extra_endpoints = [
         'predictiveparking/voutevakken',
+        'predictiveparking/voutevakken?buurt=W12b&aantal=2',
         'predictiveparking/gratis',
+        'predictiveparking/gratis?type=all',
     ]
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """
         This create a graph of objects that point to
         each others with nice working links
@@ -41,9 +44,27 @@ class BrowseDatasetsTestCase(APITestCase):
         This is done to test the generated
         links.
         """
+        # we load some external testdata
+        bash_command = "bash testdata/loadtestdata.sh"
+        process = subprocess.Popen(
+            bash_command.split(), stdout=subprocess.PIPE)
 
-        for _i in range(5):
-            scan_factories.ScanFactory.create()
+        output, _error = process.communicate()
+
+        bash_command = "bash testdata/loadelastic.sh"
+        process = subprocess.Popen(
+            bash_command.split(), stdout=subprocess.PIPE)
+
+        output, _error = process.communicate()
+
+        log.debug(output)
+        db.connections.close_all()
+
+    @classmethod
+    def tearDownClass(cls):
+        Scan.objects.all().delete()
+        WegDeel.objects.all().delete()
+        Parkeervak.objects.all().delete()
 
     def valid_response(self, url, response):
         """
@@ -102,9 +123,15 @@ class BrowseDatasetsTestCase(APITestCase):
 
             self.assertIn(
                 'count', response.data, 'No count attribute in {}'.format(url))
+
             self.assertNotEqual(
                 response.data['count'],
                 0, 'Wrong result count for {}'.format(url))
+
+    def test_root_view(self):
+        url = '/predictiveparking/?format=api'
+        response = self.client.get(url)
+        self.valid_html_response(url, response)
 
     def test_details_html(self):
         for url in self.datasets:
@@ -116,3 +143,12 @@ class BrowseDatasetsTestCase(APITestCase):
             self.valid_html_response(url, detail)
 
             # self.assertIn('_display', detail.data)
+
+    def test_extra_endpoints(self):
+        """
+        We have build some custom data validation urls..
+        """
+
+        for url in self.extra_endpoints:
+            response = self.client.get('/{}'.format(url))
+            self.valid_html_response(url, response)

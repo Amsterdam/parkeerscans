@@ -5,8 +5,6 @@ from datapunt import rest
 from django.http import HttpResponse
 from django.template import loader
 
-from django.contrib.gis.db.models.functions import Transform
-
 from . import models
 from . import serializers
 
@@ -81,15 +79,7 @@ def verdachte_vakken_view(request):
     null_vakken = queryset.filter(scan_count=None)
     vout = vakken | null_vakken
 
-    latlon = []
-
-    for vlak in vout:
-        lat = vlak.geometrie.centroid.y
-        lon = vlak.geometrie.centroid.x
-        latlon.append((lat, lon))
-
-    for vlak in vout:
-        vlak.geometrie.transform(28992)
+    latlon, vout = make_transformto_latlon_rd(vout)
 
     context = {
         'totaal_beschikbaar': totaal_count,
@@ -100,6 +90,24 @@ def verdachte_vakken_view(request):
     return HttpResponse(template.render(context, request))
 
 
+def make_transformto_latlon_rd(vakken):
+    """
+    Transform coordinates to latlon list and rd coordinates
+    """
+
+    latlon = []
+
+    for vlak in vakken:
+        lat = vlak.geometrie.centroid.y
+        lon = vlak.geometrie.centroid.x
+        latlon.append((lat, lon))
+
+    for vlak in vakken:
+        vlak.geometrie.transform(28992)
+
+    return latlon, vakken
+
+
 def verdachte_bgt_parkeervlak(request):
     """
     Show waarschijnlijk niet goed ingetekende bgt parkeervlakken
@@ -108,20 +116,19 @@ def verdachte_bgt_parkeervlak(request):
     template = loader.get_template('wegdelen/gratis.html')
 
     parkeervlakken = models.WegDeel.objects.filter(bgt_functie='parkeervlak')
-    qs = parkeervlakken.filter(scan_count__gte=15)
+    bloembakken = models.WegDeel.objects.filter(bgt_functie='onverhard')
+
+    gratis = parkeervlakken | bloembakken
+    if request.GET.get('all'):
+        voetpad = models.WegDeel.objects.filter(bgt_functie='voetpad')
+        gratis = gratis | voetpad
+
+    qs = gratis.filter(scan_count__gte=15)
     gratis = qs.order_by('-scan_count')
 
     vlakken_count = parkeervlakken.count()
 
-    latlon = []
-
-    for vlak in gratis:
-        lat = vlak.geometrie.centroid.y
-        lon = vlak.geometrie.centroid.x
-        latlon.append((lat, lon))
-
-    for vlak in gratis:
-        vlak.geometrie.transform(28992)
+    latlon, gratis = make_transformto_latlon_rd(gratis)
 
     context = {
         'totaal_vlakken': vlakken_count,
@@ -129,5 +136,3 @@ def verdachte_bgt_parkeervlak(request):
         'vakken': zip(latlon, gratis)}
 
     return HttpResponse(template.render(context, request))
-
-
