@@ -1,7 +1,7 @@
 export interface Parkeerkans {
-  [key: string]: Wegdeel;
+  [key: string]: WegdeelInfo;
 }
 
-interface Wegdeel {
-  bezetting: number;
+interface WegdeelInfo {
+  scans: number;
 }

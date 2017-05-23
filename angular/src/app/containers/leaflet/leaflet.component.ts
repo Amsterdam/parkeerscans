@@ -8,6 +8,7 @@ import { config } from './leaflet.component.config';
 import { ParkeerkansService } from '../../services/parkeerkans';
 import { WegdelenService } from '../../services/wegdelen';
 import { ParkeervakkenService } from '../../services/parkeervakken';
+import { Parkeerkans } from '../../models/parkeerkans';
 
 @Component({
   selector: 'dp-leaflet',
@@ -29,12 +30,12 @@ export class LeafletComponent implements AfterViewInit {
 
   public ngAfterViewInit() {
     this.initLeaflet();
-    this.initLayer();
+    this.updateBoundingBox();
   }
 
   private initLeaflet() {
     this.zone.run(() => {
-      const options = Object.assign({}, config, {
+      const options = Object.assign({}, config.map, {
         crs: this.crs.getRd()
       });
       this.leafletMap = L.map(this.host.nativeElement, options)
@@ -44,7 +45,7 @@ export class LeafletComponent implements AfterViewInit {
         tms: true,
         minZoom: 8,
         maxZoom: 16,
-        bounds: config.maxBounds
+        bounds: config.map.maxBounds
       });
 
       baseLayer.addTo(this.leafletMap);
@@ -58,10 +59,6 @@ export class LeafletComponent implements AfterViewInit {
     });
   }
 
-  private initLayer() {
-    this.updateBoundingBox();
-  }
-
   private updateBoundingBox() {
     const boundingBox = this.leafletMap.getBounds().toBBoxString();
     Observable
@@ -71,7 +68,7 @@ export class LeafletComponent implements AfterViewInit {
       .subscribe(this.showWegdelen.bind(this), this.showError);
   }
 
-  private showWegdelen([parkeerkans, wegdelen]) {
+  private showWegdelen([parkeerkans, wegdelen]: [Parkeerkans, any]) {
     const data = wegdelen.map((wegdeel) => {
       const wegdeelKans = parkeerkans[wegdeel.properties.id];
       wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.scans : 0;
@@ -82,17 +79,7 @@ export class LeafletComponent implements AfterViewInit {
     L.choropleth({
       type: 'FeatureCollection',
       features: data
-    }, {
-      valueProperty: 'bezetting',
-      scale: ['white', 'red'],
-      steps: 10,
-      mode: 'q',
-      style: {
-        color: '#fff',
-        weight: 2,
-        fillOpacity: 0.8
-      }
-    }).addTo(this.leafletMap);
+    }, config.choropleth.wegdelen).addTo(this.leafletMap);
 
     const boundingBox = this.leafletMap.getBounds().toBBoxString();
     this.parkeervakkenService.getVakken(boundingBox)
@@ -103,17 +90,7 @@ export class LeafletComponent implements AfterViewInit {
     L.choropleth({
       type: 'FeatureCollection',
       features: parkeervakken
-    }, {
-      valueProperty: 'scan_count',
-      scale: ['white', 'green'],
-      steps: 10,
-      mode: 'q',
-      style: {
-        color: '#fff',
-        weight: 2,
-        fillOpacity: 0.8
-      }
-    }).addTo(this.leafletMap);
+    }, config.choropleth.parkeervakken).addTo(this.leafletMap);
   }
 
   private showError(error) {
