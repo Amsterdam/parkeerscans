@@ -81,6 +81,7 @@
     "ie-shim": "^0.1.0",
     "jasmine-core": "^2.5.2",
     "leaflet": "^1.0.3",
+    "leaflet-choropleth": "https://github.com/DatapuntAmsterdam/leaflet-choropleth.git#upgrade",
     "ngrx-store-freeze": "^0.1.9",
     "proj4": "^2.4.3",
     "proj4leaflet": "^1.0.1",
