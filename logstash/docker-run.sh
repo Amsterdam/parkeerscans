@@ -37,6 +37,8 @@ curl -s -v -f -XPUT http://${ELKHOST:-elasticsearch}:9200/_template/scan -d '
 
 tablenames='/app/data/tables.txt'
 
+export DB=predictiveparking
+
 while read tablename; do
 	echo $tablename
 	TABLE=$tablename logstash -f readdb.conf --pipeline.workers 2

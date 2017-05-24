@@ -16,24 +16,34 @@
 <body>
 	<h3>
 	    Gratis pakeren in  Amsterdam {{totaal_fout}} van de {{totaal_vlakken}} ontbreken van vakken in parkeerkaart
+	    BGT_parkeervlakken die veel zijn gezien en dus niet goed afgedekt door de parkeerkaart, waar je dus gratis kunt staan
+
+	    dit zijn bgt parkeervlak en onverharde stukken weg.
+
+	    <a href="{{ request.path }}?type=all">Ook met voetpad</a>
+
 	</h3>
 
-      	{% for vak in vakken %}
+      	{% for latlon, vak in vakken %}
 
 	    <div class="vakje">
 
-	    <img width="600px" height="400px" src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{vak.geometrie.centroid.y}}&lon={{vak.geometrie.centroid.x}}&horizon=0.8&radius=10" onerror="this.src='https://s-media-cache-ak0.pinimg.com/564x/8d/f0/56/8df05604b0f42d899e788d6e843f6c75.jpg'">
+	    <img width="600px" height="400px" src="https://acc.api.data.amsterdam.nl/panorama/thumbnail/?lat={{latlon.0}}&lon={{latlon.1}}&horizon=0.8&radius=10&image_redirect" onerror="this.src='https://s-media-cache-ak0.pinimg.com/564x/8d/f0/56/8df05604b0f42d899e788d6e843f6c75.jpg'">
 
 	    {% if forloop.counter|divisibleby:4 and not forloop.last %}
 
 	    {% endif %}
 	    <p>
 	        {{ vak.id }} scans {{ vak.scan_count}}
+	        <a href=https://atlas.amsterdam.nl/#?lse=T&mpb=topografie&mpz=16&mpfs=T&mpo=pv::T:pvb::T:pvr::T&mpv={{latlon.0}}:{{latlon.1}}&pgn=home"> Atlas </a>
 	    </p>
 
-	    <p>
+	    <p> latlon:
 		{{ vak.geometrie.centroid.y }} -
 		{{ vak.geometrie.centroid.x }} -
+	    </p>
+	    <p> rd:
+		{{latlon.0}},{{latlon.1}}
 	    </p>
 
 	    </div>

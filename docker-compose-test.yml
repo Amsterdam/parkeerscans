@@ -1,0 +1,38 @@
+version: '2.1'
+services:
+  database:
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    environment:
+      POSTGRES_PASSWORD: insecure
+      POSTGRES_USER: predictiveparking
+      POSTGRES_DB: predictiveparking
+
+  elasticsearch:
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
+    command: elasticsearch  -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
+
+  logstash:
+    build: ./logstash
+    links:
+      - database:database
+      - elasticsearch:elasticsearch
+    environment:
+      START_DATE:
+      END_DATE:
+
+  ppapi:
+    build: ./api
+    links:
+      - database:database
+      - elasticsearch:elasticsearch
+    environment:
+      DATABASE_NAME: predictiveparking
+      DATABASE_PASSWORD: insecure
+      UWSGI_HTTP: ":8080"
+      UWSGI_MODULE: "predictive_parking.wsgi:application"
+      UWSGI_MASTER: 1
+      UWSGI_STATIC_MAP: "/static=/static"
+      UWSGI_PROCESSES: 4
+      UWSGI_VACUUM: 1
+      UWSGI_HARAKIRI: 15
+      UWSGI_DIE_ON_TERM: 1

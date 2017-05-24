@@ -1,6 +1,6 @@
 # Predictive Parking
 
-This is a project about the scan data analysis. Making maps of the parking "pressure" 
+This is a project about the scan data analysis. Making maps of the parking "pressure"
 in the city is the main goal.
 
 The project is devided in a few docker-containers with their own functions.
@@ -37,9 +37,9 @@ We take data from a few sources and create a dataset usable for predictive parki
 
 Source data:
  - all known parking spots.
- - all known roads. (wegdelen) / partial roads. (weddelen)
+ - all known roads. (wegdelen) / partial roads. (weddelen) from BGT.
  - all known neigborhoods. (buurten)
- - all 39.5 milion cars scans of 2016.
+ - all 50+ milion cars scans of 2016/2017.
 
 We combine all data sources in a postgres database table
 in `scan_scans` which contains all scans
@@ -68,13 +68,21 @@ The visuallizations are done with 2 different kibana instances. We use 2 because
 `enhanced_tilemap` does not play well together with other custom map plugins. `kibana-plugin-parkeren`
 
 
+Step 3. Customized agular 4 / leaflet viewer.
+==============================
+
+After experimenting with kibana we decided to make a specialized viewer using angular4 and leaflet.
+We show parking pressure for year, month, week, day by hour summaries for the parking/road map of Amsterdam.
+this is a work in progres.
+
 
  TODO
 =====
 
- - add test
+ - ~add test~
  - incremental data loading
  - make custom api to replace kibana.
+ - make custom viewer for new api.
 
 
 Development
@@ -98,17 +106,9 @@ Tips.
     When TESTING = no the `unziped` will be deleted
 
 
-
 Step2, Visualization
 ----------------------------
 
-   There is a `normal` kibana and a special `kibanawegdeel`
-   both work similiar.
+   There is an `angular` project to visualize the data.
+   See the readme in the `angular` directory.
 
-   - The Dockerfile in each project defines which plugins are loaded into
-     kibana and some settings
-   - start a local accesible elasticsearch docker with parking data from step1.
-   - for plugin development npm is used and I suggest looking into the pluging develop
-     ment documentation pages of kibana
-
-  A new `angular` frontend is in development now.

@@ -59,6 +59,22 @@ def make_scans_unlogged():
 
 
 @LogWith(log)
+def make_scans_logged():
+    """
+    logged tables are saved on disk..
+    """
+    log.debug('Alter scantables to LOGGED')
+
+    rows = collect_scans_table_list_stmt()
+
+    with connection.cursor() as c:
+        for tablename in rows:
+            c.execute(f"""
+    ALTER TABLE {tablename} SET LOGGED
+    """)
+
+
+@LogWith(log)
 def fix_bgt_geometrie_field():
     """
     Add 4326 field to parkeervakken

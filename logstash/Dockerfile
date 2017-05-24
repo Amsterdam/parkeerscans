@@ -20,7 +20,9 @@ RUN apt-get update \
 COPY readdb.conf /app/
 COPY geomapping.json /app/
 COPY docker-run.sh /app/
+COPY load-test-data.sh /app/
 
+# For development / testing local
 # COPY tables.txt /app/data/tables.txt
 
 CMD ["/app/docker-run.sh"]

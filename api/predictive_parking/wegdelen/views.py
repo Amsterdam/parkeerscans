@@ -5,7 +5,6 @@ from datapunt import rest
 from django.http import HttpResponse
 from django.template import loader
 
-
 from . import models
 from . import serializers
 
@@ -80,15 +79,33 @@ def verdachte_vakken_view(request):
     null_vakken = queryset.filter(scan_count=None)
     vout = vakken | null_vakken
 
-    # print(vout.count())
+    latlon, vout = make_transformto_latlon_rd(vout)
 
     context = {
         'totaal_beschikbaar': totaal_count,
         'totaal_fout': vout.count(),
         'buurt': buurt,
-        'vakken': vout[:1000]}
+        'vakken': zip(latlon, vout)}
 
     return HttpResponse(template.render(context, request))
+
+
+def make_transformto_latlon_rd(vakken):
+    """
+    Transform coordinates to latlon list and rd coordinates
+    """
+
+    latlon = []
+
+    for vlak in vakken:
+        lat = vlak.geometrie.centroid.y
+        lon = vlak.geometrie.centroid.x
+        latlon.append((lat, lon))
+
+    for vlak in vakken:
+        vlak.geometrie.transform(28992)
+
+    return latlon, vakken
 
 
 def verdachte_bgt_parkeervlak(request):
@@ -99,16 +116,23 @@ def verdachte_bgt_parkeervlak(request):
     template = loader.get_template('wegdelen/gratis.html')
 
     parkeervlakken = models.WegDeel.objects.filter(bgt_functie='parkeervlak')
-    qs = parkeervlakken.filter(scan_count__gte=15)
+    bloembakken = models.WegDeel.objects.filter(bgt_functie='onverhard')
+
+    gratis = parkeervlakken | bloembakken
+    if request.GET.get('all'):
+        voetpad = models.WegDeel.objects.filter(bgt_functie='voetpad')
+        gratis = gratis | voetpad
+
+    qs = gratis.filter(scan_count__gte=15)
     gratis = qs.order_by('-scan_count')
 
     vlakken_count = parkeervlakken.count()
 
+    latlon, gratis = make_transformto_latlon_rd(gratis)
+
     context = {
         'totaal_vlakken': vlakken_count,
         'totaal_fout': gratis.count(),
-        'vakken': gratis}
+        'vakken': zip(latlon, gratis)}
 
     return HttpResponse(template.render(context, request))
-
-

@@ -18,51 +18,39 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 
 
 node {
+
     stage("Checkout") {
         checkout scm
     }
 
-    //TODO tests!!
-
-    stage("Build develop kibana") {
-        tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}", "kibana")
-            image.push()
-            image.push("acceptance")
+    stage("Test") {
+        tryStep "Test", {
+            sh "./jenkins-test.sh"
+	}, {
+            sh "docker-compose -p test -f docker-compose-test.yml down"
         }
     }
 
-    stage("Build develop kibana wegdeel") {
+    stage("Build dockers") {
         tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibanawegdeel:${env.BUILD_NUMBER}", "kibanawegdeel")
-            image.push()
-            image.push("acceptance")
+            def kibana = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}", "kibana")
+            kibana.push()
+            kibana.push("acceptance")
+
+	    def logstash = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}", "logstash")
+            logstash.push()
+            logstash.push("acceptance")
+
+            def csvimporter = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}", "csvimporter")
+            csvimporter.push()
+            csvimporter.push("acceptance")
+
+            def ppapi = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "api")
+            ppapi.push()
+            ppapi.push("acceptance")
         }
     }
 
-    stage("Build develop logstash") {
-        tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}", "logstash")
-            image.push()
-            image.push("acceptance")
-        }
-    }
-
-    stage("Build develop csvimporter") {
-        tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}", "csvimporter")
-            image.push()
-            image.push("acceptance")
-        }
-    }
-
-    stage("Build develop api/python") {
-            tryStep "build", {
-                def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "api")
-                image.push()
-                image.push("acceptance")
-            }
-    }
 
 String BRANCH = "${env.BRANCH_NAME}"
 
