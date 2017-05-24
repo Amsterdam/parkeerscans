@@ -11,11 +11,3 @@ do
 	echo "Waiting for postgres..."
 	sleep 2.5
 done
-
-echo "wait for elastic.."
-
-while ! nc -z elasticsearch 9200
-do
- 	echo "Waiting for elastic..."
- 	sleep 2.5
-done
