@@ -25,10 +25,9 @@ node {
 
     stage("Test") {
         tryStep "Test", {
-            sh "docker-compose -p test -f docker-compose.yml build && " +
-               "docker-compose -p test -f docker-compose.yml run --rm ppapi bash docker-test.sh"
+            sh "./jenkins-test.sh" +
 	}, {
-            sh "docker-compose -p test -f docker-compose.yml down"
+            sh "docker-compose -p test -f docker-compose-test.yml down"
         }
     }
 

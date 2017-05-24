@@ -4,31 +4,32 @@ set -u   # crash on missing env variables
 set -e   # stop on any error
 
 dc() {
-   docker-compose -p -f docker-compose-test.yml test $*;
+   docker-compose -p test -f docker-compose-test.yml $*;
 }
-#
 
 dc build
+
 dc up -d database
 dc up -d elasticsearch
 
-sleep 15
+dc run ppapi /app/docker-wait.sh
+sleep 5  # sometimes DB creation is not ready yet
 
-source docker-wait.sh
+echo "Prepare some testdata for elastic to test API"
 
-# we prepare some testdata for elastic
+echo "Create normal empty database"
+dc run --rm ppapi python manage.py migrate
 
-# create normal database
-python manage.py migrate
+echo "# load test data into database"
+dc run --rm ppapi bash testdata/loadtestdata.sh predictiveparking || true
 
-# load test data into database
-bash testdata/loadtestdata.sh predictiveparking || true
+echo "start logstash to index data from database into elastic"
 
-# start logstash to index data from database into elastic
-bash testdata/loadelastic.sh predictiveparking
+dc run logstash /app/load-test-data.sh
+sleep 2  #  wait for elastic to be ready.
 
 # now we are ready to run some tests
-python manage.py test
+dc run ppapi python manage.py test
 
 dc stop
 dc rm -f

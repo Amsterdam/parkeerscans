@@ -35,11 +35,6 @@ class BrowseDatasetsTestCase(APITestCase):
         'predictiveparking/gratis?type=all',
     ]
 
-    agg_endpoints = [
-        'predictiveparking/aggregations/vakken',
-        'predictiveparking/aggregations/wegdelen',
-    ]
-
     @classmethod
     def setUpClass(cls):
         """

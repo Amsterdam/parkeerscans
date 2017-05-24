@@ -176,7 +176,7 @@ ELASTIC_INDICES = {
 
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
-    os.getenv('ELASTICSEARCH_HOST_OVERRIDE', get_docker_host()),
+    os.getenv('ELASTICSEARCH_HOST_OVERRIDE', 'elasticsearch'),
     os.getenv('ELASTICSEARCH_PORT_OVERRIDE', 9200))]
 
 
