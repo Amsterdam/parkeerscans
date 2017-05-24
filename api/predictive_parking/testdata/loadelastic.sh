@@ -1,4 +1,5 @@
 # load database into elastic search.
+# for local test environment
 
 set -e
 set -u

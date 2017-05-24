@@ -25,7 +25,7 @@ node {
 
     stage("Test") {
         tryStep "Test", {
-            sh "./jenkins-test.sh" +
+            sh "./jenkins-test.sh"
 	}, {
             sh "docker-compose -p test -f docker-compose-test.yml down"
         }
