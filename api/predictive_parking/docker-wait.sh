@@ -19,5 +19,3 @@ do
  	echo "Waiting for elastic..."
  	sleep 2.5
 done
-
-

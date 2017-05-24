@@ -29,7 +29,7 @@ dc run logstash /app/load-test-data.sh
 sleep 2  #  wait for elastic to be ready.
 
 # now we are ready to run some tests
-dc run ppapi python manage.py test
+dc run --rm ppapi python manage.py test
 
 dc stop
 dc rm -f
