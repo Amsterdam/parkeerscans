@@ -33,9 +33,9 @@ node {
 
     stage("Build dockers") {
         tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}", "kibana")
-            image.push()
-            image.push("acceptance")
+            def kibana = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}", "kibana")
+            kibana.push()
+            kibana.push("acceptance")
 
 	    def logstash = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}", "logstash")
             logstash.push()
