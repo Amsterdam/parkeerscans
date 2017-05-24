@@ -3,12 +3,21 @@
 set -e
 set -u
 
+DB=$1
+
+if [ -z "$1" ]
+then
+      echo "No database name supplied using test_predictivepakring"
+      DB="test_predictiveparking"
+fi
+
 
 dc() {
-   docker-compose $*;
+   docker-compose -p test $*;
 }
 
 dc up -d elasticsearch
+
 
 while ! nc -z elasticsearch 9200
 do
@@ -34,4 +43,4 @@ curl -s -v -f -XPUT http://elasticsearch:9200/_template/scan -d '
   }
 }'
 
-dc run -e "DB=test_predictiveparking" -e "TABLE=metingen_scan" --rm logstash logstash -f readdb.conf
+dc run -e "DB=$DB" -e "TABLE=metingen_scan" --rm logstash logstash -f readdb.conf

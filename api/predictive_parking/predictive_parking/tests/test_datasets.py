@@ -35,23 +35,20 @@ class BrowseDatasetsTestCase(APITestCase):
         'predictiveparking/gratis?type=all',
     ]
 
+    agg_endpoints = [
+        'predictiveparking/aggregations/vakken',
+        'predictiveparking/aggregations/wegdelen',
+    ]
+
     @classmethod
     def setUpClass(cls):
         """
-        This create a graph of objects that point to
-        each others with nice working links
-
-        This is done to test the generated
-        links.
+        This django app is merely a viewer on data
+        we load testdata into database using special created
+        test data around the silodam area.
         """
         # we load some external testdata
         bash_command = "bash testdata/loadtestdata.sh"
-        process = subprocess.Popen(
-            bash_command.split(), stdout=subprocess.PIPE)
-
-        output, _error = process.communicate()
-
-        bash_command = "bash testdata/loadelastic.sh"
         process = subprocess.Popen(
             bash_command.split(), stdout=subprocess.PIPE)
 
@@ -152,3 +149,24 @@ class BrowseDatasetsTestCase(APITestCase):
         for url in self.extra_endpoints:
             response = self.client.get('/{}'.format(url))
             self.valid_html_response(url, response)
+
+    def test_aggregation_wegdelenendpoint(self):
+
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        response = self.client.get('/{}'.format(url))
+        for _wegdeelid, data in response.data.items():
+
+            self.assertIn('bgt_functie', data)
+            self.assertIn('totaal_vakken', data)
+            self.assertIn('fiscaal', data)
+            self.assertIn('scans', data)
+            self.assertIn('days', data)
+
+            self.assertIn('cardinal_vakken_by_day', data)
+
+    def test_aggregation_vakken(self):
+
+        url = 'predictiveparking/metingen/aggregations/vakken/?format=json'
+        response = self.client.get('/{}'.format(url))
+        self.assertIn('vakken', response.data)
+        self.assertIn('scancount', response.data)
