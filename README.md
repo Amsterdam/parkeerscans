@@ -105,3 +105,10 @@ Tips.
     forcefull remove the named volume (pp_unzip-volume) if it contains the wrong data.
     When TESTING = no the `unziped` will be deleted
 
+
+Step2, Visualization
+----------------------------
+
+   There is an `angular` project to visualize the data.
+   See the readme in the `angular` directory.
+
