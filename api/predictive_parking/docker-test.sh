@@ -3,12 +3,13 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-dc() {
-   docker-compose -p test $*;
-}
-
-dc up -d database
-dc up -d elasticsearch
+#dc() {
+#   docker-compose -p test $*;
+#}
+#
+#dc up -d database
+#dc up -d elasticsearch
+#
 
 source docker-wait.sh
 
@@ -27,5 +28,5 @@ bash testdata/loadelastic.sh predictiveparking
 # now we are ready to run some tests
 python manage.py test
 
-dc stop
-dc rm -f
+#dc stop
+#dc rm -f
