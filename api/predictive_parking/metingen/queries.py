@@ -2,6 +2,7 @@
 Elasticseach queries
 """
 import json
+from datetime import datetime, timedelta
 
 from elasticsearch_dsl import Search
 
@@ -93,13 +94,28 @@ def build_bbox_filter(bbox):
 
 
 DAYS = [
-    'monday',
-    'tuesday'
+    'monday   ',
+    'tuesday  '
     'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-    'sunday',
+    'thursday ',
+    'friday   ',
+    'saturday ',
+    'sunday   ',
+]
+
+MONTHS = [
+    'january  ',
+    'february ',
+    'march    ',
+    'april    ',
+    'may      ',
+    'june     ',
+    'july     ',
+    'august   ',
+    'september',
+    'october  ',
+    'november ',
+    'december ',
 ]
 
 
@@ -140,19 +156,46 @@ def parse_int_field(field_name, params, _range):
     return field_value, err
 
 
-POSSIBLE_PARAMS = [
+POSSIBLE_INT_PARAMS = [
     ('hour', range(0, 24)),
     ('hour_1', range(0, 24)),
     ('hour_2', range(0, 24)),
     # ('minute', range(0, 60)),
     ('minute_1', range(0, 60)),
     ('minute_2', range(0, 60)),
-    ('day', DAYS),
+
+    ('day', range(0, 7)),
+    ('month', range(0, 12)),
+    ('year', range(2015, 2025)),
+
+    ('wegdelen_size', range(1, 60)),
 ]
 
+
+def hour_previous():
+    """
+    current hour - 1
+    """
+    now = datetime.now()
+    return (now - timedelta(hours=1)).hour
+
+
+def hour_next():
+    """
+    current hour + 1
+    """
+    now = datetime.now()
+    return (now + timedelta(hours=1)).hour
+
+
+# Elastic date notations.
 DATE_RANGE_FIELDS = [
     ('date_gte', 2017),
-    ('date_lte', 2018),
+    ('date_lte', 2019),
+
+    ('hour_1', hour_previous()),
+    ('hour_2', hour_next()),
+    ('day', datetime.now().weekday),
 ]
 
 
@@ -162,40 +205,81 @@ RANGE_FIELDS = [
 ]
 
 
-def parsed_date_range(field, default, req_params):
+def parse_int_parameters(req_params, clean_values):
     """
-    Check date range given by client.
+    Validate possible integer selections
     """
-    return
 
-    # TODO
+    for field_name, possiblerange in POSSIBLE_INT_PARAMS:
 
-    # value = default
+        value, err = parse_int_field(field_name, req_params, possiblerange)
 
-    # if field in req_params:
+        if err:
+            return None, err
+        if value:
+            clean_values[field_name] = value
+
+    return clean_values, None
+
+
+def set_date_fields(req_params, clean_values):
+    """
+    Parse daterange or set default values
+    """
+
+    for field_name, default in DATE_RANGE_FIELDS:
+
+        if callable(default):
+            clean_values[field_name] = default()
+        else:
+            clean_values[field_name] = default
+
+        if field_name in req_params:
+            # can't really clean this elastic
+            # date field
+            clean_values[field_name] = req_params[field_name]
+
+    return clean_values
+
+
+def selection_fields(req_params, clean_values):
+    """
+    Clean filter options
+    """
+    err = None
+
+    for field_name, options in TERM_FIELDS.items():
+        if field_name in req_params:
+            filter_value = req_params[field_name]
+            if options and filter_value not in options:
+                err = f'{field_name}{filter_value} not in {options}'
+            else:
+                clean_values[field_name] = filter_value
+
+    return clean_values, err
 
 
 def parse_parameter_input(request):
     """
     Validate client input
     """
+    err = None
 
     req_params = request.query_params
 
     clean_values = {}
 
-    for field_name, _range in POSSIBLE_PARAMS:
+    clean_values, err = parse_int_parameters(req_params, clean_values)
 
-        value, err = parse_int_field(field_name, req_params, req_params)
-        if err:
-            return None, err
-        if value:
-            clean_values[field_name] = value
-
-    for field_name, default in DATE_RANGE_FIELDS:
-        clean_values[field_name] = default
+    if err:
+        return None, err
 
     err = validate_range_fields(clean_values)
+
+    # Parse date fields and set default
+    clean_values = set_date_fields(req_params, clean_values)
+
+    clean_values, err = selection_fields(req_params, clean_values)
 
     return clean_values, err
 
@@ -222,29 +306,32 @@ def build_term_query(field, value):
     Build a term query for a field
     """
 
-    if isinstance(value, str):
+    if not value.isdigit():
         field = "%s.keyword" % field
+    else:
+        value = int(value)
 
     q = {
-        "terms": dict(field=value)
+        "term": {
+            field: value
+        }
     }
 
     return q
 
-TERM_FIELDS = [
-    'hour',
-    'day',
-    'stadsdeel',
-    'buurtcode',
-    'buurtcombinatie',
-    'parkeervak_soort',
-    'parkeervak_id',
-    'bgt_wegdeel',
-    'year',
-    'month',
-    'qualcode',
-    'sperscode',
-]
+# we provide optional list of options
+# for better error reporting
+
+TERM_FIELDS = {
+    'hour': None,
+    'stadsdeel': None,
+    'buurtcode': None,
+    'buurtcombinatie': None,
+    'bgt_wegdeel': None,
+    'year': None,
+    'qualcode': None,
+    'sperscode': None,
+}
 
 
 def make_terms_queries(cleaned_data):
@@ -253,26 +340,39 @@ def make_terms_queries(cleaned_data):
     """
     term_q = []
 
-    for field in ['hour', 'day']:
+    for field in TERM_FIELDS:
         if field in cleaned_data:
             f_q = build_term_query(field, cleaned_data[field])
             term_q.append(f_q)
 
+    if 'day' in cleaned_data:
+        day = DAYS[int(cleaned_data['day'])]
+        f_q = build_term_query('day', day)
+        term_q.append(f_q)
+
+    if 'month' in cleaned_data:
+        month = MONTHS[int(cleaned_data['month'])]
+        f_q = build_term_query('month', month)
+        term_q.append(f_q)
+
     return term_q
 
 
-def make_range(field, low_field, high_field, cleaned_data):
+def make_range_q(field, gte_field, lte_field, cleaned_data):
     """
     Build a range query for fieldx
     """
-    low = cleaned_data.get(low_field)
-    high = cleaned_data.get(high_field)
+    if field in cleaned_data:
+        # range makes no sense..
+        cleaned_data.pop(gte_field)
+        cleaned_data.pop(lte_field)
+        return
+
+    low = cleaned_data.get(gte_field)
+    high = cleaned_data.get(lte_field)
 
     if low is None or high is None:
         return
-
-    # is checked in parameter cleanup
-    assert low <= high
 
     range_q = {
         "range": {
@@ -286,7 +386,22 @@ def make_range(field, low_field, high_field, cleaned_data):
     return range_q
 
 
-def build_must_queries(request):
+def clean_parameter_data(request):
+    """
+    clean client input
+    """
+
+    err = None
+
+    clean_values, err = parse_parameter_input(request)
+
+    if err:
+        return [], err
+
+    return clean_values, err
+
+
+def build_must_queries(cleaned_data):
     """
     Given request parameters
 
@@ -294,18 +409,12 @@ def build_must_queries(request):
     """
 
     must = []
-    err = None
-
-    cleaned_data, err = parse_parameter_input(request)
-
-    if err:
-        return [], err
 
     terms_q = make_terms_queries(cleaned_data)
-    m_range_q = make_range('minute', 'minute_1', 'minute_2', cleaned_data)
-    h_range_q = make_range('hour', 'hour_1', 'hour_2', cleaned_data)
+    m_range_q = make_range_q('minute', 'minute_1', 'minute_2', cleaned_data)
+    h_range_q = make_range_q('hour', 'hour_1', 'hour_2', cleaned_data)
 
-    date_range_q = make_range(
+    date_range_q = make_range_q(
         '@timestamp', 'date_gte', 'date_lte', cleaned_data)
 
     must.extend(terms_q)
@@ -317,10 +426,10 @@ def build_must_queries(request):
     if date_range_q:
         must.append(date_range_q)
 
-    return must, err
+    return must
 
 
-def build_wegdeel_query(bbox, must):
+def build_wegdeel_query(bbox, must, wegdelen_size=20):
     """
     Build aggregation determine distinct vakken for
     each wegdeel per day.
@@ -334,8 +443,6 @@ def build_wegdeel_query(bbox, must):
             "filter": bbox_f,
         },
     }
-
-    size = 10
 
     wegdeel_agg = {
         "aggs": {
@@ -351,7 +458,7 @@ def build_wegdeel_query(bbox, must):
                     "wegdeel": {
                         "terms": {
                             "field": "bgt_wegdeel.keyword",
-                            "size": size
+                            "size": wegdelen_size
                         },
                         "aggs": {
                             "hour": {
@@ -377,9 +484,3 @@ def build_wegdeel_query(bbox, must):
     wegdeel_agg["query"] = query_part
 
     return json.dumps(wegdeel_agg)
-
-
-def build_wegdeel_weekday_query(bbix, must):
-    """
-    """
-
