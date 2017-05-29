@@ -12,8 +12,9 @@ dc build
 dc up -d database
 dc up -d elasticsearch
 
-dc run ppapi /app/docker-wait.sh
 sleep 5  # sometimes DB creation is not ready yet
+
+dc run ppapi /app/docker-wait.sh
 
 echo "Prepare some testdata for elastic to test API"
 
