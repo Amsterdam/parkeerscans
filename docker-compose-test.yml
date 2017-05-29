@@ -1,7 +1,8 @@
-version: '2.1'
+version: '3.0'
 services:
   database:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    mem_reservation: 512m
     environment:
       POSTGRES_PASSWORD: insecure
       POSTGRES_USER: predictiveparking
