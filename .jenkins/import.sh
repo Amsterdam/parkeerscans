@@ -21,7 +21,8 @@ dc() {
 dc stop
 dc rm -f -v
 
-trap 'dc kill ; dc rm -f -v' EXIT
+# Elastic needs to run afterwards..
+# trap 'dc kill ; dc rm -f -v' EXIT
 
 if [ $TESTING != "yes" ]
 then
