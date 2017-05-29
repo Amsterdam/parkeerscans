@@ -341,8 +341,8 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         hour_2          [0 .. 23]
         minute_1        [0 .. 59]
         minute_2        [0 .. 59]
-        weekday         [0 .. 6]
-        month           [january, february, march..]
+        weekday         [0 ..  6]
+        month           [0 .. 12]
         date_gte        [2017, 2016-11-1]   # greater then equal
         date_lte        [2018, 2016-11-1]   # less then equal
         wegdelen_size   [ < 30 ]         # amount of wegdelen to ask
@@ -351,9 +351,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         buurtcode       [A04a ..]
         buurtcombinatie [A04 ..]
         year            [2015.. 2024]
-        bgt_wegdeel
-        qualcode
-        sperscode
+        bgt_wegdeel     [wegdeelid]
+        qualcode        [scan code..]
+        sperscode       [scan code..]
 
         !! NOTE !!:
 
