@@ -212,11 +212,13 @@ DATE_RANGE_FIELDS = [
     ('date_gte', 2017),
     ('date_lte', 2019),
 
+
     ('hour_gte', hour_previous()),
     ('hour_lte', hour_next()),
 
-    ('day_gte', datetime.now().weekday),
-    ('day_lte', datetime.now().weekday),
+    ('day', datetime.now().weekday),
+    #('day_gte', datetime.now().weekday),
+    #('day_lte', datetime.now().weekday),
 ]
 
 
@@ -236,23 +238,23 @@ def parse_int_parameters(req_params, clean_values):
     """
     for field in req_params:
         if field not in POSSIBLE_PARAMS:
-            return {}, f'invalid parameter {field}'
+            return f'invalid parameter {field}'
 
     for field_name, possiblerange in POSSIBLE_INT_PARAMS:
 
         value, err = parse_int_field(field_name, req_params, possiblerange)
 
         if err:
-            return None, err
+            return err
         if value is not None:
             clean_values[field_name] = value
 
-    return clean_values, None
+    return None
 
 
 def set_date_fields(req_params, clean_values):
     """
-    Parse daterange or set default values
+    set default values to specific small date range
     """
 
     for field_name, default in DATE_RANGE_FIELDS:
@@ -261,13 +263,6 @@ def set_date_fields(req_params, clean_values):
             clean_values[field_name] = default()
         else:
             clean_values[field_name] = default
-
-        if field_name in req_params:
-            # can't really clean this elastic
-            # date field
-            clean_values[field_name] = req_params[field_name]
-
-    return clean_values
 
 
 def selection_fields(req_params, clean_values):
@@ -284,7 +279,7 @@ def selection_fields(req_params, clean_values):
             else:
                 clean_values[field_name] = filter_value
 
-    return clean_values, err
+    return err
 
 
 def parse_parameter_input(request):
@@ -297,19 +292,25 @@ def parse_parameter_input(request):
 
     clean_values = {}
 
-    clean_values, err = parse_int_parameters(req_params, clean_values)
+    err = parse_int_parameters(req_params, clean_values)
 
     if err:
         return None, err
 
     err = validate_range_fields(clean_values)
 
-    # Parse date fields and set default
-    clean_values = set_date_fields(req_params, clean_values)
+    if err:
+        return None, err
 
-    clean_values, err = selection_fields(req_params, clean_values)
+    # Parse date fields and set defaults
+    set_date_fields(req_params, clean_values)
 
-    return clean_values, err
+    err = selection_fields(req_params, clean_values)
+
+    if err:
+        return None, err
+
+    return clean_values, None
 
 
 def validate_range_fields(clean_values):
@@ -322,10 +323,8 @@ def validate_range_fields(clean_values):
         if high in clean_values:
             low_value = clean_values[low]
             high_value = clean_values[high]
-            if high_value <= low_value:
-                err = f"!! {high} < {low}"
-        err = f'{high} missing'
-
+            if high_value < low_value:
+                err = f"!! {high_value} < {low_value}"
     return err
 
 
@@ -417,8 +416,8 @@ def make_range_q(field, gte_field, lte_field, cleaned_data):
     range_q = {
         "range": {
             f"{field}": {
-                "gte": low,
-                "lte": high,
+                "gte": int(low),
+                "lte": int(high),
             }
         }
     }
@@ -430,10 +429,9 @@ def make_day_bool_query(day, gte_day, lte_day, cleaned_data):
     """
     Days are a special case.
     """
-    clean_ambigious_fields(day, gte_day, lte_day, cleaned_data)
-
-    if day in cleaned_data:
-        return
+    # clean_ambigious_fields(day, gte_day, lte_day, cleaned_data)
+    if gte_day in cleaned_data and lte_day in cleaned_data:
+        del cleaned_data[day]
 
     low = cleaned_data.get(gte_day)
     high = cleaned_data.get(lte_day)
@@ -449,6 +447,9 @@ def make_day_bool_query(day, gte_day, lte_day, cleaned_data):
     should = []
     for stringday in involved_days:
         should.append({"term": {"day": stringday}})
+
+    if not should:
+        return
 
     day_bool_q = {
         "bool": {
@@ -469,11 +470,11 @@ def clean_parameter_data(request):
     cleaned_data, err = parse_parameter_input(request)
 
     if err:
-        return [], err
+        return {}, err
 
-    # log.debug(cleaned_data)
+    log.debug(cleaned_data)
 
-    return cleaned_data, err
+    return cleaned_data, None
 
 
 def build_must_queries(cleaned_data):

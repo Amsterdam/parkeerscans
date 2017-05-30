@@ -188,17 +188,19 @@ class BrowseDatasetsTestCase(APITestCase):
         params = '&date_lte=2016&hour_gte=0&hour_lte=23'
         dayrange = '&day_lte=6&day_gte=0'
         response = self.client.get('/{}'.format(url+params+dayrange))
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['wegdelen']), 0)
 
     def test_selection_range(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
 
-        range_fields = ['day', 'minute', 'hour', 'month']
+        range_fields = ['minute', 'hour', 'month']
 
         for field in range_fields:
             params = f'&{field}_lte=6&{field}_gte=0'
             response = self.client.get('/{}'.format(url+params))
+            self.assertEqual(response.status_code, 200)
             self.assertIn(f'{field}_gte', response.data['selection'])
             self.assertIn(f'{field}_lte', response.data['selection'])
             self.assertNotIn(f'{field}', response.data['selection'])
@@ -208,9 +210,26 @@ class BrowseDatasetsTestCase(APITestCase):
             self.assertNotIn(f'{field}_gte', response2.data['selection'])
             self.assertIn(f'{field}', response2.data['selection'])
 
+    def test_day_selection(self):
+        test_selections = [
+            (0, 0, 200),
+            (2, 0, 400),
+            (0, 2, 200),
+        ]
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        for low, high, status in test_selections:
+
+            params = f'&day_lte={high}&day_gte={low}'
+            response = self.client.get('/{}'.format(url+params))
+            self.assertEqual(response.status_code, status)
+
+            if status == 200:
+                self.assertNotIn('day', response.data['selection'])
+
     def test_aggregation_vakken(self):
 
         url = 'predictiveparking/metingen/aggregations/vakken/?format=json'
         response = self.client.get('/{}'.format(url))
+        self.assertEqual(response.status_code, 200)
         self.assertIn('vakken', response.data)
         self.assertIn('scancount', response.data)

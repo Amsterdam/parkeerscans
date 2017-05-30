@@ -451,7 +451,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         elk_q = queries.build_wegdeel_query(bbox, must)
 
         build_q = json.loads(elk_q)
-        # log.debug(json.dumps(build_q, indent=4))
+        log.debug(json.dumps(build_q, indent=4))
 
         try:
             result = ELK_CLIENT.search(
@@ -506,7 +506,7 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         bbox, err = determine_bbox(request)
 
         if err:
-            return Response([f"bbox invalid {err}:{bbox}"])
+            return Response([f"bbox invalid {err}:{bbox}"], status=400)
 
         elk_response = self.get_aggregations(bbox)
 
