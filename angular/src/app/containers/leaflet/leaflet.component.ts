@@ -70,12 +70,12 @@ export class LeafletComponent implements AfterViewInit {
 
   private showWegdelen([parkeerkans, wegdelen]: [Parkeerkans, any]) {
     const data = wegdelen.map((wegdeel) => {
-      const wegdeelKans = parkeerkans[wegdeel.properties.id];
-      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.scans : 0;
+      const wegdeelKans = parkeerkans.wegdelen[wegdeel.properties.id];
+      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.occupation : 0;
       return wegdeel;
-    }).filter((wegdeel) =>
-      wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting
-    );
+    }).filter((wegdeel) => {
+      return wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting;
+    });
     L.choropleth({
       type: 'FeatureCollection',
       features: data
