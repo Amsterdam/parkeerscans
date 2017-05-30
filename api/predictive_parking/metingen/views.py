@@ -340,7 +340,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         hour_lte        [0 .. 23]
         minute_gte      [0 .. 59]
         minute_lte      [0 .. 59]
-        day             [0 ..  6] or 'all' for ALL days
+        day             [0 ..  6]
         day_gte         [0 ..  6]
         day_lte         [0 ..  6]
         month           [0 .. 11]
