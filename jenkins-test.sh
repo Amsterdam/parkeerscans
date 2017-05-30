@@ -14,7 +14,7 @@ dc up -d elasticsearch
 
 sleep 5  # sometimes DB creation is not ready yet
 
-dc run ppapi /app/docker-wait.sh
+dc run --rm ppapi /app/docker-wait.sh
 
 echo "Prepare some testdata for elastic to test API"
 
@@ -26,8 +26,7 @@ dc run --rm ppapi bash testdata/loadtestdata.sh predictiveparking || true
 
 echo "start logstash to index data from database into elastic"
 
-dc run logstash /app/load-test-data.sh
-sleep 2  #  wait for elastic to be ready.
+dc run --rm logstash /app/load-test-data.sh
 
 # now we are ready to run some tests
 dc run --rm ppapi python manage.py test
