@@ -165,7 +165,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
         params = '&date_gte=2016&hour_gte=0&hour_lte=23'
-        dayrange = '&day_lte=6&day_gte'
+        dayrange = '&day_lte=6&day_gte=0'
 
         response = self.client.get(
             '/{}'.format(url+params+dayrange+'&explain'))
@@ -185,9 +185,27 @@ class BrowseDatasetsTestCase(APITestCase):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
         params = '&date_lte=2016&hour_gte=0&hour_lte=23'
-        dayrange = '&day_lte=6&day_gte'
+        dayrange = '&day_lte=6&day_gte=0'
         response = self.client.get('/{}'.format(url+params+dayrange))
         self.assertEqual(len(response.data['wegdelen']), 0)
+
+    def test_selection_range(self):
+
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+
+        range_fields = ['day', 'minute', 'hour', 'month']
+
+        for field in range_fields:
+            params = f'&{field}_lte=6&{field}_gte=0'
+            response = self.client.get('/{}'.format(url+params))
+            self.assertIn(f'{field}_gte', response.data['selection'])
+            self.assertIn(f'{field}_lte', response.data['selection'])
+            self.assertNotIn(f'{field}', response.data['selection'])
+
+            response2 = self.client.get('/{}'.format(url + f'&{field}=1'))
+            self.assertNotIn(f'{field}_lte', response2.data['selection'])
+            self.assertNotIn(f'{field}_gte', response2.data['selection'])
+            self.assertIn(f'{field}', response2.data['selection'])
 
     def test_aggregation_vakken(self):
 

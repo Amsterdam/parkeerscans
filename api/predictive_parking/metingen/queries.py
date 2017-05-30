@@ -2,9 +2,13 @@
 Elasticseach queries
 """
 import json
+import logging
+
 from datetime import datetime, timedelta
 
 from elasticsearch_dsl import Search
+
+log = logging.getLogger(__name__)
 
 
 class ElasticQueryWrapper(object):
@@ -160,16 +164,31 @@ POSSIBLE_INT_PARAMS = [
     ('hour', range(0, 24)),
     ('hour_gte', range(0, 24)),
     ('hour_lte', range(0, 24)),
-    # ('minute', range(0, 60)),
+
+    ('minute', range(0, 60)),
     ('minute_gte', range(0, 60)),
     ('minute_lte', range(0, 60)),
 
     ('day', range(0, 7)),
-    ('month', range(0, 12)),
-    ('year', range(2015, 2025)),
+    ('day_gte', range(0, 7)),
+    ('day_lte', range(0, 7)),
 
-    ('wegdelen_size', range(1, 60)),
+    ('month', range(0, 12)),
+    ('month_gte', range(0, 12)),
+    ('month_lte', range(0, 12)),
+
+    ('year', range(2015, 2035)),
+    ('year_gte', range(2015, 2035)),
+    ('year_lte', range(2015, 2035)),
+
+    ('wegdelen_size', range(1, 90)),
 ]
+
+POSSIBLE_PARAMS = [v[0] for v in POSSIBLE_INT_PARAMS]
+POSSIBLE_PARAMS.extend([
+    'date_lte', 'date_gte',
+    'format', 'explain',
+])
 
 
 def hour_previous():
@@ -195,13 +214,19 @@ DATE_RANGE_FIELDS = [
 
     ('hour_gte', hour_previous()),
     ('hour_lte', hour_next()),
-    ('day', datetime.now().weekday),
+
+    ('day_gte', datetime.now().weekday),
+    ('day_lte', datetime.now().weekday),
 ]
 
 
 RANGE_FIELDS = [
-    ('hour_1', 'hour_2'),
-    ('minute_1', 'minute_2'),
+    ('hour_gte', 'hour_lte'),
+    ('minute_gte', 'minute_lte'),
+    ('year_gte', 'year_lte'),
+    ('month_gte', 'month_lte'),
+    ('day_gte', 'day_lte'),
+
 ]
 
 
@@ -209,6 +234,9 @@ def parse_int_parameters(req_params, clean_values):
     """
     Validate possible integer selections
     """
+    for field in req_params:
+        if field not in POSSIBLE_PARAMS:
+            return {}, f'invalid parameter {field}'
 
     for field_name, possiblerange in POSSIBLE_INT_PARAMS:
 
@@ -216,7 +244,7 @@ def parse_int_parameters(req_params, clean_values):
 
         if err:
             return None, err
-        if value:
+        if value is not None:
             clean_values[field_name] = value
 
     return clean_values, None
@@ -294,8 +322,8 @@ def validate_range_fields(clean_values):
         if high in clean_values:
             low_value = clean_values[low]
             high_value = clean_values[high]
-            if high_value < low_value:
-                err = "!! hour_2 < hour_1"
+            if high_value <= low_value:
+                err = f"!! {high} < {low}"
         err = f'{high} missing'
 
     return err
@@ -306,7 +334,7 @@ def build_term_query(field, value):
     Build a term query for a field
     """
 
-    if not value.isdigit():
+    if not isinstance(value, int) and not value.isdigit():
         field = "%s.keyword" % field
     else:
         value = int(value)
@@ -323,12 +351,15 @@ def build_term_query(field, value):
 # for better error reporting
 
 TERM_FIELDS = {
-    'hour': None,
     'stadsdeel': None,
     'buurtcode': None,
     'buurtcombinatie': None,
     'bgt_wegdeel': None,
     'year': None,
+    'day': None,
+    'hour': None,
+    'month': None,
+    'minute': None,
     'qualcode': None,
     'sperscode': None,
 }
@@ -340,29 +371,20 @@ def make_terms_queries(cleaned_data):
     """
     term_q = []
 
+    if 'month' in cleaned_data:
+        cleaned_data['month'] = MONTHS[int(cleaned_data['month'])]
+
     for field in TERM_FIELDS:
         if field in cleaned_data:
             f_q = build_term_query(field, cleaned_data[field])
             term_q.append(f_q)
-
-    if 'day' in cleaned_data:
-        if isinstance(cleaned_data['day'], int):
-            day = DAYS[int(cleaned_data['day'])]
-            f_q = build_term_query('day', day)
-            term_q.append(f_q)
-        # ignore day filter
-
-    if 'month' in cleaned_data:
-        month = MONTHS[int(cleaned_data['month'])]
-        f_q = build_term_query('month', month)
-        term_q.append(f_q)
 
     return term_q
 
 
 def make_range_q(field, gte_field, lte_field, cleaned_data):
     """
-    Build a range query for fieldx
+    Build a range query for field_X
     """
     if field in cleaned_data:
         if gte_field in cleaned_data:
@@ -404,6 +426,8 @@ def clean_parameter_data(request):
     if err:
         return [], err
 
+    log.debug(clean_values)
+
     return clean_values, err
 
 
@@ -416,7 +440,6 @@ def build_must_queries(cleaned_data):
 
     must = []
 
-    terms_q = make_terms_queries(cleaned_data)
     m_range_q = make_range_q(
         'minute', 'minute_gte', 'minute_lte', cleaned_data)
     h_range_q = make_range_q(
@@ -427,6 +450,7 @@ def build_must_queries(cleaned_data):
     date_range_q = make_range_q(
         '@timestamp', 'date_gte', 'date_lte', cleaned_data)
 
+    terms_q = make_terms_queries(cleaned_data)
     must.extend(terms_q)
 
     if h_range_q:

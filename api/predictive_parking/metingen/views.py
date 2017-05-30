@@ -220,7 +220,7 @@ def proces_single_date(date: str, data: dict, wegdelen: dict):
     """
     For each date we get cardinality by hour
 
-    average the cardinality
+    Average the cardinality
     """
 
     for b_wegdeel in data['wegdeel']['buckets']:
@@ -287,6 +287,8 @@ def calculate_average_occupation(wegdeel, day_data):
         for hour, percentage in hour_measurements:
             result_list.append(percentage)
 
+    wegdeel['occupation'] = None
+
     if result_list:
         wegdeel['occupation'] = sum(result_list) / len(result_list)
 
@@ -346,7 +348,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         month           [0 .. 11]
         date_gte        [2017, 2016-11-1]   # greater then equal
         date_lte        [2018, 2016-11-1]   # less then equal
-        wegdelen_size   [ < 30 ]            # amount of wegdelen to ask
+        wegdelen_size   [1 .. 90]           # amount of wegdelen to ask
 
         stadsdeel       [A ..]
         buurtcode       [A04a ..]
