@@ -158,11 +158,11 @@ def parse_int_field(field_name, params, _range):
 
 POSSIBLE_INT_PARAMS = [
     ('hour', range(0, 24)),
-    ('hour_1', range(0, 24)),
-    ('hour_2', range(0, 24)),
+    ('hour_gte', range(0, 24)),
+    ('hour_lte', range(0, 24)),
     # ('minute', range(0, 60)),
-    ('minute_1', range(0, 60)),
-    ('minute_2', range(0, 60)),
+    ('minute_gte', range(0, 60)),
+    ('minute_lte', range(0, 60)),
 
     ('day', range(0, 7)),
     ('month', range(0, 12)),
@@ -185,7 +185,7 @@ def hour_next():
     current hour + 1
     """
     now = datetime.now()
-    return (now + timedelta(hours=1)).hour
+    return (now + timedelta(hours=2)).hour
 
 
 # Elastic date notations.
@@ -193,8 +193,8 @@ DATE_RANGE_FIELDS = [
     ('date_gte', 2017),
     ('date_lte', 2019),
 
-    ('hour_1', hour_previous()),
-    ('hour_2', hour_next()),
+    ('hour_gte', hour_previous()),
+    ('hour_lte', hour_next()),
     ('day', datetime.now().weekday),
 ]
 
@@ -346,9 +346,11 @@ def make_terms_queries(cleaned_data):
             term_q.append(f_q)
 
     if 'day' in cleaned_data:
-        day = DAYS[int(cleaned_data['day'])]
-        f_q = build_term_query('day', day)
-        term_q.append(f_q)
+        if isinstance(cleaned_data['day'], int):
+            day = DAYS[int(cleaned_data['day'])]
+            f_q = build_term_query('day', day)
+            term_q.append(f_q)
+        # ignore day filter
 
     if 'month' in cleaned_data:
         month = MONTHS[int(cleaned_data['month'])]
@@ -363,15 +365,19 @@ def make_range_q(field, gte_field, lte_field, cleaned_data):
     Build a range query for fieldx
     """
     if field in cleaned_data:
-        # range makes no sense..
-        cleaned_data.pop(gte_field)
-        cleaned_data.pop(lte_field)
+        # range makes no sense..when haveing specific value
         return
 
     low = cleaned_data.get(gte_field)
     high = cleaned_data.get(lte_field)
 
+    if low is None:
+        cleaned_data[gte_field] = 'missing'
+    if high is None:
+        cleaned_data[lte_field] = 'missing'
+
     if low is None or high is None:
+        # do not build range query
         return
 
     range_q = {
@@ -411,8 +417,12 @@ def build_must_queries(cleaned_data):
     must = []
 
     terms_q = make_terms_queries(cleaned_data)
-    m_range_q = make_range_q('minute', 'minute_1', 'minute_2', cleaned_data)
-    h_range_q = make_range_q('hour', 'hour_1', 'hour_2', cleaned_data)
+    m_range_q = make_range_q(
+        'minute', 'minute_gte', 'minute_lte', cleaned_data)
+    h_range_q = make_range_q(
+        'hour', 'hour_gte', 'hour_lte', cleaned_data)
+    d_range_q = make_range_q(
+        'day', 'day_gte', 'day_lte', cleaned_data)
 
     date_range_q = make_range_q(
         '@timestamp', 'date_gte', 'date_lte', cleaned_data)
@@ -425,6 +435,9 @@ def build_must_queries(cleaned_data):
         must.append(m_range_q)
     if date_range_q:
         must.append(date_range_q)
+
+    if d_range_q:
+        must.append(d_range_q)
 
     return must
 
