@@ -183,15 +183,15 @@ def determine_bbox(request):
 
     err = "invalid bbox given"
 
-    if 'bbox' in request.query_params:
-        bboxp = request.query_params['bbox']
-        bbox, err = valid_bbox(bboxp)
-    else:
-        bbox = BBOX
-        err = None
+    if 'bbox' not in request.query_params:
+        # set default value
+        return BBOX, None
 
-    if len(bbox) != 4:
-        err = "!= 4"
+    bboxp = request.query_params['bbox']
+    bbox, err = valid_bbox(bboxp)
+
+    if err:
+        return None, err
 
     return bbox, err
 
@@ -451,7 +451,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         elk_q = queries.build_wegdeel_query(bbox, must)
 
         build_q = json.loads(elk_q)
-        log.debug(json.dumps(build_q, indent=4))
+        # log.debug(json.dumps(build_q, indent=4))
 
         try:
             result = ELK_CLIENT.search(

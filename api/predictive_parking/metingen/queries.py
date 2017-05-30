@@ -187,7 +187,7 @@ POSSIBLE_INT_PARAMS = [
 POSSIBLE_PARAMS = [v[0] for v in POSSIBLE_INT_PARAMS]
 POSSIBLE_PARAMS.extend([
     'date_lte', 'date_gte',
-    'format', 'explain',
+    'format', 'explain', 'bbox'
 ])
 
 

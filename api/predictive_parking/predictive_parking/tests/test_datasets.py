@@ -226,6 +226,40 @@ class BrowseDatasetsTestCase(APITestCase):
             if status == 200:
                 self.assertNotIn('day', response.data['selection'])
 
+    def test_bbox(self):
+
+        test_data_params = '&date_lte=2016&hour_gte=0&hour_lte=23'
+
+        bbox_urls = [
+            '/predictiveparking/metingen/aggregations/wegdelen/?format=json' +
+            test_data_params,
+            '/predictiveparking/metingen/aggregations/vakken/?format=json'
+        ]
+
+        lat1 = '52.37560'
+        lat2 = '52.39969'
+
+        lon1 = '4.68565'
+        lon2 = '5.29360'
+
+        latfail = '809.38560'
+        lonfail = '809.38560'
+
+        bbox = [lon1, lat1, lon2, lat2]
+
+        valid_bbox = ",".join(bbox)
+        # wrong order
+        invalid_bbox = ",".join([latfail, lonfail, lon1, latfail])
+
+        for url in bbox_urls:
+            params = f'&bbox={valid_bbox}'
+            response = self.client.get(url+params)
+            self.assertEqual(response.status_code, 200)
+
+            params = f'&bbox={invalid_bbox}'
+            response = self.client.get(url+params)
+            self.assertEqual(response.status_code, 400)
+
     def test_aggregation_vakken(self):
 
         url = 'predictiveparking/metingen/aggregations/vakken/?format=json'
