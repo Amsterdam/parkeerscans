@@ -154,17 +154,18 @@ class BrowseDatasetsTestCase(APITestCase):
         for _wegdeelid, data in response.data['wegdelen'].items():
             # self.assertIn('bgt_functie', data)
             self.assertIn('total_vakken', data)
-            # self.assertIn('fiscaal', data)
             self.assertIn('unique_scans', data)
             self.assertIn('days_seen', data)
-            self.assertIn('occupation', data)
+            # self.assertIn('fiscaal', data)
+            if data['total_vakken']:
+                self.assertIn('occupation', data)
 
         self.assertIn('selection', response.data)
 
     def test_aggregation_wegdelenendpoint_explain(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
-        params = '&date_gte=2016&hour_gte=0&hour_lte=23'
+        params = '&hour_gte=0&hour_lte=23'
         dayrange = '&day_lte=6&day_gte=0'
 
         response = self.client.get(
@@ -173,11 +174,11 @@ class BrowseDatasetsTestCase(APITestCase):
         for _wegdeelid, data in response.data['wegdelen'].items():
             # self.assertIn('bgt_functie', data)
             self.assertIn('total_vakken', data)
-            # self.assertIn('fiscaal', data)
             self.assertIn('unique_scans', data)
             self.assertIn('days_seen', data)
-            self.assertIn('occupation', data)
-            self.assertIn('cardinal_vakken_by_day', data)
+            if data['total_vakken']:
+                self.assertIn('occupation', data)
+                self.assertIn('cardinal_vakken_by_day', data)
 
         self.assertIn('selection', response.data)
 

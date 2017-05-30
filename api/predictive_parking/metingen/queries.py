@@ -444,6 +444,7 @@ def build_must_queries(cleaned_data):
         'minute', 'minute_gte', 'minute_lte', cleaned_data)
     h_range_q = make_range_q(
         'hour', 'hour_gte', 'hour_lte', cleaned_data)
+
     d_range_q = make_range_q(
         'day', 'day_gte', 'day_lte', cleaned_data)
 
@@ -460,8 +461,8 @@ def build_must_queries(cleaned_data):
     if date_range_q:
         must.append(date_range_q)
 
-    if d_range_q:
-        must.append(d_range_q)
+    #if d_range_q:
+    #    must.append(d_range_q)
 
     return must
 
