@@ -134,7 +134,7 @@ def parse_int(value, _range=()):
         if _range and parsed not in _range:
             err = "range error"
     except ValueError:
-        err = "invalid"
+        err = f"{parsed} invalid"
 
     return parsed, err
 
@@ -151,7 +151,7 @@ def parse_int_field(field_name, params, _range):
         field_value, err = parse_int(field_value, _range)
 
     if err:
-        err = f'invalid {field_name}{field_value}'
+        err = f'invalid {field_name} - {field_value} {err}'
 
     return field_value, err
 

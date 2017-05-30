@@ -148,8 +148,9 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_aggregation_wegdelenendpoint(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
-        params = '?date_gte=2016&hour_gte=0&hour_lte=23&day=all'
-        response = self.client.get('/{}'.format(url+params))
+        params = '&date_gte=2016&hour_gte=0&hour_lte=23'
+        dayrange = '&day_lte=6&day_gte=0'
+        response = self.client.get('/{}'.format(url+params+dayrange))
         for _wegdeelid, data in response.data['wegdelen'].items():
             # self.assertIn('bgt_functie', data)
             self.assertIn('total_vakken', data)
@@ -159,6 +160,34 @@ class BrowseDatasetsTestCase(APITestCase):
             self.assertIn('occupation', data)
 
         self.assertIn('selection', response.data)
+
+    def test_aggregation_wegdelenendpoint_explain(self):
+
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        params = '&date_gte=2016&hour_gte=0&hour_lte=23'
+        dayrange = '&day_lte=6&day_gte'
+
+        response = self.client.get(
+            '/{}'.format(url+params+dayrange+'&explain'))
+
+        for _wegdeelid, data in response.data['wegdelen'].items():
+            # self.assertIn('bgt_functie', data)
+            self.assertIn('total_vakken', data)
+            # self.assertIn('fiscaal', data)
+            self.assertIn('unique_scans', data)
+            self.assertIn('days_seen', data)
+            self.assertIn('occupation', data)
+            self.assertIn('cardinal_vakken_by_day', data)
+
+        self.assertIn('selection', response.data)
+
+    def test_aggregation_wegdelenendpoint_filter_no_result(self):
+
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        params = '&date_lte=2016&hour_gte=0&hour_lte=23'
+        dayrange = '&day_lte=6&day_gte'
+        response = self.client.get('/{}'.format(url+params+dayrange))
+        self.assertEqual(len(response.data['wegdelen']), 0)
 
     def test_aggregation_vakken(self):
 
