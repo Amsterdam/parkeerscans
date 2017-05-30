@@ -451,7 +451,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         elk_q = queries.build_wegdeel_query(bbox, must)
 
         build_q = json.loads(elk_q)
-        log.debug(json.dumps(build_q, indent=4))
+        # log.debug(json.dumps(build_q, indent=4))
 
         try:
             result = ELK_CLIENT.search(
@@ -487,7 +487,7 @@ def load_db_wegdelen(bbox, wegdelen):
             # 'fiscaal': wegdeel.fiscale_vakken,
         })
 
-    log.debug(wd_qs.count())
+    # log.debug('WEGDELEN %s' % wd_qs.count())
     # assert wegdelen
 
 

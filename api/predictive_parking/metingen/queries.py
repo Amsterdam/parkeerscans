@@ -374,6 +374,9 @@ def make_terms_queries(cleaned_data):
     if 'month' in cleaned_data:
         cleaned_data['month'] = MONTHS[int(cleaned_data['month'])]
 
+    if 'day' in cleaned_data:
+        cleaned_data['day'] = DAYS[int(cleaned_data['day'])]
+
     for field in TERM_FIELDS:
         if field in cleaned_data:
             f_q = build_term_query(field, cleaned_data[field])
@@ -382,17 +385,26 @@ def make_terms_queries(cleaned_data):
     return term_q
 
 
-def make_range_q(field, gte_field, lte_field, cleaned_data):
+def clean_ambigious_fields(field, gte_field, lte_field, cleaned_data):
     """
-    Build a range query for field_X
+    remove ambigious filters
     """
+
     if field in cleaned_data:
         if gte_field in cleaned_data:
             del cleaned_data[gte_field]
         if lte_field in cleaned_data:
             del cleaned_data[lte_field]
 
-        # range makes no sense..when haveing specific value
+
+def make_range_q(field, gte_field, lte_field, cleaned_data):
+    """
+    Build a range query for field_X
+    """
+    clean_ambigious_fields(field, gte_field, lte_field, cleaned_data)
+
+    # range makes no sense..when specific value is set
+    if field in cleaned_data:
         return
 
     low = cleaned_data.get(gte_field)
@@ -414,21 +426,54 @@ def make_range_q(field, gte_field, lte_field, cleaned_data):
     return range_q
 
 
+def make_day_bool_query(day, gte_day, lte_day, cleaned_data):
+    """
+    Days are a special case.
+    """
+    clean_ambigious_fields(day, gte_day, lte_day, cleaned_data)
+
+    if day in cleaned_data:
+        return
+
+    low = cleaned_data.get(gte_day)
+    high = cleaned_data.get(lte_day)
+
+    if low is None or high is None:
+        # do not build range query
+        return
+
+    involved_days = []
+    for x in range(int(low), int(high)+1):
+        involved_days.append(DAYS[int(x)])
+
+    should = []
+    for stringday in involved_days:
+        should.append({"term": {"day": stringday}})
+
+    day_bool_q = {
+        "bool": {
+            "should": should
+        }
+    }
+
+    return day_bool_q
+
+
 def clean_parameter_data(request):
     """
-    clean client input
+    clean client input from the evil internets
     """
 
     err = None
 
-    clean_values, err = parse_parameter_input(request)
+    cleaned_data, err = parse_parameter_input(request)
 
     if err:
         return [], err
 
-    log.debug(clean_values)
+    # log.debug(cleaned_data)
 
-    return clean_values, err
+    return cleaned_data, err
 
 
 def build_must_queries(cleaned_data):
@@ -445,7 +490,7 @@ def build_must_queries(cleaned_data):
     h_range_q = make_range_q(
         'hour', 'hour_gte', 'hour_lte', cleaned_data)
 
-    d_range_q = make_range_q(
+    day_bool_q = make_day_bool_query(
         'day', 'day_gte', 'day_lte', cleaned_data)
 
     date_range_q = make_range_q(
@@ -461,8 +506,8 @@ def build_must_queries(cleaned_data):
     if date_range_q:
         must.append(date_range_q)
 
-    #if d_range_q:
-    #    must.append(d_range_q)
+    if day_bool_q:
+        must.append(day_bool_q)
 
     return must
 
