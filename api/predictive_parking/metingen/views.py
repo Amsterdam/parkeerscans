@@ -281,13 +281,14 @@ def calculate_average_occupation(wegdeel, day_data):
     give back the occupation
     """
 
+    result_list = []
+
     for date, hour_measurements in day_data:
-        result_list = []
         for hour, percentage in hour_measurements:
             result_list.append(percentage)
 
-        if result_list:
-            wegdeel['occupation'] = sum(result_list) / len(result_list)
+    if result_list:
+        wegdeel['occupation'] = sum(result_list) / len(result_list)
 
 
 def calculate_occupation(wegdelen, query_params):
