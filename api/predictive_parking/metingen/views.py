@@ -323,8 +323,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
     using elasticsearch.
 
-
-
     Parameter filter options
     =======
 
@@ -357,11 +355,11 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         qualcode        [scan code..]
         sperscode       [scan code..]
 
-        !! NOTE !!:
+        !! NOTE !!
 
         Default filter is current day and time.
 
-        add explain parameter so see more details about calculation
+        add ?explain parameter so see more details about calculation
 
 
     Response explanation
@@ -373,7 +371,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
                default is current day and time for 2017
             },
             wegdelen: {
-
                 "wegdeelID": {
                     totalvakken: unique vakken for wegdeel
                     occupation: xx
@@ -432,7 +429,8 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         # calculate bezetting
         wegdelen_data = build_wegdelen_data(elk_response, wegdelen)
 
-        wegdelen_data = calculate_occupation(wegdelen_data, request.query_params)
+        wegdelen_data = calculate_occupation(
+            wegdelen_data, request.query_params)
 
         return Response({
             'selection': cleaned_data,

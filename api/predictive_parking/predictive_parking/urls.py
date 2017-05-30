@@ -24,7 +24,12 @@ class PredictiveParkingView(routers.APIRootView):
     voor WFS data van vakken , wegdelen en scans:
 
     [https://acc.map.amsterdam.nl/predictiveparking]
+    [https://map.amsterdam.nl/parkeervakken]
 
+    De scan data in deze api is opgeschoond en verrijkt met
+    actuele BGT wegdelen informatie en BAG gebieden informatie.
+    elke scan is gekoppeld aan een parkeervak uit de parkeervakken
+    kaart mits de scan binnen 1.5 meter van een Parkeervak is.
     """
 
 

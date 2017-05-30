@@ -95,7 +95,7 @@ def build_bbox_filter(bbox):
 
 DAYS = [
     'monday   ',
-    'tuesday  '
+    'tuesday  ',
     'wednesday',
     'thursday ',
     'friday   ',
