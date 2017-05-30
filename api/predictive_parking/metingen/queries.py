@@ -365,16 +365,16 @@ def make_range_q(field, gte_field, lte_field, cleaned_data):
     Build a range query for fieldx
     """
     if field in cleaned_data:
+        if gte_field in cleaned_data:
+            del cleaned_data[gte_field]
+        if lte_field in cleaned_data:
+            del cleaned_data[lte_field]
+
         # range makes no sense..when haveing specific value
         return
 
     low = cleaned_data.get(gte_field)
     high = cleaned_data.get(lte_field)
-
-    if low is None:
-        cleaned_data[gte_field] = 'missing'
-    if high is None:
-        cleaned_data[lte_field] = 'missing'
 
     if low is None or high is None:
         # do not build range query

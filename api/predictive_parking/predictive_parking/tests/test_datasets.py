@@ -148,14 +148,14 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_aggregation_wegdelenendpoint(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
-        params = '?date_gte=2016&hour_gte=0&hour_lte=23'
+        params = '?date_gte=2016&hour_gte=0&hour_lte=23&day=all'
         response = self.client.get('/{}'.format(url+params))
-        for _wegdeelid, data in response.data['wegdelen']:
+        for _wegdeelid, data in response.data['wegdelen'].items():
             # self.assertIn('bgt_functie', data)
-            self.assertIn('totaal_vakken', data)
+            self.assertIn('total_vakken', data)
             # self.assertIn('fiscaal', data)
-            self.assertIn('scans', data)
-            self.assertIn('days', data)
+            self.assertIn('unique_scans', data)
+            self.assertIn('days_seen', data)
             self.assertIn('occupation', data)
 
         self.assertIn('selection', response.data)
