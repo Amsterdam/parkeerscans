@@ -63,7 +63,7 @@ export class LeafletComponent implements AfterViewInit {
       });
       this.leafletMap = L.map(this.host.nativeElement, options)
         .setView([52.3731081, 4.8932945], 11);
-      const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd/{z}/{x}/{y}.png', {
+      const baseLayer = L.tileLayer('https://{s}.data.amsterdam.nl/topo_rd_zw/{z}/{x}/{y}.png', {
         subdomains: ['acc.t1', 'acc.t2', 'acc.t3', 'acc.t4'],
         tms: true,
         minZoom: 8,
