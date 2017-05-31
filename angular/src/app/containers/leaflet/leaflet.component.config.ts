@@ -1,14 +1,23 @@
-export const config = {
+export const config: {
+  map: {
+    maxBounds: Array<[number, number]>;
+    maxBoundsViscosity: number;
+    bounceAtZoomLimits: boolean;
+    attributionControl: boolean;
+    zoomControl: boolean;
+  };
+  choropleth: any;
+} = {
   map: {
     maxBounds: [
       [52.269470, 4.72876],
       [52.4322, 5.07916]
     ],
-      // 1.0 makes the bounds fully solid, preventing the user from dragging outside the bounds
-      maxBoundsViscosity: 1.0,
-      bounceAtZoomLimits: false,
-      attributionControl: false,
-      zoomControl: false
+    // 1.0 makes the bounds fully solid, preventing the user from dragging outside the bounds
+    maxBoundsViscosity: 1.0,
+    bounceAtZoomLimits: false,
+    attributionControl: false,
+    zoomControl: false
   },
   choropleth: {
     parkeervakken: {

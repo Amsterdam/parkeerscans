@@ -1551,7 +1551,9 @@ declare namespace L {
       bounds?: L.Bounds;
     }
 
-    function CRS(code: string, proj4def: string, options: CRSOptions): void;
+    class CRS {
+      constructor(code: string, proj4def: string, options: CRSOptions);
+    }
   }
 
   interface ChoroplethOptions {
