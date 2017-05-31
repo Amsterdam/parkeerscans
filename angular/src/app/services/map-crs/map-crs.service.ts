@@ -36,7 +36,7 @@ export class MapCrs {
      * Convert the Array syntax from the configuration to the L.bounds format
      * http://leafletjs.com/reference.html#bounds
      */
-    rdSettings.transformation.bounds = L.bounds.apply(null, rdSettings.transformation.bounds);
+    rdSettings.transformation.bounds = L.bounds.apply(null, rdSettings.bounds);
     this.rd = new L.Proj.CRS(
       rdSettings.code,
       rdSettings.projection,
