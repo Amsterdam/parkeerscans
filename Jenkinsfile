@@ -49,7 +49,7 @@ node {
             ppapi.push()
             ppapi.push("acceptance")
 
-            def customviewer = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}", "angular")
+            def customviewer = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_angular:${env.BUILD_NUMBER}", "angular")
             customviewer.push()
             customviewer.push("acceptance")
         }
