@@ -15,22 +15,22 @@ export const config = {
       valueProperty: 'scan_count',
         scale: ['white', 'green'],
         steps: 10,
-        mode: 'q',
+        mode: 'e',
         style: {
           color: '#fff',
-            weight: 2,
-            fillOpacity: 0.8
+            weight: 1,
+            fillOpacity: 0.6
         }
     },
     wegdelen: {
       valueProperty: 'bezetting',
       scale: ['white', 'red'],
       steps: 10,
-      mode: 'q',
+      mode: 'e',
       style: {
         color: '#fff',
-        weight: 2,
-        fillOpacity: 0.8
+        weight: 0,
+        fillOpacity: 0.6
       }
     }
   }

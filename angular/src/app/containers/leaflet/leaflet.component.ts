@@ -47,6 +47,7 @@ export class LeafletComponent implements AfterViewInit {
     this.initLeaflet();
     this.updateBoundingBox();
     this.selection$.forEach((payload) => {
+      console.log('payload', payload);
       if (payload) {
         this.day = payload.day;
         this.hour = payload.hour;
@@ -97,6 +98,16 @@ export class LeafletComponent implements AfterViewInit {
       return wegdeel;
     }).filter((wegdeel) => {
       return wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting;
+    });
+    data.push({
+      properties: {
+        bezetting: 0
+      }
+    });
+    data.push({
+      properties: {
+        bezetting: 100
+      }
     });
     L.choropleth({
       type: 'FeatureCollection',
