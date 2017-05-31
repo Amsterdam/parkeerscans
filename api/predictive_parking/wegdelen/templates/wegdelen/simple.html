@@ -16,13 +16,16 @@
 	<h3>
 		Verdachte Vakken {{buurt}} {{totaal_fout}} van de {{totaal_beschikbaar}} ingetekende Fiscale vakken.
 		Dit zijn vakken die niet of te weinig zijn gezien.
+
+		verander zelf de url: voeg "?buurt=BUURCODE&aantal=SCANAANTAL"
 	</h3>
 	<p>
 		Per stadsdeel:
 		<a href="{{ request.path }}?buurt=A">Centrum</a>
-		<a href="{{ request.path }}?buurt=K">Zuid</a>
+		<a href="{{ request.path }}?buurt=K&aantal=0">Zuid</a>
 		<a href="{{ request.path }}?buurt=E&aantal=0">West</a>
 		<a href="{{ request.path }}?buurt=N&aantal=0">Noord</a>
+		<a href="{{ request.path }}?buurt=M&aantal=0">Oost</a>
 		<a href="{{ request.path }}?buurt=F&aantal=0">Nieuw-West</a>
 		<a href="{{ request.path }}?buurt=T&aantal=0">Zuidoost</a>
 	</p>

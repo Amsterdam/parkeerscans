@@ -56,13 +56,12 @@ services:
       - elasticsearch:elasticsearch
     command: kibana
 
-  kibanawegdeel:
-    build: ./kibanawegdeel
+  customviewer:
+    build: ./angular
     ports:
-      - "5602:5601"
+      - "5602:80"
     links:
-      - elasticsearch:elasticsearch
-    command: kibana
+      - ppapi:ppapi
 
   csvimporter:
     build: ./csvimporter/
