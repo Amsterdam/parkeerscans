@@ -226,7 +226,7 @@ def proces_single_date(date: str, data: dict, wegdelen: dict):
 
         db_wegdeel = wegdelen[key]
 
-        capacity = db_wegdeel['total_vakken']
+        capacity = db_wegdeel.get('total_vakken')
 
         db_wegdeel['unique_scans'] = db_wegdeel.setdefault(
             'unique_scans', 0) + scans
@@ -246,7 +246,7 @@ def proces_single_date(date: str, data: dict, wegdelen: dict):
             if capacity:
                 bezetting = int(cardinal_vakken / capacity * 100)
             else:
-                bezetting = 1000
+                bezetting = 0
 
             date_data.append([hour, bezetting])
 
