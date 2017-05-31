@@ -28,6 +28,7 @@ import { ParkeervakkenService } from '../../services/parkeervakken';
 export class LeafletComponent implements AfterViewInit {
   private leafletMap: L.Map;
   private selection$: Observable<any>;
+  private occupation: {[wegdeelId: string]: number};
   private day;
   private hour;
 
@@ -47,7 +48,6 @@ export class LeafletComponent implements AfterViewInit {
     this.initLeaflet();
     this.updateBoundingBox();
     this.selection$.forEach((payload) => {
-      console.log('payload', payload);
       if (payload) {
         this.day = payload.day;
         this.hour = payload.hour;
@@ -92,12 +92,15 @@ export class LeafletComponent implements AfterViewInit {
   }
 
   private showWegdelen([parkeerkans, wegdelen]: [Parkeerkans, any]) {
+    this.occupation = {};
     const data = wegdelen.map((wegdeel) => {
       const wegdeelKans = parkeerkans.wegdelen[wegdeel.properties.id];
-      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.occupation : 0;
+      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.occupation : undefined;
+      this.occupation[wegdeel.properties.id] = wegdeel.properties.bezetting;
       return wegdeel;
     }).filter((wegdeel) => {
-      return wegdeel.properties.bezetting === 'fout' ? false : wegdeel.properties.bezetting;
+      return wegdeel.properties.bezetting === 'fout' ? false
+        : wegdeel.properties.bezetting !== undefined;
     });
     data.push({
       properties: {
@@ -120,6 +123,23 @@ export class LeafletComponent implements AfterViewInit {
   }
 
   private showParkeervakken(parkeervakken) {
+    const that = this;
+    parkeervakken = parkeervakken.map((parkeervak) => {
+      parkeervak.properties.bezetting = that.occupation[parkeervak.properties.bgt_wegdeel];
+      return parkeervak;
+    }).filter((parkeervak) => {
+      return parkeervak.properties.bezetting !== undefined;
+    });
+    parkeervakken.push({
+      properties: {
+        bezetting: 0
+      }
+    });
+    parkeervakken.push({
+      properties: {
+        bezetting: 100
+      }
+    });
     L.choropleth({
       type: 'FeatureCollection',
       features: parkeervakken

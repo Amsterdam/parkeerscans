@@ -12,20 +12,20 @@ export const config = {
   },
   choropleth: {
     parkeervakken: {
-      valueProperty: 'scan_count',
-        scale: ['white', 'green'],
-        steps: 10,
+      valueProperty: 'bezetting',
+        scale: ['white', 'red'],
+        steps: 11,
         mode: 'e',
         style: {
           color: '#fff',
-            weight: 1,
-            fillOpacity: 0.6
+          weight: 1,
+          fillOpacity: 0.6
         }
     },
     wegdelen: {
       valueProperty: 'bezetting',
       scale: ['white', 'red'],
-      steps: 10,
+      steps: 11,
       mode: 'e',
       style: {
         color: '#fff',
