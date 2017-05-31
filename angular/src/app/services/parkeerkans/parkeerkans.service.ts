@@ -23,9 +23,14 @@ export class ParkeerkansService {
   public getParkeerkans(
       boundingBox: string,
       day: string,
-      hour: number): Observable<Parkeerkans> {
+      hour: string): Observable<Parkeerkans> {
+
+    const dayString = day ? `day=${day}&` : '';
+    const hourString = hour ? `hour=${hour}&` : '';
 
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
+        dayString +
+        hourString +
         `bbox=${boundingBox}`)
       .map((res) => res.json() || {})
       .catch((error) => Observable.throw(error.toString()));
