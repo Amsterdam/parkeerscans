@@ -1,11 +1,13 @@
 import { NgModule } from '@angular/core';
 import { LeafletModule } from '../leaflet';
+import { FormModule } from '../form';
 
 import { MapComponent } from './map.component';
 
 @NgModule({
   imports: [
-    LeafletModule
+    LeafletModule,
+    FormModule
   ],
   declarations: [
     MapComponent

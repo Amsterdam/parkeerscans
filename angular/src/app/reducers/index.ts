@@ -36,14 +36,14 @@ import { combineReducers } from '@ngrx/store';
  * the state of the reducer plus any selector functions. The `* as`
  * notation packages up all of the exports into a single object.
  */
-import * as fromMap from './map';
+import * as mapReducers from './map';
 
 /**
  * As mentioned, we treat each reducer like a table in a database. This means
  * our top level state interface is just a map of keys to inner state types.
  */
 export interface State {
-  map: fromMap.State;
+  map: mapReducers.State;
 }
 
 /**
@@ -54,7 +54,7 @@ export interface State {
  * the result from right to left.
  */
 const reducers = {
-  // map: fromMap.reducer
+  map: mapReducers.reducer
 };
 
 const developmentReducer: ActionReducer<State> = compose(storeFreeze, combineReducers)(reducers);
@@ -83,7 +83,7 @@ export function reducer(state: any, action: any) {
  * }
  * ```
  */
-// export const getBooksState = (state: State) => state.books;
+export const getMapState = (state: State) => state.map;
 
 /**
  * Every reducer module exports selector functions, however child reducers
@@ -95,8 +95,4 @@ export function reducer(state: any, action: any) {
  * The created selectors can also be composed together to select different
  * pieces of state.
  */
-// export const getBookEntities = createSelector(getBooksState, fromBooks.getEntities);
-// export const getBookIds = createSelector(getBooksState, fromBooks.getIds);
-// export const getSelectedBookId = createSelector(getBooksState, fromBooks.getSelectedId);
-// export const getSelectedBook = createSelector(getBooksState, fromBooks.getSelected);
-// export const getAllBooks = createSelector(getBooksState, fromBooks.getAll);
+export const getMapSelection = createSelector(getMapState, mapReducers.getSelection);
