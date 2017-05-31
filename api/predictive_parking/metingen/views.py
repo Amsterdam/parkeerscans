@@ -7,8 +7,6 @@ import logging
 # import sys
 import json
 
-from dateutil import parser
-
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -283,8 +281,8 @@ def calculate_average_occupation(wegdeel, day_data):
 
     result_list = []
 
-    for date, hour_measurements in day_data:
-        for hour, percentage in hour_measurements:
+    for _date, hour_measurements in day_data:
+        for _hour, percentage in hour_measurements:
             result_list.append(percentage)
 
     wegdeel['occupation'] = None
@@ -346,9 +344,14 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         day_gte         [0 ..  6]
         day_lte         [0 ..  6]
         month           [0 .. 11]
+        wegdelen_size   [1 .. 90]           # amount of wegdelen to ask
+
+        You can use date-math on date fields:
+        https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#date-math
+
         date_gte        [2017, 2016-11-1]   # greater then equal
         date_lte        [2018, 2016-11-1]   # less then equal
-        wegdelen_size   [1 .. 90]           # amount of wegdelen to ask
+
 
         stadsdeel       [A ..]
         buurtcode       [A04a ..]

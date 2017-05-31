@@ -260,6 +260,22 @@ class BrowseDatasetsTestCase(APITestCase):
             response = self.client.get(url+params)
             self.assertEqual(response.status_code, 400)
 
+    def test_date_field(self):
+        """
+        Test date field cleanup and presence
+        """
+
+        test_date_params = '&date_lte=2024{}&date_gte=()2010'
+        url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
+
+        response = self.client.get(url+test_date_params)
+        selection = response.data['selection']
+
+        self.assertIn('date_lte', selection)
+        self.assertIn('date_gte', selection)
+        self.assertEqual('2024', selection['date_lte'])
+        self.assertEqual('2010', selection['date_gte'])
+
     def test_aggregation_vakken(self):
 
         url = 'predictiveparking/metingen/aggregations/vakken/?format=json'

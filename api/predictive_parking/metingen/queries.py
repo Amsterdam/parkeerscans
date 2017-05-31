@@ -1,6 +1,7 @@
 """
 Elasticseach queries
 """
+import re
 import json
 import logging
 
@@ -217,8 +218,8 @@ DATE_RANGE_FIELDS = [
     ('hour_lte', hour_next()),
 
     ('day', datetime.now().weekday),
-    #('day_gte', datetime.now().weekday),
-    #('day_lte', datetime.now().weekday),
+    # ('day_gte', datetime.now().weekday),
+    # ('day_lte', datetime.now().weekday),
 ]
 
 
@@ -232,32 +233,55 @@ RANGE_FIELDS = [
 ]
 
 
-def parse_int_parameters(req_params, clean_values):
+def check_all_paramaters(req_params, clean_values):
     """
-    Validate possible integer selections
+    Check if we recieve valid known paramaters
     """
     for field in req_params:
         if field not in POSSIBLE_PARAMS:
             return f'invalid parameter {field}'
 
-    for field_name, possiblerange in POSSIBLE_INT_PARAMS:
+    # clean up date_* fields these are
+    # the only fields that are not forced
+    # into a type since it can contain elasticsearch
+    # date-math. We do some cleaning here.
+    for field in ['date_gte', 'date_lte']:
+        if field not in req_params:
+            continue
+        date_data = req_params[field]
+        cleaned_date = re.sub(r'[\\/*:\{\}"\)\(|]', "", date_data)
+        clean_values[field] = cleaned_date
 
+
+def parse_int_parameters(req_params, clean_values):
+    """
+    Validate possible integer selections
+    """
+
+    for field_name, possiblerange in POSSIBLE_INT_PARAMS:
         value, err = parse_int_field(field_name, req_params, possiblerange)
 
         if err:
             return err
+
         if value is not None:
             clean_values[field_name] = value
 
     return None
 
 
-def set_date_fields(req_params, clean_values):
+def set_date_fields(clean_values):
     """
     set default values to specific small date range
+    so the default behaviour will not overload the
+    elasticsearch queries
     """
 
     for field_name, default in DATE_RANGE_FIELDS:
+
+        if field_name in clean_values:
+            # user already set a value for this field
+            continue
 
         if callable(default):
             clean_values[field_name] = default()
@@ -292,6 +316,10 @@ def parse_parameter_input(request):
 
     clean_values = {}
 
+    err = check_all_paramaters(req_params, clean_values)
+    if err:
+        return None, err
+
     err = parse_int_parameters(req_params, clean_values)
 
     if err:
@@ -302,8 +330,8 @@ def parse_parameter_input(request):
     if err:
         return None, err
 
-    # Parse date fields and set defaults
-    set_date_fields(req_params, clean_values)
+    # set defaults date filtering if not set by user
+    set_date_fields(clean_values)
 
     err = selection_fields(req_params, clean_values)
 
@@ -472,7 +500,7 @@ def clean_parameter_data(request):
     if err:
         return {}, err
 
-    log.debug(cleaned_data)
+    # log.debug(cleaned_data)
 
     return cleaned_data, None
 
