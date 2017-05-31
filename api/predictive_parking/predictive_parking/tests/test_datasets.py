@@ -148,20 +148,138 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_aggregation_wegdelenendpoint(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
-        response = self.client.get('/{}'.format(url))
-        for _wegdeelid, data in response.data.items():
+        params = '&date_gte=2016&hour_gte=0&hour_lte=23'
+        dayrange = '&day_lte=6&day_gte=0'
+        response = self.client.get('/{}'.format(url+params+dayrange))
+        for _wegdeelid, data in response.data['wegdelen'].items():
+            # self.assertIn('bgt_functie', data)
+            self.assertIn('total_vakken', data)
+            self.assertIn('unique_scans', data)
+            self.assertIn('days_seen', data)
+            # self.assertIn('fiscaal', data)
+            if data['total_vakken']:
+                self.assertIn('occupation', data)
 
-            self.assertIn('bgt_functie', data)
-            self.assertIn('totaal_vakken', data)
-            self.assertIn('fiscaal', data)
-            self.assertIn('scans', data)
-            self.assertIn('days', data)
+        self.assertIn('selection', response.data)
 
-            self.assertIn('cardinal_vakken_by_day', data)
+    def test_aggregation_wegdelenendpoint_explain(self):
+
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        params = '&hour_gte=0&hour_lte=23'
+        dayrange = '&day_lte=6&day_gte=0'
+
+        response = self.client.get(
+            '/{}'.format(url+params+dayrange+'&explain'))
+
+        for _wegdeelid, data in response.data['wegdelen'].items():
+            # self.assertIn('bgt_functie', data)
+            self.assertIn('total_vakken', data)
+            self.assertIn('unique_scans', data)
+            self.assertIn('days_seen', data)
+            if data['total_vakken']:
+                self.assertIn('occupation', data)
+                self.assertIn('cardinal_vakken_by_day', data)
+
+        self.assertIn('selection', response.data)
+
+    def test_aggregation_wegdelenendpoint_filter_no_result(self):
+
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        params = '&date_lte=2016&hour_gte=0&hour_lte=23'
+        dayrange = '&day_lte=6&day_gte=0'
+        response = self.client.get('/{}'.format(url+params+dayrange))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['wegdelen']), 0)
+
+    def test_selection_range(self):
+
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+
+        range_fields = ['minute', 'hour', 'month']
+
+        for field in range_fields:
+            params = f'&{field}_lte=6&{field}_gte=0'
+            response = self.client.get('/{}'.format(url+params))
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(f'{field}_gte', response.data['selection'])
+            self.assertIn(f'{field}_lte', response.data['selection'])
+            self.assertNotIn(f'{field}', response.data['selection'])
+
+            response2 = self.client.get('/{}'.format(url + f'&{field}=1'))
+            self.assertNotIn(f'{field}_lte', response2.data['selection'])
+            self.assertNotIn(f'{field}_gte', response2.data['selection'])
+            self.assertIn(f'{field}', response2.data['selection'])
+
+    def test_day_selection(self):
+        test_selections = [
+            (0, 0, 200),
+            (2, 0, 400),
+            (0, 2, 200),
+        ]
+        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        for low, high, status in test_selections:
+
+            params = f'&day_lte={high}&day_gte={low}'
+            response = self.client.get('/{}'.format(url+params))
+            self.assertEqual(response.status_code, status)
+
+            if status == 200:
+                self.assertNotIn('day', response.data['selection'])
+
+    def test_bbox(self):
+
+        test_data_params = '&date_lte=2016&hour_gte=0&hour_lte=23'
+
+        bbox_urls = [
+            '/predictiveparking/metingen/aggregations/wegdelen/?format=json' +
+            test_data_params,
+            '/predictiveparking/metingen/aggregations/vakken/?format=json'
+        ]
+
+        lat1 = '52.37560'
+        lat2 = '52.39969'
+
+        lon1 = '4.68565'
+        lon2 = '5.29360'
+
+        latfail = '809.38560'
+        lonfail = '809.38560'
+
+        bbox = [lon1, lat1, lon2, lat2]
+
+        valid_bbox = ",".join(bbox)
+        # wrong order
+        invalid_bbox = ",".join([latfail, lonfail, lon1, latfail])
+
+        for url in bbox_urls:
+            params = f'&bbox={valid_bbox}'
+            response = self.client.get(url+params)
+            self.assertEqual(response.status_code, 200)
+
+            params = f'&bbox={invalid_bbox}'
+            response = self.client.get(url+params)
+            self.assertEqual(response.status_code, 400)
+
+    def test_date_field(self):
+        """
+        Test date field cleanup and presence
+        """
+
+        test_date_params = '&date_lte=2024{}&date_gte=()2010'
+        url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
+
+        response = self.client.get(url+test_date_params)
+        selection = response.data['selection']
+
+        self.assertIn('date_lte', selection)
+        self.assertIn('date_gte', selection)
+        self.assertEqual('2024', selection['date_lte'])
+        self.assertEqual('2010', selection['date_gte'])
 
     def test_aggregation_vakken(self):
 
         url = 'predictiveparking/metingen/aggregations/vakken/?format=json'
         response = self.client.get('/{}'.format(url))
+        self.assertEqual(response.status_code, 200)
         self.assertIn('vakken', response.data)
         self.assertIn('scancount', response.data)

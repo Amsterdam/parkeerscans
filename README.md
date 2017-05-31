@@ -8,14 +8,14 @@ The project is devided in a few docker-containers with their own functions.
   - api
      - provide web api on scan data
      - contains database building / migrations and loading of related databases
+  - angluar
+     - occupation viewer build on top of api.
   - csvimporter
     - golang code which crunches to and cleans up scan data and import csv data into postgres database
   - kibana
     - default kibana to analyse scan - data. deployed at: https://acc.parkeren.data.amsterdam.nl
   - logstash
     - import data from database into elasticsearch
-  - kibanawegdeel
-    - POC showing proof of concept with parking pressure: https://demo1.atlas.amsterdam.nl/goto/a6ec13ad0c9c4b2f2e5539cdf1d57feb
   - postgres
     - database docker with custom settings
   - .jenkins
@@ -24,8 +24,9 @@ The project is devided in a few docker-containers with their own functions.
 
 There are two steps
 
- - 1. Prepare the data
- - 2. Visualize the data in kibana
+ - 1. Prepare, combine, cleanup the data.
+ - 2. Visualize the data in kibana.
+ - 3. Visualize the occupation special viewer.
 
 https://dokuwiki.datapunt.amsterdam.nl/doku.php?id=start:pparking:architectuur
 
@@ -79,10 +80,7 @@ this is a work in progres.
  TODO
 =====
 
- - ~add test~
  - incremental data loading
- - make custom api to replace kibana.
- - make custom viewer for new api.
 
 
 Development
@@ -93,11 +91,21 @@ Development
 ----------------------------
 
 
-  - set environment variables TESTING=no/yes , ENVIRONMENT=acceptance, and
-    PARKEERVAKKEN_OBJECTSTORE password.
+  - set environment variables TESTING=no/yes (when yes will load small subset of all data),
+    ENVIRONMENT=acceptance, and PARKEERVAKKEN_OBJECTSTORE password.
 
-  - RUN .jenkin/import.sh
+  - RUN .jenkins/import.sh
 
+  - TEST .jenkins-test.sh
+
+  - to run API test locally.
+
+    - docker-compose up -p test database elasticsearch
+
+    - 'cd' in the api/predictive_parking folder and run
+    - bash testdata/loadtestdata.sh predictiveparking
+    - bash testdata/loadelastic.sh predictiveparking
+    - manage.py test will work now.
 
 Tips.
 
@@ -110,5 +118,5 @@ Step2, Visualization
 ----------------------------
 
    There is an `angular` project to visualize the data.
-   See the readme in the `angular` directory.
+   See the readme / Dockerfile in the `angular` directory.
 

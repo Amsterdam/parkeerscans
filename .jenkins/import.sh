@@ -21,7 +21,8 @@ dc() {
 dc stop
 dc rm -f -v
 
-trap 'dc kill ; dc rm -f -v' EXIT
+# Elastic needs to run afterwards..
+# trap 'dc kill ; dc rm -f -v' EXIT
 
 if [ $TESTING != "yes" ]
 then
@@ -87,7 +88,7 @@ echo "DONE! importing scans into database"
 echo "create scan db dump"
 
 # run the DB backup shizzle
-dc up db-backup
+dc run --rm  db-backup
 
 # dc up db-backup-scans
 

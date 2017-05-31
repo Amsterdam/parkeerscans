@@ -274,6 +274,12 @@ LOGGING = {
             'propagate': False,
         },
 
+        'MARKDOWN': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
         'urllib3': {
             'handlers': ['console'],
             'level': 'ERROR',
