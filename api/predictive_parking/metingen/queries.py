@@ -84,13 +84,16 @@ def build_bbox_filter(bbox):
 
     bottom, left, top, right = bbox
 
+    # increase the bbox to avoid low values for
+    # because parts of the road are off screen
+
     bbox_f = {
         "geo_bounding_box": {
             "geo": {
-                "top": top,
-                "left": left,
-                "bottom": bottom,
-                "right": right,
+                "top": top + 0.0004,
+                "left": left - 0.004,
+                "bottom": bottom - 0.004,
+                "right": right + 0.004,
             }
         }
     }
