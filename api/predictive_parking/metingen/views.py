@@ -46,10 +46,6 @@ ELK_CLIENT = Elasticsearch(
     timeout=100
 )
 
-# provide optional extra calculation information
-EXPLAIN = False
-# EXPLAIN = True
-
 
 class MetingenFilter(FilterSet):
     """

@@ -88,7 +88,7 @@ echo "DONE! importing scans into database"
 echo "create scan db dump"
 
 # run the DB backup shizzle
-dc up db-backup
+dc run --rm  db-backup
 
 # dc up db-backup-scans
 
