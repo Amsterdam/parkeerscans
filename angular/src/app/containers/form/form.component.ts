@@ -9,8 +9,9 @@ import {
   FormGroup,
 } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import * as reducers from '../../reducers';
+import { State } from '../../reducers';
 import { SetSelectionAction } from '../../actions/map';
+import { config } from './form.component.config';
 
 @Component({
   selector: 'dp-form',
@@ -22,18 +23,20 @@ import { SetSelectionAction } from '../../actions/map';
 })
 export class FormComponent implements OnInit {
   public selection: FormGroup;
+  public days = config.days;
+  public hours = config.hours;
 
   constructor(
     @Inject(FormBuilder)
     private fb: FormBuilder,
-    private store: Store<reducers.State>) {}
+    private store: Store<State>) {}
 
   public ngOnInit() {
     this.selection = this.fb.group({
       day: [''],
       hour: ['']
     });
-    this.selection.valueChanges.forEach((value) => {
+    this.selection.valueChanges.subscribe((value) => {
       this.store.dispatch(new SetSelectionAction(value));
     });
   }

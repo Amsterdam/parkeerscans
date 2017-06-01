@@ -1,39 +1,8 @@
 <form [formGroup]="selection">
   <select formControlName="day">
-    <option value="">Weekdag</option>
-    <option value="0">Maandag</option>
-    <option value="1">Dinsdag</option>
-    <option value="2">Woensdag</option>
-    <option value="3">Donderdag</option>
-    <option value="4">Vrijdag</option>
-    <option value="5">Zaterdag</option>
-    <option value="6">Zondag</option>
+    <option *ngFor="let day of days" [value]="day.value">{{day.label}}</option>
   </select>
   <select formControlName="hour">
-    <option value="">Tijdvak</option>
-    <option value="0">0 uur</option>
-    <option value="1">1 uur</option>
-    <option value="2">2 uur</option>
-    <option value="3">3 uur</option>
-    <option value="4">4 uur</option>
-    <option value="5">5 uur</option>
-    <option value="6">6 uur</option>
-    <option value="7">7 uur</option>
-    <option value="8">8 uur</option>
-    <option value="9">9 uur</option>
-    <option value="10">10 uur</option>
-    <option value="11">11 uur</option>
-    <option value="12">12 uur</option>
-    <option value="13">13 uur</option>
-    <option value="14">14 uur</option>
-    <option value="15">15 uur</option>
-    <option value="16">16 uur</option>
-    <option value="17">17 uur</option>
-    <option value="18">18 uur</option>
-    <option value="19">19 uur</option>
-    <option value="20">20 uur</option>
-    <option value="21">21 uur</option>
-    <option value="22">22 uur</option>
-    <option value="23">23 uur</option>
+    <option *ngFor="let hour of hours" [value]="hour.value">{{hour.label}}</option>
   </select>
 </form>
