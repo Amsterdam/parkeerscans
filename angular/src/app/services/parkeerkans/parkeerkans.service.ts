@@ -50,6 +50,7 @@ export class ParkeerkansService {
         hourString +
         dategte +
         monthString +
+	`wegdelen_size=90`+
         `bbox=${boundingBox}`);
 
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
