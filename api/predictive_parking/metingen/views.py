@@ -340,7 +340,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         day_gte         [0 ..  6]
         day_lte         [0 ..  6]
         month           [0 .. 11]
-        wegdelen_size   [1 .. 90]           # amount of wegdelen to ask
+        wegdelen_size   [1 .. 190]           # amount of wegdelen to ask
 
         You can use date-math on date fields:
         https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#date-math
@@ -410,7 +410,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         must = queries.build_must_queries(cleaned_data)
 
         # get aggregations from elastic
-        elk_response, err = self.do_wegdelen_search(bbox, must)
+        wegdelen_size = cleaned_data.get('wegdelen_size', 150)
+        elk_response, err = self.do_wegdelen_search(
+            bbox, must, wegdelen_size=wegdelen_size)
 
         if settings.DEBUG:
             # Print elk response to console
@@ -439,7 +441,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             'wegdelen': wegdelen_data
         })
 
-    def do_wegdelen_search(self, bbox, must=()):
+    def do_wegdelen_search(self, bbox, must=(), wegdelen_size=90):
         """
         Given bbox find
 
@@ -447,7 +449,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         - distinct vakken seen for each wegdeel with counts
         """
 
-        elk_q = queries.build_wegdeel_query(bbox, must)
+        elk_q = queries.build_wegdeel_query(bbox, must, wegdelen_size)
 
         build_q = json.loads(elk_q)
         # log.debug(json.dumps(build_q, indent=4))

@@ -43,16 +43,6 @@ export class ParkeerkansService {
     const dategte = year ? `date_gte=${year}&` : '';
     const monthString = month ? `month=${month}&` : '';
 
-    console.log(`${this.API_ROOT}${this.API_PATH}?` +
-        dayString +
-        daylteString +
-        daygteString +
-        hourString +
-        dategte +
-        monthString +
-	`wegdelen_size=90`+
-        `bbox=${boundingBox}`);
-
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
         dayString +
         daylteString +

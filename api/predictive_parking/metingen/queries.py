@@ -185,7 +185,7 @@ POSSIBLE_INT_PARAMS = [
     ('year_gte', range(2015, 2035)),
     ('year_lte', range(2015, 2035)),
 
-    ('wegdelen_size', range(1, 90)),
+    ('wegdelen_size', range(1, 190)),
 ]
 
 # we provide optional list of options
@@ -552,7 +552,7 @@ def build_must_queries(cleaned_data):
     return must
 
 
-def build_wegdeel_query(bbox, must, wegdelen_size=20):
+def build_wegdeel_query(bbox, must, wegdelen_size=160):
     """
     Build aggregation determine distinct vakken for
     each wegdeel per day.
