@@ -106,16 +106,12 @@ export class LeafletComponent implements AfterViewInit {
       return wegdeel.properties.bezetting === 'fout' ? false
         : wegdeel.properties.bezetting !== undefined;
     });
-    data.push({
-      properties: {
-        bezetting: 0
-      }
-    });
-    data.push({
-      properties: {
-        bezetting: 100
-      }
-    });
+
+    // Add entries with a bezetting of 0 and 100 to make sure choropleth takes the full percentage
+    // range as the range for it's colors.
+    data.push({ properties: { bezetting: 0 } });
+    data.push({ properties: { bezetting: 100 } });
+
     L.choropleth({
       type: 'FeatureCollection',
       features: data
@@ -134,16 +130,10 @@ export class LeafletComponent implements AfterViewInit {
     }).filter((parkeervak) => {
       return parkeervak.properties.bezetting !== undefined;
     });
-    parkeervakken.push({
-      properties: {
-        bezetting: 0
-      }
-    });
-    parkeervakken.push({
-      properties: {
-        bezetting: 100
-      }
-    });
+
+    parkeervakken.push({ properties: { bezetting: 0 } });
+    parkeervakken.push({ properties: { bezetting: 100 } });
+
     L.choropleth({
       type: 'FeatureCollection',
       features: parkeervakken
