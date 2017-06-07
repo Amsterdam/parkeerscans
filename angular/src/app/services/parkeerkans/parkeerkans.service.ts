@@ -25,18 +25,33 @@ export class ParkeerkansService {
   public getParkeerkans(
       boundingBox: string,
       day: string,
+      daygte: string,
+      daylte: string,
       hour: string,
       year: string,
       month: string,
       ): Observable<Parkeerkans> {
 
     const dayString = day ? `day=${day}&` : '';
+    const daylteString = day ? `day_lte=${daylte}&` : '';
+    const daygteString = day ? `day_gte=${daygte}&` : '';
     const hourString = hour ? `hour=${hour}&` : '';
     const date_gte = year ? `date_gte=${year}&` : '';
     const monthString = month ? `month=${month}&` : '';
 
+    console.log(`${this.API_ROOT}${this.API_PATH}?` +
+        dayString +
+        daylteString +
+        daygteString +
+        hourString +
+        date_gte +
+        monthString +
+        `bbox=${boundingBox}`);
+
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
         dayString +
+        daylteString +
+        daygteString +
         hourString +
         date_gte +
         monthString +

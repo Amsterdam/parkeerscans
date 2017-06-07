@@ -1,4 +1,27 @@
 <form [formGroup]="selection">
+
+  <select formControlName="day_gte">
+    <option value="">vanaf Weekdag</option>
+    <option value="0">Maandag</option>
+    <option value="1">Dinsdag</option>
+    <option value="2">Woensdag</option>
+    <option value="3">Donderdag</option>
+    <option value="4">Vrijdag</option>
+    <option value="5">Zaterdag</option>
+    <option value="6">Zondag</option>
+  </select>
+
+  <select formControlName="day_lte">
+    <option value="">tot Weekdag</option>
+    <option value="0">Maandag</option>
+    <option value="1">Dinsdag</option>
+    <option value="2">Woensdag</option>
+    <option value="3">Donderdag</option>
+    <option value="4">Vrijdag</option>
+    <option value="5">Zaterdag</option>
+    <option value="6">Zondag</option>
+  </select>
+
   <select formControlName="day">
     <option value="">Weekdag</option>
     <option value="0">Maandag</option>
@@ -58,6 +81,5 @@
     <option value="2016">2016</option>
     <option value="2017">2017</option>
   </select>
-
 
 </form>

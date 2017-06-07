@@ -31,6 +31,8 @@ export class FormComponent implements OnInit {
   public ngOnInit() {
     this.selection = this.fb.group({
       day: [''],
+      day_lte: [''],
+      day_gte: [''],
       hour: [''],
       month: [''],
       year: [''],
