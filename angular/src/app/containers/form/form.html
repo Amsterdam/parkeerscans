@@ -1,6 +1,6 @@
 <form [formGroup]="selection">
 
-  <select formControlName="day_gte">
+  <select formControlName="daygte">
     <option value="">vanaf Weekdag</option>
     <option value="0">Maandag</option>
     <option value="1">Dinsdag</option>
@@ -11,7 +11,7 @@
     <option value="6">Zondag</option>
   </select>
 
-  <select formControlName="day_lte">
+  <select formControlName="daylte">
     <option value="">tot Weekdag</option>
     <option value="0">Maandag</option>
     <option value="1">Dinsdag</option>
@@ -34,6 +34,62 @@
   </select>
   <select formControlName="hour">
     <option value="">Tijdvak</option>
+    <option value="0">0 uur</option>
+    <option value="1">1 uur</option>
+    <option value="2">2 uur</option>
+    <option value="3">3 uur</option>
+    <option value="4">4 uur</option>
+    <option value="5">5 uur</option>
+    <option value="6">6 uur</option>
+    <option value="7">7 uur</option>
+    <option value="8">8 uur</option>
+    <option value="9">9 uur</option>
+    <option value="10">10 uur</option>
+    <option value="11">11 uur</option>
+    <option value="12">12 uur</option>
+    <option value="13">13 uur</option>
+    <option value="14">14 uur</option>
+    <option value="15">15 uur</option>
+    <option value="16">16 uur</option>
+    <option value="17">17 uur</option>
+    <option value="18">18 uur</option>
+    <option value="19">19 uur</option>
+    <option value="20">20 uur</option>
+    <option value="21">21 uur</option>
+    <option value="22">22 uur</option>
+    <option value="23">23 uur</option>
+  </select>
+
+  <select formControlName="hourgte">
+    <option value="">Uur gte</option>
+    <option value="0">0 uur</option>
+    <option value="1">1 uur</option>
+    <option value="2">2 uur</option>
+    <option value="3">3 uur</option>
+    <option value="4">4 uur</option>
+    <option value="5">5 uur</option>
+    <option value="6">6 uur</option>
+    <option value="7">7 uur</option>
+    <option value="8">8 uur</option>
+    <option value="9">9 uur</option>
+    <option value="10">10 uur</option>
+    <option value="11">11 uur</option>
+    <option value="12">12 uur</option>
+    <option value="13">13 uur</option>
+    <option value="14">14 uur</option>
+    <option value="15">15 uur</option>
+    <option value="16">16 uur</option>
+    <option value="17">17 uur</option>
+    <option value="18">18 uur</option>
+    <option value="19">19 uur</option>
+    <option value="20">20 uur</option>
+    <option value="21">21 uur</option>
+    <option value="22">22 uur</option>
+    <option value="23">23 uur</option>
+  </select>
+
+  <select formControlName="hourlte">
+    <option value="">Uur lte</option>
     <option value="0">0 uur</option>
     <option value="1">1 uur</option>
     <option value="2">2 uur</option>

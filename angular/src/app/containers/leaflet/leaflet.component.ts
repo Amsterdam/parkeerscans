@@ -30,9 +30,11 @@ export class LeafletComponent implements AfterViewInit {
   private selection$: Observable<any>;
   private occupation: {[wegdeelId: string]: number};
   private day;
-  private day_gte;
-  private day_lte;
+  private daygte;
+  private daylte;
   private hour;
+  private hourlte;
+  private hourgte;
   private year;
   private month;
 
@@ -54,9 +56,11 @@ export class LeafletComponent implements AfterViewInit {
     this.selection$.forEach((payload) => {
       if (payload) {
         this.day = payload.day;
-        this.day_gte = payload.day_gte;
-        this.day_lte = payload.day_lte;
+        this.daygte = payload.daygte;
+        this.daylte = payload.daylte;
         this.hour = payload.hour;
+        this.hourgte = payload.hourgte;
+        this.hourlte = payload.hourlte;
         this.year = payload.year;
         this.month = payload.month;
         this.updateBoundingBox();
@@ -97,9 +101,13 @@ export class LeafletComponent implements AfterViewInit {
       this.parkeerkansService.getParkeerkans(
       	boundingBox,
 	this.day,
-	this.day_gte,
-	this.day_lte,
-	this.hour, this.year, this.month),
+	this.daygte,
+	this.daylte,
+	this.hour,
+	this.hourgte,
+	this.hourlte,
+	this.year,
+	this.month),
         this.wegdelenService.getWegdelen(boundingBox))
       .subscribe(this.showWegdelen.bind(this), this.showError);
   }

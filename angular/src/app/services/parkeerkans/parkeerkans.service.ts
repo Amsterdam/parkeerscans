@@ -20,7 +20,7 @@ export class ParkeerkansService {
 
   constructor(private http: Http) {}
 
-  //DIT IS GEEN PARKEERKANS. DIT IS BEZETTING!
+  // DIT IS GEEN PARKEERKANS. DIT IS BEZETTING!
 
   public getParkeerkans(
       boundingBox: string,
@@ -28,6 +28,8 @@ export class ParkeerkansService {
       daygte: string,
       daylte: string,
       hour: string,
+      hourgte: string,
+      hourlte: string,
       year: string,
       month: string,
       ): Observable<Parkeerkans> {
@@ -36,7 +38,9 @@ export class ParkeerkansService {
     const daylteString = daylte ? `day_lte=${daylte}&` : '';
     const daygteString = daygte ? `day_gte=${daygte}&` : '';
     const hourString = hour ? `hour=${hour}&` : '';
-    const date_gte = year ? `date_gte=${year}&` : '';
+    const hourgteString = hourgte ? `hour_gte=${hourgte}&` : '';
+    const hourlteString = hourlte ? `hour_lte=${hourlte}&` : '';
+    const dategte = year ? `date_gte=${year}&` : '';
     const monthString = month ? `month=${month}&` : '';
 
     console.log(`${this.API_ROOT}${this.API_PATH}?` +
@@ -44,7 +48,7 @@ export class ParkeerkansService {
         daylteString +
         daygteString +
         hourString +
-        date_gte +
+        dategte +
         monthString +
         `bbox=${boundingBox}`);
 
@@ -53,7 +57,9 @@ export class ParkeerkansService {
         daylteString +
         daygteString +
         hourString +
-        date_gte +
+        hourgteString +
+        hourlteString +
+        dategte +
         monthString +
         `bbox=${boundingBox}`)
       .map((res) => res.json() || {})
