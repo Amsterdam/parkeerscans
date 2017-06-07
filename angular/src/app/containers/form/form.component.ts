@@ -31,7 +31,9 @@ export class FormComponent implements OnInit {
   public ngOnInit() {
     this.selection = this.fb.group({
       day: [''],
-      hour: ['']
+      hour: [''],
+      month: [''],
+      year: [''],
     });
     this.selection.valueChanges.forEach((value) => {
       this.store.dispatch(new SetSelectionAction(value));

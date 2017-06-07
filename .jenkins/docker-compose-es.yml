@@ -24,7 +24,7 @@ services:
     user: root
     command: >
       bash -c "chmod -R 777 /tmp/backups  \
-              && rm -f /tmp/backups/* \
+              && rm -rf /tmp/backups/* \
               && curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
               && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }'"
 

@@ -13,7 +13,7 @@ export const SET_SELECTION = '[Map] Set selection';
 export class SetSelectionAction implements Action {
   public readonly type = SET_SELECTION;
 
-  constructor(public payload: {day: string, hour: string}) { }
+  constructor(public payload: {day: string, hour: string, year: string, month: string}) { }
 }
 
 /**
