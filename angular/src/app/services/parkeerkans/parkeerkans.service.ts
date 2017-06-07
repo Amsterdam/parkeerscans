@@ -33,8 +33,8 @@ export class ParkeerkansService {
       ): Observable<Parkeerkans> {
 
     const dayString = day ? `day=${day}&` : '';
-    const daylteString = day ? `day_lte=${daylte}&` : '';
-    const daygteString = day ? `day_gte=${daygte}&` : '';
+    const daylteString = daylte ? `day_lte=${daylte}&` : '';
+    const daygteString = daygte ? `day_gte=${daygte}&` : '';
     const hourString = hour ? `hour=${hour}&` : '';
     const date_gte = year ? `date_gte=${year}&` : '';
     const monthString = month ? `month=${month}&` : '';
