@@ -421,7 +421,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             pass
 
         if err:
-            return Response([err], status=400)
+            return Response([err], status=500)
 
         # collect all wegdelen id's in elastic response
         wegdelen = collect_wegdelen(elk_response)
