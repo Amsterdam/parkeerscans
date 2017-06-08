@@ -11,8 +11,7 @@ import L from 'leaflet';
 import 'leaflet-choropleth';
 import { config } from './leaflet.component.config';
 import { Parkeerkans } from '../../models/parkeerkans';
-import { State } from '../../reducers';
-import { getMapSelection } from '../../reducers';
+import { State as MapState } from '../../reducers/map';
 import { MapCrs } from '../../services/map-crs';
 import { ParkeerkansService } from '../../services/parkeerkans';
 import { WegdelenService } from '../../services/wegdelen';
@@ -37,11 +36,11 @@ export class LeafletComponent implements AfterViewInit {
     private host: ElementRef,
     private parkeerkansService: ParkeerkansService,
     private parkeervakkenService: ParkeervakkenService,
-    private store: Store<State>,
+    private store: Store<MapState>,
     private wegdelenService: WegdelenService,
     private zone: NgZone) {
 
-    this.selection$ = store.select(getMapSelection);
+    this.selection$ = store.select('map');
   }
 
   public ngAfterViewInit() {
@@ -119,21 +118,39 @@ export class LeafletComponent implements AfterViewInit {
   }
 
   private showParkeervakken(parkeervakken) {
-    const that = this;
-    parkeervakken = parkeervakken.map((parkeervak) => {
-      parkeervak.properties.bezetting = that.occupation[parkeervak.properties.bgt_wegdeel];
-      return parkeervak;
-    }).filter((parkeervak) => {
-      return parkeervak.properties.bezetting !== undefined;
-    });
+    parkeervakken = parkeervakken
+        .map((parkeervak) => {
+          parkeervak.properties.bezetting = this.occupation[parkeervak.properties.bgt_wegdeel];
+          return parkeervak;
+        }, this)
+        .filter((parkeervak) => {
+          return parkeervak.properties.bezetting !== undefined;
+        });
 
     parkeervakken.push({ properties: { bezetting: 0 } });
     parkeervakken.push({ properties: { bezetting: 100 } });
 
+    const extendedConfig = Object.assign({}, config.choropleth.parkeervakken, {
+      onEachFeature: (feature, layer) => {
+        layer.on({
+          click: () => this.showStatistics(feature)
+        });
+      }
+    });
+
     L.choropleth({
       type: 'FeatureCollection',
       features: parkeervakken
-    }, config.choropleth.parkeervakken).addTo(this.leafletMap);
+    }, extendedConfig).addTo(this.leafletMap);
+  }
+
+  private showStatistics(feature) {
+    this.store.dispatch({
+      type: 'SELECT_WEGDEEL',
+      payload: {
+        id: feature.properties.bgt_wegdeel
+      }
+    });
   }
 
   private showError(error) {

@@ -15,7 +15,7 @@ export const initialState: State = {
   }
 };
 
-export function reducer(state = initialState, action: mapActions.Actions): State {
+export function mapReducer(state = initialState, action: mapActions.Actions): State {
   switch (action.type) {
     case mapActions.SET_SELECTION: {
       return {

@@ -22,14 +22,14 @@ export const config: {
   choropleth: {
     parkeervakken: {
       valueProperty: 'bezetting',
-        scale: ['white', 'red'],
-        steps: 11,
-        mode: 'e',
-        style: {
-          color: '#fff',
-          weight: 1,
-          fillOpacity: 0.6
-        }
+      scale: ['white', 'red'],
+      steps: 11,
+      mode: 'e',
+      style: {
+        color: '#fff',
+        weight: 1,
+        fillOpacity: 0.6
+      }
     },
     wegdelen: {
       valueProperty: 'bezetting',

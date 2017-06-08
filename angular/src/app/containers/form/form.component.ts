@@ -9,7 +9,7 @@ import {
   FormGroup,
 } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { State } from '../../reducers';
+import { State as MapState } from '../../reducers/map';
 import { SetSelectionAction } from '../../actions/map';
 import { config } from './form.component.config';
 
@@ -29,7 +29,7 @@ export class FormComponent implements OnInit {
   constructor(
     @Inject(FormBuilder)
     private fb: FormBuilder,
-    private store: Store<State>) {}
+    private store: Store<MapState>) {}
 
   public ngOnInit() {
     this.selection = this.fb.group({

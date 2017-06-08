@@ -22,8 +22,8 @@ export class ParkeerkansService {
 
   public getParkeerkans(
       boundingBox: string,
-      day: string,
-      hour: string): Observable<Parkeerkans> {
+      day?: string,
+      hour?: string): Observable<Parkeerkans> {
 
     const dayString = day ? `day=${day}&` : '';
     const hourString = hour ? `hour=${hour}&` : '';

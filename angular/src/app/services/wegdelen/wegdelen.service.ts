@@ -12,6 +12,18 @@ export class WegdelenService {
 
   constructor(private http: Http) {}
 
+  public getBezetting(wegdeelId: string): any {
+    return this.http.get('https://acc.api.data.amsterdam.nl/predictiveparking' +
+        '/metingen/aggregations/wegdelen/?' +
+        `bgt_wegdeel=${wegdeelId}` +
+        '&hour_gte=0' +
+        '&hour_lte=23' +
+        '&date_gte=2016' +
+        '&explain=true')
+      .map((res) => res.json())
+      .catch((error) => Observable.throw(error.toString()));
+  }
+
   public getWegdelen(boundingBox: string): Observable<Wegdeel[]> {
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
         'REQUEST=Getfeature&' +

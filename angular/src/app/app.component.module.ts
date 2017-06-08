@@ -12,7 +12,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { RouterStoreModule } from '@ngrx/router-store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
-import { reducer } from './reducers';
+import { mapReducer, selectedWegdeelReducer } from './reducers';
 import { schema } from './db';
 
 import { MapModule } from './containers/map';
@@ -50,7 +50,7 @@ import '../styles/headings.css';
      * meta-reducer. This returns all providers for an @ngrx/store
      * based application.
      */
-    StoreModule.provideStore(reducer),
+    StoreModule.provideStore({ map: mapReducer, selectedWegdeel: selectedWegdeelReducer }),
 
     /**
      * @ngrx/router-store keeps router state up-to-date in the store and uses
@@ -86,4 +86,8 @@ import '../styles/headings.css';
   ]
 
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+  //  console.log(reducer);
+  }
+}
