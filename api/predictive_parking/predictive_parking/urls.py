@@ -3,7 +3,9 @@
 
 from parkeerkans import views as kansviews
 
+from rest_framework_swagger.views import get_swagger_view
 from rest_framework import routers
+from rest_framework.schemas import get_schema_view
 
 from django.conf.urls import url, include
 from django.conf import settings
@@ -73,11 +75,15 @@ predictiveparking.urls.append(
 
 
 # predictiveparking.extend(kansen)
+schema_view = get_swagger_view(title='Parkeer Scans')
 
+json_schema_view = get_schema_view(title='Parkeerscan API')
 # predictiveparking.register(r'parkeerkans', kansen.urls
 
 urlpatterns = [
     url(r'^status/', include('health.urls', namespace='health')),
+    url(r'^schema/', json_schema_view),
+    url(r'^predictiveparking/doc', schema_view),
     url(r'^predictiveparking/', include(predictiveparking.urls)),
 
 
