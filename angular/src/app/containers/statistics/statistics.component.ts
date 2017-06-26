@@ -40,25 +40,25 @@ export class StatisticsComponent implements OnInit {
         if (!res.wegdelen[res.selection.bgt_wegdeel]) {
           return;
         }
-        const mappedMetingen = [];
-        res.wegdelen[res.selection.bgt_wegdeel].cardinal_vakken_by_day
-            .forEach((day) => {
-          day[1].forEach((meting) => {
-            if (!mappedMetingen.some((met) => met[0] === `${meting[0]}:00`)) {
-              mappedMetingen.push([meting[0] + ':00', meting[1]]);
-            }
-          });
+        const metingen = res.wegdelen[res.selection.bgt_wegdeel].cardinal_vakken_by_day
+            .map((meting) => meting[1])
+            .reduce((a, b) => a.concat(b), [])
+            .map((meting) => ({ uur: meting[0], bezetting: meting[1] }));
+
+        this.chartData = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
+            '20', '21', '22', '23', '00', '01', '02', '03', '04']
+            .map((xPoint) => {
+          const xPointMetingen = metingen.filter((meting) => meting.uur === Number(xPoint));
+          return [
+            xPoint,
+            xPointMetingen.reduce((prev, curr) => {
+              return prev + curr.bezetting;
+            }, 0) / xPointMetingen.length || 0,
+            10
+          ];
         });
-        this.chartData = mappedMetingen.sort((a, b) => {
-          if (parseInt(a[0].substr(0, 2), 10) < parseInt(b[0].substr(0, 2), 10)) {
-            return -1;
-          }
-          if (parseInt(a[0].substr(0, 2), 10) > parseInt(b[0].substr(0, 2), 10)) {
-            return 1;
-          }
-          // a must be equal to b
-          return 0;
-        });
+
+        console.log(this.chartData);
       });
     });
   }

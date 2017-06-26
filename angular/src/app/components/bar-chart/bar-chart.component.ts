@@ -38,6 +38,7 @@ export class BarChartComponent implements OnInit, OnChanges {
     const element = this.chartContainer.nativeElement;
     this.width = element.offsetWidth - this.margin.left - this.margin.right;
     this.height = element.offsetHeight - this.margin.top - this.margin.bottom;
+    console.log(this.height);
     const svg = d3.select(element).append('svg')
       .attr('width', element.offsetWidth)
       .attr('height', element.offsetHeight);
@@ -72,7 +73,7 @@ export class BarChartComponent implements OnInit, OnChanges {
   public updateChart() {
     // update scales & axis
     this.xScale.domain(this.data.map((d) => d[0]));
-    this.yScale.domain([0, d3.max(this.data, (d) => d[1])]);
+    this.yScale.domain([0, 100]);
     this.colors.domain([0, this.data.length]);
     this.xAxis.transition().call(d3.axisBottom(this.xScale));
     this.yAxis.transition().call(d3.axisLeft(this.yScale));

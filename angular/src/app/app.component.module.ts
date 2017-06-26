@@ -12,7 +12,9 @@ import { EffectsModule } from '@ngrx/effects';
 import { RouterStoreModule } from '@ngrx/router-store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
-import { mapReducer, selectedWegdeelReducer } from './reducers';
+import { mapReducer, parkeervakkenReducer, selectedWegdeelReducer,
+      wegdelenReducer } from './reducers';
+
 import { schema } from './db';
 
 import { MapModule } from './containers/map';
