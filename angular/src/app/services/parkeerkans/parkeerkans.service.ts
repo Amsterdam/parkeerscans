@@ -20,17 +20,41 @@ export class ParkeerkansService {
 
   constructor(private http: Http) {}
 
+  // DIT IS GEEN PARKEERKANS. DIT IS BEZETTING!
+
   public getParkeerkans(
       boundingBox: string,
-      day?: string,
-      hour?: string): Observable<Parkeerkans> {
+      day: string,
+      daygte: string,
+      daylte: string,
+      hour: string,
+      year: string,
+      month: string,
+      ): Observable<Parkeerkans> {
 
     const dayString = day ? `day=${day}&` : '';
+    const daylteString = daylte ? `day_lte=${daylte}&` : '';
+    const daygteString = daygte ? `day_gte=${daygte}&` : '';
     const hourString = hour ? `hour=${hour}&` : '';
+    const dateGte = year ? `date_gte=${year}&` : '';
+    const monthString = month ? `month=${month}&` : '';
+
+    console.log(`${this.API_ROOT}${this.API_PATH}?` +
+        dayString +
+        daylteString +
+        daygteString +
+        hourString +
+        dateGte +
+        monthString +
+        `bbox=${boundingBox}`);
 
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
         dayString +
+        daylteString +
+        daygteString +
         hourString +
+        dateGte +
+        monthString +
         `bbox=${boundingBox}`)
       .map((res) => res.json() || {})
       .catch((error) => Observable.throw(error.toString()));

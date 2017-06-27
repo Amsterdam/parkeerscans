@@ -33,11 +33,26 @@ export class FormComponent implements OnInit {
 
   public ngOnInit() {
     this.selection = this.fb.group({
-      day: [''],
-      hour: ['']
+      day: ['Weekdag'],
+      day_lte: ['Tot weekdag'],
+      day_gte: ['Vanaf weekdag'],
+      hour: ['Tijdvak'],
+      month: ['Maand'],
+      year: ['Vanaf jaar']
     });
     this.selection.valueChanges.subscribe((value) => {
       this.store.dispatch(new SetSelectionAction(value));
+    });
+  }
+
+  public reset() {
+    this.selection.reset({
+      day: 'Weekdag',
+      day_lte: 'Tot weekdag',
+      day_gte: 'Vanaf weekdag',
+      hour: 'Tijdvak',
+      month: 'Maand',
+      year: 'Vanaf jaar'
     });
   }
 }

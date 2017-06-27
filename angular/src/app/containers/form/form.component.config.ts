@@ -10,7 +10,7 @@ export const config: {
 } = {
   days: [
     {
-      value: '',
+      value: 'Weekdag',
       label: 'Weekdag'
     }, {
       value: '0',
@@ -37,7 +37,7 @@ export const config: {
   ],
   hours: [
     {
-      value: '',
+      value: 'Tijdvak',
       label: 'Tijdvak'
     }, {
       value: '0',

@@ -29,7 +29,11 @@ export class LeafletComponent implements AfterViewInit {
   private selection$: Observable<any>;
   private occupation: {[wegdeelId: string]: number};
   private day;
+  private day_gte;
+  private day_lte;
   private hour;
+  private year;
+  private month;
 
   constructor(
     private crs: MapCrs,
@@ -49,7 +53,11 @@ export class LeafletComponent implements AfterViewInit {
     this.selection$.forEach((payload) => {
       if (payload) {
         this.day = payload.day;
+        this.day_gte = payload.day_gte;
+        this.day_lte = payload.day_lte;
         this.hour = payload.hour;
+        this.year = payload.year;
+        this.month = payload.month;
         this.updateBoundingBox();
       }
     });
@@ -85,7 +93,12 @@ export class LeafletComponent implements AfterViewInit {
     const boundingBox = this.leafletMap.getBounds().toBBoxString();
     Observable
       .zip(
-        this.parkeerkansService.getParkeerkans(boundingBox, this.day, this.hour),
+      this.parkeerkansService.getParkeerkans(
+      	boundingBox,
+	this.day,
+	this.day_gte,
+	this.day_lte,
+	this.hour, this.year, this.month),
         this.wegdelenService.getWegdelen(boundingBox))
       .subscribe(this.showWegdelen.bind(this), this.showError);
   }
