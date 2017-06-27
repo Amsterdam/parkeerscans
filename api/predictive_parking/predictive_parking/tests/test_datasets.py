@@ -260,6 +260,55 @@ class BrowseDatasetsTestCase(APITestCase):
             response = self.client.get(url+params)
             self.assertEqual(response.status_code, 400)
 
+    def test_stadsdeel(self):
+        url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
+
+        test_date_params = '&stadsdeel=A'
+
+        response = self.client.get(url+test_date_params)
+        self.assertEqual(response.status_code, 200)
+        selection = response.data['selection']
+
+        self.assertIn('stadsdeel', selection)
+        self.assertEqual('A', selection['stadsdeel'])
+
+        # stadsdeel does not exist
+        test_date_params = '&stadsdeel=X'
+        response = self.client.get(url+test_date_params)
+        self.assertEqual(response.status_code, 400)
+        self.assertNotIn('selection', response.data)
+
+    def test_term_filters(self):
+        """
+        see if all terms parameters get into selection
+        """
+        terms = {
+            'stadsdeel': 'A',
+            'buurtcode': 'Aco',
+            'buurtcombinatie': 'Aco1',
+            'bgt_wegdeel': 'idx',
+            'day': (0, 'monday   '),
+            'year': 2017,
+            'hour': 1,
+            'month': (10, 'november '),
+            'minute': 1,
+            'qualcode': 'test',
+            'sperscode': 'test',
+        }
+
+        url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
+
+        for term_field, test_value in terms.items():
+            outcome = test_value
+            if isinstance(test_value, tuple):
+                test_value, outcome = test_value
+            test_date_params = f'&{term_field}={test_value}'
+            response = self.client.get(url+test_date_params)
+            self.assertEqual(response.status_code, 200)
+            selection = response.data['selection']
+            self.assertIn(term_field, selection)
+            self.assertEqual(outcome, selection[term_field])
+
     def test_date_field(self):
         """
         Test date field cleanup and presence

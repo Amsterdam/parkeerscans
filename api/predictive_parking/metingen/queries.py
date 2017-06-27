@@ -84,13 +84,16 @@ def build_bbox_filter(bbox):
 
     bottom, left, top, right = bbox
 
+    # increase the bbox to avoid low values for
+    # because parts of the road are off screen
+
     bbox_f = {
         "geo_bounding_box": {
             "geo": {
-                "top": top,
-                "left": left,
-                "bottom": bottom,
-                "right": right,
+                "top": top + 0.0004,
+                "left": left - 0.004,
+                "bottom": bottom - 0.004,
+                "right": right + 0.004,
             }
         }
     }
@@ -185,11 +188,33 @@ POSSIBLE_INT_PARAMS = [
     ('wegdelen_size', range(1, 90)),
 ]
 
+# we provide optional list of options
+# for better error reporting
+
+TERM_FIELDS = {
+    'stadsdeel': ['A', 'K', 'E', 'N', 'M', 'F', 'T'],
+    'buurtcode': None,
+    'buurtcombinatie': None,
+    'bgt_wegdeel': None,
+    'year': None,
+    'day': None,
+    'hour': None,
+    'month': None,
+    'minute': None,
+    'qualcode': None,
+    'sperscode': None,
+}
+
+
 POSSIBLE_PARAMS = [v[0] for v in POSSIBLE_INT_PARAMS]
 POSSIBLE_PARAMS.extend([
-    'date_lte', 'date_gte',
-    'format', 'explain', 'bbox'
+    'date_lte',  # elstic date math
+    'date_gte',  # elstic date math
+    'format',    # json / api
+    'explain',   # give bigger respnse explaining calculation
+    'bbox',      # give map bbox
 ])
+POSSIBLE_PARAMS.extend(TERM_FIELDS.keys())
 
 
 def hour_previous():
@@ -297,7 +322,10 @@ def selection_fields(req_params, clean_values):
 
     for field_name, options in TERM_FIELDS.items():
         if field_name in req_params:
-            filter_value = req_params[field_name]
+            if field_name in clean_values:
+                filter_value = clean_values[field_name]
+            else:
+                filter_value = req_params[field_name]
             if options and filter_value not in options:
                 err = f'{field_name}{filter_value} not in {options}'
             else:
@@ -373,23 +401,6 @@ def build_term_query(field, value):
     }
 
     return q
-
-# we provide optional list of options
-# for better error reporting
-
-TERM_FIELDS = {
-    'stadsdeel': None,
-    'buurtcode': None,
-    'buurtcombinatie': None,
-    'bgt_wegdeel': None,
-    'year': None,
-    'day': None,
-    'hour': None,
-    'month': None,
-    'minute': None,
-    'qualcode': None,
-    'sperscode': None,
-}
 
 
 def make_terms_queries(cleaned_data):
