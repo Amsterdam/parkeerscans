@@ -28,6 +28,8 @@ export class LeafletComponent implements AfterViewInit {
   private leafletMap: L.Map;
   private selection$: Observable<any>;
   private occupation: {[wegdeelId: string]: number};
+  private parkeervakkenLayer: any;
+  private wegdelenLayer: any;
   private day;
   private day_gte;
   private day_lte;
@@ -94,11 +96,11 @@ export class LeafletComponent implements AfterViewInit {
     Observable
       .zip(
       this.parkeerkansService.getParkeerkans(
-      	boundingBox,
-	this.day,
-	this.day_gte,
-	this.day_lte,
-	this.hour, this.year, this.month),
+          boundingBox,
+          this.day,
+          this.day_gte,
+          this.day_lte,
+          this.hour, this.year, this.month),
         this.wegdelenService.getWegdelen(boundingBox))
       .subscribe(this.showWegdelen.bind(this), this.showError);
   }
@@ -120,7 +122,11 @@ export class LeafletComponent implements AfterViewInit {
     data.push({ properties: { bezetting: 0 } });
     data.push({ properties: { bezetting: 100 } });
 
-    L.choropleth({
+    if (this.wegdelenLayer !== undefined) {
+      this.leafletMap.removeLayer(this.wegdelenLayer);
+    }
+
+    this.wegdelenLayer = L.choropleth({
       type: 'FeatureCollection',
       features: data
     }, config.choropleth.wegdelen).addTo(this.leafletMap);
@@ -151,7 +157,11 @@ export class LeafletComponent implements AfterViewInit {
       }
     });
 
-    L.choropleth({
+    if (this.parkeervakkenLayer !== undefined) {
+      this.leafletMap.removeLayer(this.parkeervakkenLayer);
+    }
+
+    this.parkeervakkenLayer = L.choropleth({
       type: 'FeatureCollection',
       features: parkeervakken
     }, extendedConfig).addTo(this.leafletMap);
