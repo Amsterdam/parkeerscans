@@ -20,8 +20,8 @@ from elasticsearch_dsl import A
 
 # from elasticsearch.exceptions import TransportError
 # from elasticsearch_dsl import Search
-from rest_framework.compat import coreapi
-from rest_framework.compat import coreschema
+# from rest_framework.compat import coreapi
+# from rest_framework.compat import coreschema
 
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.rest_framework import filters
@@ -210,7 +210,7 @@ def collect_wegdelen(elk_response):
         for wegdeel in data["wegdeel"]["buckets"]:
             wegdelen[wegdeel['key']] = {}
 
-    return wegdelen
+    return wegdelen, None
 
 
 def proces_single_date(date: str, data: dict, wegdelen: dict):
@@ -448,7 +448,10 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             return Response([err], status=500)
 
         # collect all wegdelen id's in elastic response
-        wegdelen = collect_wegdelen(elk_response)
+        wegdelen, err = collect_wegdelen(elk_response)
+
+        if err:
+            return Response([err], status=400)
 
         # find and collect wegdelen meta data from DB.
         load_db_wegdelen(bbox, wegdelen)
@@ -513,7 +516,6 @@ def load_db_wegdelen(bbox, wegdelen):
         })
 
     # log.debug('WEGDELEN %s' % wd_qs.count())
-    # assert wegdelen
 
 
 class VakkenAggregationViewSet(viewsets.ViewSet):

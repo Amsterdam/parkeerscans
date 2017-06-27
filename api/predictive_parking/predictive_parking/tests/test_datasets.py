@@ -181,6 +181,12 @@ class BrowseDatasetsTestCase(APITestCase):
                 self.assertIn('cardinal_vakken_by_day', data)
 
         self.assertIn('selection', response.data)
+        selection = response.data['selection']
+        self.assertIn('day_lte', selection)
+        self.assertNotIn('day', selection)
+        self.assertIn('day_gte', selection)
+        self.assertIn('hour_lte', selection)
+        self.assertIn('hour_gte', selection)
 
     def test_aggregation_wegdelenendpoint_filter_no_result(self):
 
