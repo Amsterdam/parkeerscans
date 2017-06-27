@@ -4,14 +4,22 @@ import * as mapActions from '../actions/map';
 export interface State {
   selection: {
     day: string;
+    day_lte: string;
+    day_gte: string;
     hour: string;
+    month: string;
+    year: string;
   };
 }
 
 export const initialState: State = {
   selection: {
     day: '',
-    hour: ''
+    day_lte: '',
+    day_gte: '',
+    hour: '',
+    month: '',
+    year: ''
   }
 };
 

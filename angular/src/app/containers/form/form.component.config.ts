@@ -10,9 +10,6 @@ export const config: {
 } = {
   days: [
     {
-      value: 'Weekdag',
-      label: 'Weekdag'
-    }, {
       value: '0',
       label: 'Maandag'
     }, {
@@ -37,9 +34,6 @@ export const config: {
   ],
   hours: [
     {
-      value: 'Tijdvak',
-      label: 'Tijdvak'
-    }, {
       value: '0',
       label: '0 uur'
     }, {

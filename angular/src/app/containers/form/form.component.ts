@@ -33,12 +33,12 @@ export class FormComponent implements OnInit {
 
   public ngOnInit() {
     this.selection = this.fb.group({
-      day: ['Weekdag'],
-      day_lte: ['Tot weekdag'],
-      day_gte: ['Vanaf weekdag'],
-      hour: ['Tijdvak'],
-      month: ['Maand'],
-      year: ['Vanaf jaar']
+      day: [''],
+      day_lte: [''],
+      day_gte: [''],
+      hour: [''],
+      month: [''],
+      year: ['']
     });
     this.selection.valueChanges.subscribe((value) => {
       this.store.dispatch(new SetSelectionAction(value));
@@ -47,12 +47,12 @@ export class FormComponent implements OnInit {
 
   public reset() {
     this.selection.reset({
-      day: 'Weekdag',
-      day_lte: 'Tot weekdag',
-      day_gte: 'Vanaf weekdag',
-      hour: 'Tijdvak',
-      month: 'Maand',
-      year: 'Vanaf jaar'
+      day: '',
+      day_lte: '',
+      day_gte: '',
+      hour: '',
+      month: '',
+      year: ''
     });
   }
 }

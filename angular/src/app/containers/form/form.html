@@ -1,7 +1,7 @@
 <form [formGroup]="selection">
 
   <select formControlName="day_gte">
-    <option value="Vanaf weekdag">Vanaf weekdag</option>
+    <option value="" selected>Vanaf weekdag</option>
     <option value="0">Maandag</option>
     <option value="1">Dinsdag</option>
     <option value="2">Woensdag</option>
@@ -12,7 +12,7 @@
   </select>
 
   <select formControlName="day_lte">
-    <option value="Tot weekdag">Tot weekdag</option>
+    <option value="" selected>Tot weekdag</option>
     <option value="0">Maandag</option>
     <option value="1">Dinsdag</option>
     <option value="2">Woensdag</option>
@@ -23,14 +23,16 @@
   </select>
 
   <select formControlName="day">
+    <option value="" selected>Alle dagen</option>
     <option *ngFor="let day of days" [value]="day.value">{{day.label}}</option>
   </select>
   <select formControlName="hour">
+    <option value="" selected>Alle tijdstippen</option>
     <option *ngFor="let hour of hours" [value]="hour.value">{{hour.label}}</option>
   </select>
 
   <select formControlName="month">
-    <option value="Maand">Maand</option>
+    <option value="" selected>Alle maanden</option>
     <option value="0">jan</option>
     <option value="1">feb</option>
     <option value="2">mrt</option>
@@ -46,7 +48,7 @@
   </select>
 
   <select formControlName="year">
-    <option value="Vanaf jaar">Vanaf jaar</option>
+    <option value="" selected>Alle jaren</option>
     <option value="2016">2016</option>
     <option value="2017">2017</option>
   </select>

@@ -18,7 +18,9 @@ export class SetSelectionAction implements Action {
     day_gte: string,
     day_lte: string,
     hour: string,
-    year: string, month: string}) { }
+    year: string,
+    month: string
+  }) { }
   }
 
 /**
