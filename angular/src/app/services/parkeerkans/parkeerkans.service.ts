@@ -39,15 +39,6 @@ export class ParkeerkansService {
     const dateGte = year ? `date_gte=${year}&` : '';
     const monthString = month ? `month=${month}&` : '';
 
-    console.log(`${this.API_ROOT}${this.API_PATH}?` +
-        dayString +
-        daylteString +
-        daygteString +
-        hourString +
-        dateGte +
-        monthString +
-        `bbox=${boundingBox}`);
-
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
         dayString +
         daylteString +

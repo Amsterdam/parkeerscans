@@ -40,8 +40,6 @@ export class StatisticsComponent implements OnInit {
     Observable.combineLatest(this.map$, this.selectedWegdeel$).subscribe((state) => {
       const [mapState, selectedWegdeelState] = state;
 
-      console.log(mapState);
-
       this.wegdelenService.getBezetting(selectedWegdeelState.id, mapState.selection.day,
           mapState.selection.dayGte, mapState.selection.dayLte, mapState.selection.hour,
           mapState.selection.year, mapState.selection.month)

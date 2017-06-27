@@ -31,8 +31,8 @@ export class LeafletComponent implements AfterViewInit {
   private parkeervakkenLayer: any;
   private wegdelenLayer: any;
   private day;
-  private day_gte;
-  private day_lte;
+  private dayGte;
+  private dayLte;
   private hour;
   private year;
   private month;
@@ -55,8 +55,8 @@ export class LeafletComponent implements AfterViewInit {
     this.selection$.forEach((payload) => {
       if (payload) {
         this.day = payload.day;
-        this.day_gte = payload.day_gte;
-        this.day_lte = payload.day_lte;
+        this.dayGte = payload.day_gte;
+        this.dayLte = payload.day_lte;
         this.hour = payload.hour;
         this.year = payload.year;
         this.month = payload.month;
@@ -98,8 +98,8 @@ export class LeafletComponent implements AfterViewInit {
       this.parkeerkansService.getParkeerkans(
           boundingBox,
           this.day,
-          this.day_gte,
-          this.day_lte,
+          this.dayGte,
+          this.dayLte,
           this.hour, this.year, this.month),
         this.wegdelenService.getWegdelen(boundingBox))
       .subscribe(this.showWegdelen.bind(this), this.showError);
