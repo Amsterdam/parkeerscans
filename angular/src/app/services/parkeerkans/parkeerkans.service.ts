@@ -25,8 +25,8 @@ export class ParkeerkansService {
   public getParkeerkans(
       boundingBox: string,
       day: string,
-      daygte: string,
-      daylte: string,
+      daygte: string = '0',
+      daylte: string = '6',
       hour: string,
       year: string,
       month: string,

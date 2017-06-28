@@ -25,8 +25,8 @@ export class WegdelenService {
         '/metingen/aggregations/wegdelen/?' +
         `bgt_wegdeel=${wegdeelId}` +
         (day ? `&day=${day}` : '') +
-        (dayGte ? `&day_gte=${dayGte}` : '') +
-        (dayLte ? `&day_lte=${dayLte}` : '') +
+        (dayGte ? `&day_gte=${dayGte}` : '&day_gte=0') +
+        (dayLte ? `&day_lte=${dayLte}` : '&day_lte=6') +
         (hour ? `&hour=${hour}` : '&hour_gte=0&hour_lte=23') +
         (year ? `&date_gte=${year}` : '&date_gte=2016') +
         (month ? `&month=${month}` : '') +

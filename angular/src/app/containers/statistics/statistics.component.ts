@@ -42,9 +42,9 @@ export class StatisticsComponent implements OnInit {
     this.processStatistics();
   }
 
-  public toggleView() {
+  public toggleView(view) {
     this.processStatistics();
-    this.view = this.view === 'day' ? 'week' : 'day';
+    this.view = view;
   }
 
   private processStatistics() {
