@@ -26,9 +26,9 @@ import { config } from './form.component.config';
 export class StatisticsComponent implements OnInit {
   public bezetting: any;
   public chartData: any[];
+  public view: string;
   private map$: Observable<any>;
   private selectedWegdeel$: Observable<any>;
-  private view: string;
 
   constructor(
       private store: Store<SelectedWegdeelState>,
