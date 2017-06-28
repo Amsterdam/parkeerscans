@@ -4,8 +4,8 @@ import * as mapActions from '../actions/map';
 export interface State {
   selection: {
     day: string;
-    day_lte: string;
-    day_gte: string;
+    dayLte: string;
+    dayGte: string;
     hour: string;
     month: string;
     year: string;
@@ -15,8 +15,8 @@ export interface State {
 export const initialState: State = {
   selection: {
     day: '',
-    day_lte: '',
-    day_gte: '',
+    dayLte: '',
+    dayGte: '',
     hour: '',
     month: '',
     year: ''

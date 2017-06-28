@@ -34,8 +34,8 @@ export class FormComponent implements OnInit {
   public ngOnInit() {
     this.selection = this.fb.group({
       day: [''],
-      day_lte: [''],
-      day_gte: [''],
+      dayLte: [''],
+      dayGte: [''],
       hour: [''],
       month: [''],
       year: ['']
@@ -48,8 +48,8 @@ export class FormComponent implements OnInit {
   public reset() {
     this.selection.reset({
       day: '',
-      day_lte: '',
-      day_gte: '',
+      dayLte: '',
+      dayGte: '',
       hour: '',
       month: '',
       year: ''
