@@ -20,6 +20,8 @@ from elasticsearch_dsl import A
 
 # from elasticsearch.exceptions import TransportError
 # from elasticsearch_dsl import Search
+# from rest_framework.compat import coreapi
+# from rest_framework.compat import coreschema
 
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.rest_framework import filters
@@ -117,6 +119,7 @@ class MetingenViewSet(rest.DatapuntViewSet):
     serializer_detail_class = serializers.Scan
 
     filter_class = MetingenFilter
+    # filter_backends = [MetingenFilter]
 
     ordering = ('scan_id')
 
@@ -207,7 +210,7 @@ def collect_wegdelen(elk_response):
         for wegdeel in data["wegdeel"]["buckets"]:
             wegdelen[wegdeel['key']] = {}
 
-    return wegdelen
+    return wegdelen, None
 
 
 def proces_single_date(date: str, data: dict, wegdelen: dict):
@@ -316,20 +319,23 @@ def calculate_occupation(wegdelen, query_params):
 class WegdelenAggregationViewSet(viewsets.ViewSet):
     """
     Given bounding box  `bbox` return aggregations
-    of wegdelen / vakken derived from scandata.
+    of wegdelen / vakken derived from scandata with a
+    'occupation' value. The value is determined by how many different
+    parking spots where seen divided by the maximum capacity
+    according the parking map/ parkeerkaart
 
     using elasticsearch.
 
     Parameter filter options
     =======
 
-        (still a work in progress)
+    add '?explain' parameter so see more details about calculation
+
 
         max-boundaties bounding-box. (groot Amsterdam)
 
                   4.58565,  52.03560,  5.31360, 52.48769,
         bbox      bottom,       left,      top,    right
-
 
         hour            [0 .. 23]
         hour_gte        [0 .. 23]
@@ -340,7 +346,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         day_gte         [0 ..  6]
         day_lte         [0 ..  6]
         month           [0 .. 11]
-        wegdelen_size   [1 .. 90]           # amount of wegdelen to ask
+        wegdelen_size   [1 .. 190]           # amount of wegdelen to ask
 
         You can use date-math on date fields:
         https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#date-math
@@ -348,20 +354,38 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         date_gte        [2017, 2016-11-1]   # greater then equal
         date_lte        [2018, 2016-11-1]   # less then equal
 
-
         stadsdeel       [A ..]
         buurtcode       [A04a ..]
         buurtcombinatie [A04 ..]
         year            [2015.. 2024]
         bgt_wegdeel     [wegdeelid]
-        qualcode        [scan code..]
-        sperscode       [scan code..]
+        qualcode        [
+                            BEWONERP
+                            BETAALDP
+                            BEDRIJFP
+                            STADSBREED
+                            DOUBLESCAN
+                            DISTANCE
+                            ANPRERROR
+                            TIMEOUT
+                            DOUBLEPCN
+                            TIMEOUT-PERMITCHECKER
+                            BEZOEKP
+                        ]
+
+        sperscode       [
+                            PermittedPRDB
+                            Skipped
+                            UnPermitted
+                            NotFound
+                            Exception
+                            Suspect
+                            PermittedHH
+                        ]
 
         !! NOTE !!
 
         Default filter is current day and time.
-
-        add ?explain parameter so see more details about calculation
 
 
     Response explanation
@@ -410,7 +434,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         must = queries.build_must_queries(cleaned_data)
 
         # get aggregations from elastic
-        elk_response, err = self.do_wegdelen_search(bbox, must)
+        wegdelen_size = cleaned_data.get('wegdelen_size', 150)
+        elk_response, err = self.do_wegdelen_search(
+            bbox, must, wegdelen_size=wegdelen_size)
 
         if settings.DEBUG:
             # Print elk response to console
@@ -419,10 +445,13 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             pass
 
         if err:
-            return Response([err], status=400)
+            return Response([err], status=500)
 
         # collect all wegdelen id's in elastic response
-        wegdelen = collect_wegdelen(elk_response)
+        wegdelen, err = collect_wegdelen(elk_response)
+
+        if err:
+            return Response([err], status=400)
 
         # find and collect wegdelen meta data from DB.
         load_db_wegdelen(bbox, wegdelen)
@@ -439,7 +468,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             'wegdelen': wegdelen_data
         })
 
-    def do_wegdelen_search(self, bbox, must=()):
+    def do_wegdelen_search(self, bbox, must=(), wegdelen_size=90):
         """
         Given bbox find
 
@@ -447,7 +476,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         - distinct vakken seen for each wegdeel with counts
         """
 
-        elk_q = queries.build_wegdeel_query(bbox, must)
+        elk_q = queries.build_wegdeel_query(bbox, must, wegdelen_size)
 
         build_q = json.loads(elk_q)
         # log.debug(json.dumps(build_q, indent=4))
@@ -487,7 +516,6 @@ def load_db_wegdelen(bbox, wegdelen):
         })
 
     # log.debug('WEGDELEN %s' % wd_qs.count())
-    # assert wegdelen
 
 
 class VakkenAggregationViewSet(viewsets.ViewSet):
@@ -497,7 +525,7 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
 
     def list(self, request):
         """
-        show counts of vakken in the bbox
+        Show scan counts of parkingspot / vakken in given bbox
         """
 
         err = None

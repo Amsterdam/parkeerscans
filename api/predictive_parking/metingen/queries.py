@@ -185,7 +185,7 @@ POSSIBLE_INT_PARAMS = [
     ('year_gte', range(2015, 2035)),
     ('year_lte', range(2015, 2035)),
 
-    ('wegdelen_size', range(1, 90)),
+    ('wegdelen_size', range(1, 190)),
 ]
 
 # we provide optional list of options
@@ -480,12 +480,13 @@ def make_day_bool_query(day, gte_day, lte_day, cleaned_data):
         return
 
     involved_days = []
+
     for x in range(int(low), int(high)+1):
         involved_days.append(DAYS[int(x)])
 
     should = []
     for stringday in involved_days:
-        should.append({"term": {"day": stringday}})
+        should.append({"term": {"day.keyword": stringday}})
 
     if not should:
         return
@@ -552,7 +553,7 @@ def build_must_queries(cleaned_data):
     return must
 
 
-def build_wegdeel_query(bbox, must, wegdelen_size=20):
+def build_wegdeel_query(bbox, must, wegdelen_size=160):
     """
     Build aggregation determine distinct vakken for
     each wegdeel per day.
