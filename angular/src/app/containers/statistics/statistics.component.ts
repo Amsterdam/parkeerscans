@@ -72,9 +72,7 @@ export class StatisticsComponent implements OnInit {
 
           const metingen = res.wegdelen[res.selection.bgt_wegdeel].cardinal_vakken_by_day
               .map((meting) => meting[1].map((_meting) => {
-                console.log(meting[0], new Date(meting[0]).getDay());
                 _meting[0] = dagenMap[new Date(meting[0]).getDay()];
-                console.log(_meting[0]);
                 return _meting;
               }))
               .reduce((a, b) => a.concat(b), [])
