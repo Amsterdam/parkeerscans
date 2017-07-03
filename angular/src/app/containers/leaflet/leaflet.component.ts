@@ -36,6 +36,8 @@ export class LeafletComponent implements AfterViewInit {
   private hour;
   private year;
   private month;
+  private mapSelection: any = {};
+  private debounceHandler;
 
   constructor(
     private crs: MapCrs,
@@ -86,23 +88,26 @@ export class LeafletComponent implements AfterViewInit {
         this.leafletMap.invalidateSize();
       });
 
-      this.leafletMap.on('moveend', this.updateBoundingBox.bind(this));
-      this.leafletMap.on('zoomend', this.updateBoundingBox.bind(this));
+      this.leafletMap.on('moveend zoomend', this.updateBoundingBox.bind(this));
     });
   }
 
-  private updateBoundingBox() {
-    const boundingBox = this.leafletMap.getBounds().toBBoxString();
-    Observable
-      .zip(
-      this.parkeerkansService.getParkeerkans(
-          boundingBox,
-          this.day,
-          this.dayGte,
-          this.dayLte,
-          this.hour, this.year, this.month),
-        this.wegdelenService.getWegdelen(boundingBox))
-      .subscribe(this.showWegdelen.bind(this), this.showError);
+  private updateBoundingBox(e) {
+    window.clearTimeout(this.debounceHandler);
+    // create new timeout to fire sesarch function after 500ms (or whatever you like)
+    this.debounceHandler = window.setTimeout(function() {
+      const boundingBox = this.leafletMap.getBounds();
+      Observable
+        .zip(
+        this.parkeerkansService.getParkeerkans(
+            boundingBox.toBBoxString(),
+            this.day,
+            this.dayGte,
+            this.dayLte,
+            this.hour, this.year, this.month),
+          this.wegdelenService.getWegdelen(boundingBox.toBBoxString()))
+        .subscribe(this.showWegdelen.bind(this), this.showError);
+    }.bind(this), 500);
   }
 
   private showWegdelen([parkeerkans, wegdelen]: [Parkeerkans, any]) {
