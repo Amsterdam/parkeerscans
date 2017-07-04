@@ -37,7 +37,7 @@ node {
             kibana.push()
             kibana.push("acceptance")
 
-	    def logstash = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}", "logstash")
+	        def logstash = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}", "logstash")
             logstash.push()
             logstash.push("acceptance")
 
@@ -69,13 +69,65 @@ if (BRANCH == "master") {
             }
         }
     }
-    stage("Deploy to ACC") {
-        tryStep "deployment", {
-            build job: 'Subtask_Openstack_Playbook',
-                    parameters: [
-                            [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
-                            [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-predictive-parking.yml'],
-                    ]
+
+    node {
+        stage("Deploy to ACC") {
+            tryStep "deployment", {
+                build job: 'Subtask_Openstack_Playbook',
+                parameters: [
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
+                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-predictive-parking.yml'],
+                ]
+            }
+        }
+    }
+
+
+    stage('Waiting for approval') {
+        slackSend channel: '#ci-channel', color: 'warning', message: 'predictive Parking is waiting for Production Release - please confirm'
+        input "Deploy to Production?"
+    }
+
+    node {
+        stage('Push production image') {
+            tryStep "image tagging", {
+                def kibana = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}")
+                kibana.pull()
+                kibana.push("production")
+                kibana.push("latest")
+
+                def logstash = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}")
+                logstash.pull()
+                logstash.push("production")
+                logstash.push("latest")
+
+                def csvimporter = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}")
+                csvimporter.pull()
+                csvimporter.push("production")
+                csvimporter.push("latest")
+
+                def ppapi = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}")
+                ppapi.pull()
+                ppapi.push("production")
+                ppapi.push("latest")
+
+                def customviewer = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_customviewer:${env.BUILD_NUMBER}")
+                customviewer.pull()
+                customviewer.push("production")
+                customviewer.push("latest")
+            }
+        }
+    }
+
+    node {
+        stage("Deploy") {
+            tryStep "deployment", {
+                build job: 'Subtask_Openstack_Playbook',
+                parameters: [
+                        [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
+                        [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-predictive-parking.yml'],
+                ]
+            }
         }
     }
 }
