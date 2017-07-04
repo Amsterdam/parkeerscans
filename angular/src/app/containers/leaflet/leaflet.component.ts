@@ -92,7 +92,7 @@ export class LeafletComponent implements AfterViewInit {
     });
   }
 
-  private updateBoundingBox(e) {
+  private updateBoundingBox() {
     window.clearTimeout(this.debounceHandler);
     // create new timeout to fire sesarch function after 500ms (or whatever you like)
     this.debounceHandler = window.setTimeout(function() {
