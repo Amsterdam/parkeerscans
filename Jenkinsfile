@@ -91,30 +91,30 @@ if (BRANCH == "master") {
     node {
         stage('Push production image') {
             tryStep "image tagging", {
-                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("production")
-                image.push("latest")
+                def kibana = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_kibana:${env.BUILD_NUMBER}")
+                kibana.pull()
+                kibana.push("production")
+                kibana.push("latest")
 
-                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("production")
-                image.push("latest")
+                def logstash = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${env.BUILD_NUMBER}")
+                logstash.pull()
+                logstash.push("production")
+                logstash.push("latest")
 
-                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("production")
-                image.push("latest")
+                def csvimporter = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${env.BUILD_NUMBER}")
+                csvimporter.pull()
+                csvimporter.push("production")
+                csvimporter.push("latest")
 
-                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("production")
-                image.push("latest")
+                def ppapi = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${env.BUILD_NUMBER}")
+                ppapi.pull()
+                ppapi.push("production")
+                ppapi.push("latest")
 
-                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_customviewer:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("production")
-                image.push("latest")
+                def customviewer = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_customviewer:${env.BUILD_NUMBER}")
+                customviewer.pull()
+                customviewer.push("production")
+                customviewer.push("latest")
             }
         }
     }
