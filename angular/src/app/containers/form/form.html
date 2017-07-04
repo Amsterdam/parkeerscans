@@ -22,10 +22,6 @@
     <option value="6">Zondag</option>
   </select>
 
-  <select formControlName="day">
-    <option value="" selected>Alle dagen</option>
-    <option *ngFor="let day of days" [value]="day.value">{{day.label}}</option>
-  </select>
   <select formControlName="hour">
     <option value="" selected>Alle tijdstippen</option>
     <option *ngFor="let hour of hours" [value]="hour.value">{{hour.label}}</option>

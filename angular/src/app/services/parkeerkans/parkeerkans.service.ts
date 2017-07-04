@@ -15,8 +15,8 @@ export class ParkeerkansService {
   public static SATURDAY = 'saturday';
   public static SUNDAY = 'sunday';
 
-  private API_ROOT = 'https://acc.api.data.amsterdam.nl/';
-  private API_PATH = 'predictiveparking/metingen/aggregations/wegdelen/';
+  private API_ROOT = 'https://acc.api.data.amsterdam.nl';
+  private API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/';
 
   constructor(private http: Http) {}
 
@@ -33,8 +33,8 @@ export class ParkeerkansService {
       ): Observable<Parkeerkans> {
 
     const dayString = day ? `day=${day}&` : '';
-    const daylteString = daylte ? `day_lte=${daylte}&` : '';
-    const daygteString = daygte ? `day_gte=${daygte}&` : '';
+    const daylteString = !day && daylte ? `day_lte=${daylte}&` : '';
+    const daygteString = !day && daygte ? `day_gte=${daygte}&` : '';
     const hourString = hour ? `hour=${hour}&` : '';
     const dateGte = year ? `date_gte=${year}&` : '';
     const monthString = month ? `month=${month}&` : '';

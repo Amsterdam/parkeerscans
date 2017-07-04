@@ -57,8 +57,8 @@ export class LeafletComponent implements AfterViewInit {
     this.selection$.forEach((payload) => {
       if (payload) {
         this.day = payload.day;
-        this.dayGte = payload.day_gte;
-        this.dayLte = payload.day_lte;
+        this.dayGte = payload.dayGte;
+        this.dayLte = payload.dayLte;
         this.hour = payload.hour;
         this.year = payload.year;
         this.month = payload.month;
@@ -94,7 +94,6 @@ export class LeafletComponent implements AfterViewInit {
 
   private updateBoundingBox() {
     window.clearTimeout(this.debounceHandler);
-    // create new timeout to fire sesarch function after 500ms (or whatever you like)
     this.debounceHandler = window.setTimeout(function() {
       const boundingBox = this.leafletMap.getBounds();
       Observable
