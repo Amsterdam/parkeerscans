@@ -38,6 +38,7 @@ export class LeafletComponent implements AfterViewInit {
   private month;
   private mapSelection: any = {};
   private debounceHandler;
+  private tooltip;
 
   constructor(
     private crs: MapCrs,
@@ -130,10 +131,27 @@ export class LeafletComponent implements AfterViewInit {
       this.leafletMap.removeLayer(this.wegdelenLayer);
     }
 
+    const extendedConfig = Object.assign({}, config.choropleth.wegdelen, {
+      onEachFeature: (feature, layer) => {
+        layer.on({
+          mouseover: (e) => {
+            this.tooltip = L.popup()
+                .setLatLng(e.latlng)
+                .setContent(feature.properties.bezetting.toFixed(2) +
+                        `% van ${feature.properties.vakken} vakken`)
+                .openOn(this.leafletMap);
+          },
+          mouseout: () => {
+            this.leafletMap.closePopup(this.tooltip);
+          }
+        });
+      }
+    });
+
     this.wegdelenLayer = L.choropleth({
       type: 'FeatureCollection',
       features: data
-    }, config.choropleth.wegdelen).addTo(this.leafletMap);
+    }, extendedConfig).addTo(this.leafletMap);
 
     const boundingBox = this.leafletMap.getBounds().toBBoxString();
     this.parkeervakkenService.getVakken(boundingBox)
