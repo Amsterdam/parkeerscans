@@ -509,7 +509,8 @@ def load_db_wegdelen(bbox, wegdelen):
     for wegdeel in db_wegdelen:
         wegdelen[wegdeel.id].update({
             # 'bgt_functie': wegdeel.bgt_functie,
-            'total_vakken': wegdeel.vakken,
+            # 'total_vakken': wegdeel.vakken,
+            'total_vakken': wegdeel.fiscale_vakken,
             # NOT EFFICIENT !
             # 'geometry': json.loads(wegdeel.geometrie.json),
             # 'fiscaal': wegdeel.fiscale_vakken,
