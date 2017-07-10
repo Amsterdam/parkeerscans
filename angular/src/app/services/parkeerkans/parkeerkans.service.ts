@@ -15,8 +15,8 @@ export class ParkeerkansService {
   public static SATURDAY = 'saturday';
   public static SUNDAY = 'sunday';
 
-  private API_ROOT = 'https://acc.api.data.amsterdam.nl/';
-  private API_PATH = 'predictiveparking/metingen/aggregations/wegdelen/';
+  private API_ROOT = 'https://acc.api.data.amsterdam.nl';
+  private API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/';
 
   constructor(private http: Http) {}
 
@@ -25,22 +25,18 @@ export class ParkeerkansService {
   public getParkeerkans(
       boundingBox: string,
       day: string,
-      daygte: string,
-      daylte: string,
+      daygte: string = '0',
+      daylte: string = '6',
       hour: string,
-      hourgte: string,
-      hourlte: string,
       year: string,
       month: string,
       ): Observable<Parkeerkans> {
 
     const dayString = day ? `day=${day}&` : '';
-    const daylteString = daylte ? `day_lte=${daylte}&` : '';
-    const daygteString = daygte ? `day_gte=${daygte}&` : '';
+    const daylteString = !day && daylte ? `day_lte=${daylte}&` : '';
+    const daygteString = !day && daygte ? `day_gte=${daygte}&` : '';
     const hourString = hour ? `hour=${hour}&` : '';
-    const hourgteString = hourgte ? `hour_gte=${hourgte}&` : '';
-    const hourlteString = hourlte ? `hour_lte=${hourlte}&` : '';
-    const dategte = year ? `date_gte=${year}&` : '';
+    const dateGte = year ? `date_gte=${year}&` : '';
     const monthString = month ? `month=${month}&` : '';
 
     return this.http.get(`${this.API_ROOT}${this.API_PATH}?` +
@@ -48,9 +44,7 @@ export class ParkeerkansService {
         daylteString +
         daygteString +
         hourString +
-        hourgteString +
-        hourlteString +
-        dategte +
+        dateGte +
         monthString +
         `bbox=${boundingBox}`)
       .map((res) => res.json() || {})

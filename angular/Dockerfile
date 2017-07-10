@@ -16,7 +16,7 @@ WORKDIR /app
 COPY *.json /app/
 
 RUN rm -rf node_modules\
- && yarn install
+ && npm install
 
 COPY . /app/
 
@@ -25,7 +25,7 @@ ENV BUILD_ID=$BUILD_ID
 
 #RUN grunt set-build-id --buildid=${BUILD_ID}
 
-RUN yarn run build:prod \
+RUN npm run build:prod \
  && cp -r /app/dist/. /var/www/html/
 
 COPY default.conf /etc/nginx/conf.d/

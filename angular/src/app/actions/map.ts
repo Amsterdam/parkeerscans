@@ -15,12 +15,12 @@ export class SetSelectionAction implements Action {
 
   constructor(public payload: {
     day: string,
-    day_gte: string,
-    day_lte: string,
+    dayGte: string,
+    dayLte: string,
     hour: string,
-    hour_gte: string,
-    hour_lte: string,
-    year: string, month: string}) { }
+    year: string,
+    month: string
+  }) { }
   }
 
 /**

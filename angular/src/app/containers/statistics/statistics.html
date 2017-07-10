@@ -1,0 +1,3 @@
+<a href="#" (click)="toggleView('day')" [ngClass]="{ 'active': view === 'day' }">Dagweergave</a>
+<a href="#" (click)="toggleView('week')" [ngClass]="{ 'active': view === 'week' }">Weekweergave</a>
+<dp-bar-chart *ngIf="chartData" [data]="chartData"></dp-bar-chart>

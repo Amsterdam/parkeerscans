@@ -22,27 +22,24 @@ export const config: {
   choropleth: {
     parkeervakken: {
       valueProperty: 'bezetting',
-        scale: ['white', 'red'],
-        steps: 11,
-        mode: 'q',
-        style: {
-          color: '#fff',
-          weight: 1,
-          fillOpacity: 0.6
-        }
+      scale: ['white', 'red'],
+      steps: 11,
+      mode: 'e',
+      style: {
+        color: '#fff',
+        weight: 1,
+        fillOpacity: 0.6
+      }
     },
     wegdelen: {
       valueProperty: 'bezetting',
       scale: ['white', 'red'],
       steps: 11,
-      mode: 'q',
+      mode: 'e',
       style: {
         color: '#fff',
         weight: 0,
         fillOpacity: 0.6
-      },
-      onEachFeature: function(feature, layer) {
-	layer.bindPopup(feature.properties.bezetting.toFixed(2) + '% van ' + feature.properties.vakken + 'vakken')
       }
     }
   }
