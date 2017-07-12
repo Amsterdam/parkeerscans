@@ -81,6 +81,31 @@ def create_csv_vakken(data, filename):
     return response
 
 
+def create_csv_bgt(data, filename):
+    """
+    Return csv from this data..
+    """
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}.csv"'
+
+    writer = csv.writer(response)
+
+    writer.writerow([
+        'lat', 'lon', 'rdx', 'rdy', 'id', 'scans'
+    ])
+
+    for latlon, vak in data:
+        writer.writerow([
+            latlon[0], latlon[1],
+            vak.geometrie.centroid.x, vak.geometrie.centroid.y,
+            vak.id,
+            vak.scan_count,
+        ])
+
+    return response
+
+
 def verdachte_vakken_view(request):
     """
     Show simple view of bad vakken
@@ -158,6 +183,9 @@ def verdachte_bgt_parkeervlak(request):
     vlakken_count = parkeervlakken.count()
 
     latlon, gratis = make_transformto_latlon_rd(gratis)
+
+    if request.GET.get('csv'):
+        return create_csv_bgt(zip(latlon, gratis), 'gratisbgt')
 
     context = {
         'totaal_vlakken': vlakken_count,

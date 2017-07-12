@@ -24,6 +24,10 @@
 
 	</h3>
 
+	<p>
+		<a href="{{ request.path }}?csv=yes">CSV</a>
+	</p>
+
       	{% for latlon, vak in vakken %}
 
 	    <div class="vakje">
@@ -38,11 +42,11 @@
 	        <a href=https://data.amsterdam.nl/index.html#?lse=T&mpb=topografie&mpz=16&mpfs=T&mpo=pv::T:pvb::T:pvr::T&mpv={{latlon.0}}:{{latlon.1}}&pgn=home"> Atlas </a>
 	    </p>
 
-	    <p> latlon:
+	    <p> rd:
 		{{ vak.geometrie.centroid.y }} -
 		{{ vak.geometrie.centroid.x }} -
 	    </p>
-	    <p> rd:
+	    <p> latlon:
 		{{latlon.0}},{{latlon.1}}
 	    </p>
 
