@@ -127,12 +127,12 @@ def make_transformto_latlon_rd(vakken):
     latlon = []
 
     for vlak in vakken:
-        vlak.geometrie.transform(28992)
+        lat = float(vlak.geometrie.centroid.y)
+        lon = float(vlak.geometrie.centroid.x)
+        latlon.append((lat, lon))
 
     for vlak in vakken:
-        lat = vlak.geometrie.centroid.y
-        lon = vlak.geometrie.centroid.x
-        latlon.append((lat, lon))
+        vlak.geometrie.transform(28992)
 
     return latlon, vakken
 
