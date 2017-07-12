@@ -1,4 +1,5 @@
 # Create your views here.
+import csv
 
 from datapunt import rest
 
@@ -55,6 +56,31 @@ class VakkenViewSet(rest.DatapuntViewSet):
     )
 
 
+def create_csv_vakken(data, filename):
+    """
+    Return csv from this data..
+    """
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}.csv"'
+
+    writer = csv.writer(response)
+
+    writer.writerow([
+        'lat', 'lon', 'rdx', 'rdy', 'id', 'straatnaam', 'scans'
+    ])
+
+    for latlon, vak in data:
+        writer.writerow([
+            latlon[0], latlon[1],
+            vak.geometrie.centroid.x, vak.geometrie.centroid.y,
+            vak.id, vak.straatnaam,
+            vak.scan_count,
+        ])
+
+    return response
+
+
 def verdachte_vakken_view(request):
     """
     Show simple view of bad vakken
@@ -81,6 +107,9 @@ def verdachte_vakken_view(request):
 
     latlon, vout = make_transformto_latlon_rd(vout)
 
+    if request.GET.get('csv'):
+        return create_csv_vakken(zip(latlon, vout), 'voutevakken')
+
     context = {
         'totaal_beschikbaar': totaal_count,
         'totaal_fout': vout.count(),
@@ -98,12 +127,12 @@ def make_transformto_latlon_rd(vakken):
     latlon = []
 
     for vlak in vakken:
+        vlak.geometrie.transform(28992)
+
+    for vlak in vakken:
         lat = vlak.geometrie.centroid.y
         lon = vlak.geometrie.centroid.x
         latlon.append((lat, lon))
-
-    for vlak in vakken:
-        vlak.geometrie.transform(28992)
 
     return latlon, vakken
 

@@ -19,7 +19,13 @@
 
 		verander zelf de url: voeg "?buurt=BUURCODE&aantal=SCANAANTAL"
 	</h3>
+
 	<p>
+		<a href="{{ request.path }}?csv=yes">CSV</a>
+	</p>
+
+	<p>
+
 		Per stadsdeel:
 		<a href="{{ request.path }}?buurt=A">Centrum</a>
 		<a href="{{ request.path }}?buurt=K&aantal=0">Zuid</a>
@@ -49,6 +55,12 @@
 	    <p>
 		{{vak.point.y}},{{vak.point.x}}
 	    </p>
+
+	    <p>
+	        {{ vak.geometrie.centroid.y }}
+	        {{ vak.geometrie.centroid.x }}
+	    </p>
+
 
 	    </div>
 
