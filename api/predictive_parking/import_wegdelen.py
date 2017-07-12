@@ -225,6 +225,8 @@ def import_bgt_wegdelen_from(bron, functie):
     """
     Importeerd data uit verschillende bronnen
     """
+    log.debug("Starting Wegdelen %s %s", WegDeel.objects.all().count(), bron)
+
     with connection.cursor() as c:
         c.execute(f"""
     INSERT INTO wegdelen_wegdeel(
@@ -232,14 +234,14 @@ def import_bgt_wegdelen_from(bron, functie):
         bgt_functie,
         geometrie
     )
-    SELECT
+    SELECT DISTINCT
         identificatie_lokaalid,
         wd."{functie}",
         ST_CurveToLine(ST_Transform(ST_SetSRID(geometrie, 28992), 4326))
     FROM bgt."{bron}" wd
     """)
 
-    log.debug("Wegdelen %s %s", WegDeel.objects.all().count(), bron)
+    log.debug("Done Wegdelen %s %s", WegDeel.objects.all().count(), bron)
 
 
 @LogWith(log)
