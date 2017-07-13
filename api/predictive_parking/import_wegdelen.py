@@ -152,7 +152,7 @@ def add_wegdeel_to_parkeervak(distance=0.000049):
     with connection.cursor() as c:
         c.execute(f"""
     UPDATE wegdelen_parkeervak pv
-    SET bgt_wegdeel = wd.id, bgt_wegdeel_functie = wd.bgt_functie
+    SET bgt_wegdeel = wd.bgt_id, bgt_wegdeel_functie = wd.bgt_functie
     FROM wegdelen_wegdeel wd
     WHERE (
         wd.bgt_functie LIKE 'rijbaan lokale weg'
@@ -341,7 +341,7 @@ def add_parkeervak_count_to_wegdeel():
             GROUP BY bgt_wegdeel
         )
         AS sq
-        WHERE wd.id = bgt_wegdeel
+        WHERE wd.bgt_id = bgt_wegdeel
     """)
 
     with connection.cursor() as c:
@@ -354,7 +354,7 @@ def add_parkeervak_count_to_wegdeel():
             GROUP BY bgt_wegdeel
         )
         AS sq
-        WHERE wd.id = bgt_wegdeel
+        WHERE wd.bgt_id = bgt_wegdeel
     """)
 
     status('after')
@@ -506,7 +506,7 @@ def add_scan_count_to_wegdelen(source_table):
             GROUP BY bgt_wegdeel
         )
         AS sq
-        WHERE b.id = sq.bgt_wegdeel
+        WHERE b.bgt_id = sq.bgt_wegdeel
     """)  # noqa
 
     status('validate')
