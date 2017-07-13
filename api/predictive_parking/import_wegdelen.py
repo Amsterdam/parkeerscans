@@ -230,11 +230,11 @@ def import_bgt_wegdelen_from(bron, functie):
     with connection.cursor() as c:
         c.execute(f"""
     INSERT INTO wegdelen_wegdeel(
-        id,
+        bgt_id,
         bgt_functie,
         geometrie
     )
-    SELECT DISTINCT
+    SELECT
         identificatie_lokaalid,
         wd."{functie}",
         ST_CurveToLine(ST_Transform(ST_SetSRID(geometrie, 28992), 4326))

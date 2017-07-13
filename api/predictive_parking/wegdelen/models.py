@@ -38,7 +38,9 @@ class WegDeel(models.Model):
     Valide wegdelen die mogelijk een link kunnen hebben met een parkeervak
     geometrie in WGS84
     """
-    id = models.CharField(primary_key=True, max_length=38)
+    id = models.AutoField(primary_key=True)
+    # id = models.CharField(primary_key=True, max_length=38)
+    bgt_id = models.CharField(db_index=True, max_length=38)
     bgt_functie = models.CharField(max_length=25)
     geometrie = geo.MultiPolygonField(srid=4326)
     vakken = models.IntegerField(null=True)

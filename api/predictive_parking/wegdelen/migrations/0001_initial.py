@@ -44,7 +44,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='WegDeel',
             fields=[
-                ('id', models.CharField(max_length=38, primary_key=True, serialize=False)),
+                ('id', models.AutoField(primary_key=True, serialize=False)),
+                ('bgt_id', models.CharField(max_length=38, db_index=True)),
                 ('bgt_functie', models.CharField(max_length=25)),
                 ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
                 ('vakken', models.IntegerField(null=True)),

@@ -135,7 +135,7 @@ func mergeScansWegdelen(
 	s.nha_hoogte,
 	s.uitval_nachtrun,
 
-	wd.id,
+	wd.bgt_id,
 	wd.bgt_functie
     )
     INSERT INTO %s(
