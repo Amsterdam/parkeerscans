@@ -504,10 +504,10 @@ def load_db_wegdelen(bbox, wegdelen):
     wd_qs = WegDeel.objects.all().filter(
         Q(**{"geometrie__bboverlaps": bbox}))
 
-    db_wegdelen = wd_qs.filter(id__in=wegdelen.keys())
+    db_wegdelen = wd_qs.filter(bgt_id__in=wegdelen.keys())
 
     for wegdeel in db_wegdelen:
-        wegdelen[wegdeel.id].update({
+        wegdelen[wegdeel.bgt_id].update({
             # 'bgt_functie': wegdeel.bgt_functie,
             # 'total_vakken': wegdeel.vakken,
             'total_vakken': wegdeel.fiscale_vakken,

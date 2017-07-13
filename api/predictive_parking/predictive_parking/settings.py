@@ -109,7 +109,7 @@ def get_docker_host():
         if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', d_host):
             return d_host
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
-    return 'localhost'
+    return '127.0.0.1'
 
 
 # noinspection PyBroadException

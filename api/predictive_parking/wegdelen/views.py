@@ -95,12 +95,12 @@ def create_csv_bgt(data, filename):
         'lat', 'lon', 'rdx', 'rdy', 'id', 'scans'
     ])
 
-    for latlon, vak in data:
+    for latlon, wd in data:
         writer.writerow([
             latlon[0], latlon[1],
-            vak.geometrie.centroid.x, vak.geometrie.centroid.y,
-            vak.id,
-            vak.scan_count,
+            wd.geometrie.centroid.x, wd.geometrie.centroid.y,
+            wd.bgt_id,
+            wd.scan_count,
         ])
 
     return response
