@@ -203,6 +203,7 @@ TERM_FIELDS = {
     'minute': None,
     'qualcode': None,
     'sperscode': None,
+    'parkeervak_soort': None,
 }
 
 
@@ -360,6 +361,8 @@ def parse_parameter_input(request):
 
     # set defaults date filtering if not set by user
     set_date_fields(clean_values)
+    # set soort is fiscaal
+    clean_values['parkeervak_soort'] = 'FISCAAL'
 
     err = selection_fields(req_params, clean_values)
 
