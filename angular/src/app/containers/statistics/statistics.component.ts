@@ -79,7 +79,7 @@ export class StatisticsComponent implements OnInit {
               .reduce((a, b) => a.concat(b), [])
               .map((meting) => ({ dag: meting[0], bezetting: meting[1] }));
 
-          this.chartData = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((xPoint) => {
+          this.chartData = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'].map((xPoint) => {
             const xPointMetingen = metingen.filter((meting) => meting.dag === xPoint);
             return [
               xPoint,

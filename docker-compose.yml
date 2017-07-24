@@ -1,4 +1,4 @@
-version: '3.0'
+version: '3.1'
 services:
   database:
     # build: ./postgres
@@ -88,4 +88,3 @@ services:
   #    - elasticsearch:elasticsearch
   #  image: eeacms/elasticgeo
   #
-
