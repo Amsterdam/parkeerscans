@@ -61,13 +61,13 @@ export class StatisticsComponent implements OnInit {
 
         if (this.view === 'week') {
           const dagenMap = {
-            0: 'Zo'
+            0: 'Zo',
             1: 'Ma',
             2: 'Di',
             3: 'Wo',
             4: 'Do',
             5: 'Vr',
-            6: 'Za',
+            6: 'Za'
           };
 
           const metingen = res.wegdelen[res.selection.bgt_wegdeel].cardinal_vakken_by_day
