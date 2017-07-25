@@ -61,13 +61,13 @@ export class StatisticsComponent implements OnInit {
 
         if (this.view === 'week') {
           const dagenMap = {
-            0: 'Ma',
-            1: 'Di',
-            2: 'Wo',
-            3: 'Do',
-            4: 'Vr',
-            5: 'Za',
-            6: 'Zo'
+            0: 'Zo'
+            1: 'Ma',
+            2: 'Di',
+            3: 'Wo',
+            4: 'Do',
+            5: 'Vr',
+            6: 'Za',
           };
 
           const metingen = res.wegdelen[res.selection.bgt_wegdeel].cardinal_vakken_by_day
@@ -79,7 +79,7 @@ export class StatisticsComponent implements OnInit {
               .reduce((a, b) => a.concat(b), [])
               .map((meting) => ({ dag: meting[0], bezetting: meting[1] }));
 
-          this.chartData = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'].map((xPoint) => {
+          this.chartData = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((xPoint) => {
             const xPointMetingen = metingen.filter((meting) => meting.dag === xPoint);
             return [
               xPoint,
