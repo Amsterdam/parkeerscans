@@ -132,7 +132,7 @@ def verdachte_vakken_view(request):
 
     latlon, vout = make_transformto_latlon_rd(vout)
 
-    if request.GET.get('csv'):
+    if request.GET.get('format') and request.GET.get('format') == 'csv':
         return create_csv_vakken(zip(latlon, vout), 'voutevakken')
 
     context = {
@@ -184,7 +184,7 @@ def verdachte_bgt_parkeervlak(request):
 
     latlon, gratis = make_transformto_latlon_rd(gratis)
 
-    if request.GET.get('csv'):
+    if request.GET.get('format') and request.GET.get('format') == 'csv':
         return create_csv_bgt(zip(latlon, gratis), 'gratisbgt')
 
     context = {
