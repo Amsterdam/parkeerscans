@@ -215,8 +215,7 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 	if err != nil {
 		printRecord(record)
 		printCols(cols)
-		panic(err)
-		//return nil, errors.New("lat long field failure")
+		return nil, errors.New("lat long field failure")
 	}
 
 	if str, ok := cols[idxMap["scan_id"]].(string); ok {
