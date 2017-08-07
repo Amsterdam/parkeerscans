@@ -216,12 +216,6 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) (time.Time, time.Time) {
 
 	reader.FieldsPerRecord = 0
 	reader.Comma = ';'
-	//Ignore first header line
-	_, err := reader.Read()
-
-	if err != nil {
-		panic(err)
-	}
 
 	startDate := time.Now()
 	endDate := time.Now().AddDate(-3, 0, 0)
