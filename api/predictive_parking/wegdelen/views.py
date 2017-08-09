@@ -120,7 +120,8 @@ def verdachte_vakken_view(request):
     assert len(buurt) <= 4
 
     queryset = models.Parkeervak.objects.all()
-    queryset = queryset.filter(buurt__startswith=buurt)
+    if buurt != 'all':
+        queryset = queryset.filter(buurt__startswith=buurt)
     queryset = queryset.filter(soort='FISCAAL')
 
     totaal_count = queryset.count()
@@ -128,6 +129,7 @@ def verdachte_vakken_view(request):
     vakken = queryset.filter(scan_count__lte=aantal)
 
     null_vakken = queryset.filter(scan_count=None)
+
     vout = vakken | null_vakken
 
     latlon, vout = make_transformto_latlon_rd(vout)
