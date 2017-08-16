@@ -19,15 +19,15 @@ services:
 
   el-backup:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
+    links:
+      - elasticsearch
     volumes:
       - ./backups/elasticsearch:/tmp/backups
     user: root
     command: >
-      bash -c "chmod -R 777 /tmp/backups  \
-              && rm -rf /tmp/backups/* \
-              && curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
-              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }'"
-
+      bash -c "curl -X PUT http://elasticsearch:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
+              && curl -X PUT http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '{ \"indices\": \"scan*\" }' \
+              && chmod -R 777 /tmp/backups"
 volumes:
   data-volume:
 
