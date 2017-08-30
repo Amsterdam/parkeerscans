@@ -17,13 +17,13 @@ from wegdelen import views as wegdelenViews
 
 class PredictiveParkingView(routers.APIRootView):
     """
-    Alle API's / databronnen met betrekking tot predictive parking
+    Data-sources related to predictive parking
 
-    * parkeerkans model output
-    * metingen (scans)
-    * tellingen mbv elasticsearch
+    * parking probaility model output (not finished)
+    * aggregation counts for parking spots (vakken)
+    # aggregation counts for roadparts (wegdelen)
 
-    voor WFS data van vakken , wegdelen en scans:
+    WFS data of vakken, wegdelen:
 
     [https://acc.map.amsterdam.nl/predictiveparking]
     [https://map.amsterdam.nl/parkeervakken]
@@ -32,6 +32,14 @@ class PredictiveParkingView(routers.APIRootView):
     actuele BGT wegdelen informatie en BAG gebieden informatie.
     elke scan is gekoppeld aan een parkeervak uit de parkeervakken
     kaart mits de scan binnen 1.5 meter van een Parkeervak is.
+
+    The scan data is cleanup and enrisched with mapping data
+    from BGT. Every scan within 1.5 meter of an official parking spot
+    is counted as parked car.
+
+    source code:
+    [https://github.com/DatapuntAmsterdam/predictive_parking/tree/master/api]
+    [https://github.com/DatapuntAmsterdam/predictive_parking]
     """
 
 
@@ -54,8 +62,9 @@ predictiveparking.register(
 predictiveparking.register(
     r'vakken', wegdelenViews.VakkenViewSet, 'parkeervak')
 
-predictiveparking.register(
-    r'metingen/scans', metingViews.MetingenViewSet, 'scan')
+# mag niet publiek
+#predictiveparking.register(
+#    r'metingen/scans', metingViews.MetingenViewSet, 'scan')
 
 predictiveparking.register(
     r'metingen/aggregations/wegdelen',

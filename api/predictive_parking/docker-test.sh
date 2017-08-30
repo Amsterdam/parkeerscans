@@ -10,7 +10,7 @@ set -e   # stop on any error
 #dc up -d database
 #dc up -d elasticsearch
 #
-
+echo "is this started? docker-compose -p test up database elasticsearch"
 source docker-wait.sh
 
 sleep 15

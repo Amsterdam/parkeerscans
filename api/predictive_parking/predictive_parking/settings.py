@@ -70,7 +70,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 
@@ -170,6 +169,8 @@ DATABASES = {
 }
 
 DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
+
+print(DATABASES)
 
 ELASTIC_INDICES = {
     'scans': 'scans-*',

@@ -23,7 +23,7 @@ class BrowseDatasetsTestCase(APITestCase):
     """
 
     datasets = [
-        'predictiveparking/metingen/scans',
+        # 'predictiveparking/metingen/scans',
         'predictiveparking/wegdelen',
         'predictiveparking/vakken',
     ]

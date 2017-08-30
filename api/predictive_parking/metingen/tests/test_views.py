@@ -1,6 +1,8 @@
 import logging
 # import json
 
+from unittest import skip
+
 from rest_framework.test import APITestCase
 from rest_framework.reverse import reverse
 
@@ -22,6 +24,7 @@ class MetingenTestCase(APITestCase):
         for _i in range(100):
             factories.ScanFactory.create()
 
+    @skip('no individual scans in api please.')
     def valid_response(self, url, response):
         """
         Helper method to check common status/json
@@ -35,6 +38,7 @@ class MetingenTestCase(APITestCase):
             'application/json', response['Content-Type'],
             'Wrong Content-Type for {}'.format(url))
 
+    @skip('no individual scans in api please.')
     def test_metingen(self):
 
         scan_url = reverse('scan-list')
@@ -43,9 +47,3 @@ class MetingenTestCase(APITestCase):
         self.valid_response(scan_url, response)
         self.assertEqual(response.data['count'], 100)
         self.assertNotEqual(response.data['count'], 101)
-
-    def test_aggregations(self):
-        """
-        we need to create some test data.
-        """
-        pass
