@@ -33,8 +33,8 @@ class PredictiveParkingView(routers.APIRootView):
     elke scan is gekoppeld aan een parkeervak uit de parkeervakken
     kaart mits de scan binnen 1.5 meter van een Parkeervak is.
 
-    The scan data is cleanup and enrisched with mapping data
-    from BGT. Every scan within 1.5 meter of an official parking spot
+    The scan data is cleaned and combines with map data from BGT.
+    Every scan within 1.5 meter of an official parking spot
     is counted as parked car.
 
     source code:

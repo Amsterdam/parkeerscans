@@ -29,6 +29,7 @@ then
 	docker volume rm pp_data-volume || true
 fi
 
+docker volume rm databasevolume || true
 docker volume rm pp_unzip-volume || true
 
 #
