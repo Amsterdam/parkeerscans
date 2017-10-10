@@ -169,9 +169,10 @@ POSSIBLE_INT_PARAMS = [
     ('hour_gte', range(0, 24)),
     ('hour_lte', range(0, 24)),
 
-    ('minute', range(0, 60)),
-    ('minute_gte', range(0, 60)),
-    ('minute_lte', range(0, 60)),
+    # Disable minute by minute view
+    #('minute', range(0, 60)),
+    #('minute_gte', range(0, 60)),
+    #('minute_lte', range(0, 60)),
 
     ('day', range(0, 7)),
     ('day_gte', range(0, 7)),
@@ -200,7 +201,7 @@ TERM_FIELDS = {
     'day': None,
     'hour': None,
     'month': None,
-    'minute': None,
+    # 'minute': None,
     'qualcode': None,
     'sperscode': None,
     'parkeervak_soort': None,
@@ -208,13 +209,15 @@ TERM_FIELDS = {
 
 
 POSSIBLE_PARAMS = [v[0] for v in POSSIBLE_INT_PARAMS]
+
 POSSIBLE_PARAMS.extend([
-    'date_lte',  # elstic date math
-    'date_gte',  # elstic date math
+    #'date_lte',  # elstic date math
+    #'date_gte',  # elstic date math
     'format',    # json / api
     'explain',   # give bigger respnse explaining calculation
     'bbox',      # give map bbox
 ])
+
 POSSIBLE_PARAMS.extend(TERM_FIELDS.keys())
 
 
@@ -236,16 +239,15 @@ def hour_next():
 
 # Elastic date notations.
 DATE_RANGE_FIELDS = [
-    ('date_gte', 2017),
-    ('date_lte', 2019),
-
+    ('year_gte', 2015),
+    ('year_lte', 2025),
 
     ('hour_gte', hour_previous()),
     ('hour_lte', hour_next()),
 
     ('day', datetime.now().weekday),
-    # ('day_gte', datetime.now().weekday),
-    # ('day_lte', datetime.now().weekday),
+    #('day_gte', datetime.now().weekday),
+    #('day_lte', datetime.now().weekday),
 ]
 
 
@@ -255,7 +257,6 @@ RANGE_FIELDS = [
     ('year_gte', 'year_lte'),
     ('month_gte', 'month_lte'),
     ('day_gte', 'day_lte'),
-
 ]
 
 
@@ -412,8 +413,10 @@ def make_terms_queries(cleaned_data):
     """
     term_q = []
 
-    if 'month' in cleaned_data:
-        cleaned_data['month'] = MONTHS[int(cleaned_data['month'])]
+    for m_field in ['month', 'month_gte', 'month_lte']:
+        if m_field in cleaned_data:
+            cleaned_data[m_field] = MONTHS[
+            int(cleaned_data[m_field])]
 
     if 'day' in cleaned_data:
         cleaned_data['day'] = DAYS[int(cleaned_data['day'])]
@@ -531,8 +534,15 @@ def build_must_queries(cleaned_data):
 
     m_range_q = make_range_q(
         'minute', 'minute_gte', 'minute_lte', cleaned_data)
+
     h_range_q = make_range_q(
         'hour', 'hour_gte', 'hour_lte', cleaned_data)
+
+    month_range_q = make_range_q(
+        'month', 'month_gte', 'month_lte', cleaned_data)
+
+    year_range_q = make_range_q(
+        'year', 'year_gte', 'year_lte', cleaned_data)
 
     day_bool_q = make_day_bool_query(
         'day', 'day_gte', 'day_lte', cleaned_data)
@@ -549,6 +559,12 @@ def build_must_queries(cleaned_data):
         must.append(m_range_q)
     if date_range_q:
         must.append(date_range_q)
+
+    if month_range_q:
+        must.append(month_range_q)
+
+    if year_range_q:
+        must.append(year_range_q)
 
     if day_bool_q:
         must.append(day_bool_q)
@@ -581,7 +597,6 @@ def build_wegdeel_query(bbox, must, wegdelen_size=160):
                     "keyed": True
                 },
                 "aggs": {
-
                     "wegdeel": {
                         "terms": {
                             "field": "bgt_wegdeel.keyword",

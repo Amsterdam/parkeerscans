@@ -41,6 +41,10 @@ class BrowseDatasetsTestCase(APITestCase):
         This django app is merely a viewer on data
         we load testdata into database using special created
         test data around the silodam area.
+
+        NOTE TEST ELASTIC MUST BE PREPARED
+
+        read docker-test.sh
         """
         # we load some external testdata
         bash_command = "bash testdata/loadtestdata.sh"
@@ -50,7 +54,12 @@ class BrowseDatasetsTestCase(APITestCase):
         output, _error = process.communicate()
 
         log.debug(output)
+
         db.connections.close_all()
+
+        log.debug(
+            'Wegdelen loaded: %d',
+            WegDeel.objects.count())
 
     @classmethod
     def tearDownClass(cls):
@@ -148,7 +157,7 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_aggregation_wegdelenendpoint(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
-        params = '&date_gte=2016&hour_gte=0&hour_lte=23'
+        params = '&year_gte=2016&hour_gte=0&hour_lte=23'
         dayrange = '&day_lte=6&day_gte=0'
         response = self.client.get('/{}'.format(url+params+dayrange))
         for _wegdeelid, data in response.data['wegdelen'].items():
@@ -165,7 +174,7 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_aggregation_wegdelenendpoint_explain(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
-        params = '&hour_gte=0&hour_lte=23'
+        params = ''
         dayrange = '&day_lte=6&day_gte=0'
 
         response = self.client.get(
@@ -191,7 +200,7 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_aggregation_wegdelenendpoint_filter_no_result(self):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
-        params = '&date_lte=2016&hour_gte=0&hour_lte=23'
+        params = '&year=2015'
         dayrange = '&day_lte=6&day_gte=0'
         response = self.client.get('/{}'.format(url+params+dayrange))
         self.assertEqual(response.status_code, 200)
@@ -201,7 +210,9 @@ class BrowseDatasetsTestCase(APITestCase):
 
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
 
-        range_fields = ['minute', 'hour', 'month']
+        # TODO auth for minute field
+        # range_fields = ['minute', 'hour', 'month']
+        range_fields = ['hour', 'month']
 
         for field in range_fields:
             params = f'&{field}_lte=6&{field}_gte=0'
@@ -234,7 +245,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
     def test_bbox(self):
 
-        test_data_params = '&date_lte=2016&hour_gte=0&hour_lte=23'
+        test_data_params = '&year_lte=2016&hour_gte=0&hour_lte=23'
 
         bbox_urls = [
             '/predictiveparking/metingen/aggregations/wegdelen/?format=json' +
@@ -269,9 +280,9 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_stadsdeel(self):
         url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
 
-        test_date_params = '&stadsdeel=A'
+        test_params = '&stadsdeel=A'
 
-        response = self.client.get(url+test_date_params)
+        response = self.client.get(url+test_params)
         self.assertEqual(response.status_code, 200)
         selection = response.data['selection']
 
@@ -279,8 +290,8 @@ class BrowseDatasetsTestCase(APITestCase):
         self.assertEqual('A', selection['stadsdeel'])
 
         # stadsdeel does not exist
-        test_date_params = '&stadsdeel=X'
-        response = self.client.get(url+test_date_params)
+        test_params = '&stadsdeel=X'
+        response = self.client.get(url+test_params)
         self.assertEqual(response.status_code, 400)
         self.assertNotIn('selection', response.data)
 
@@ -297,7 +308,7 @@ class BrowseDatasetsTestCase(APITestCase):
             'year': 2017,
             'hour': 1,
             'month': (10, 'november '),
-            'minute': 1,
+            # 'minute': 1,
             'qualcode': 'test',
             'sperscode': 'test',
         }
@@ -308,28 +319,28 @@ class BrowseDatasetsTestCase(APITestCase):
             outcome = test_value
             if isinstance(test_value, tuple):
                 test_value, outcome = test_value
-            test_date_params = f'&{term_field}={test_value}'
-            response = self.client.get(url+test_date_params)
+            test_params = f'&{term_field}={test_value}'
+            response = self.client.get(url+test_params)
             self.assertEqual(response.status_code, 200)
             selection = response.data['selection']
             self.assertIn(term_field, selection)
             self.assertEqual(outcome, selection[term_field])
 
-    def test_date_field(self):
+    def test_year_field(self):
         """
         Test date field cleanup and presence
         """
 
-        test_date_params = '&date_lte=2024{}&date_gte=()2010'
+        test_date_params = '&year_lte=2024&year_gte=2015'
         url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
 
         response = self.client.get(url+test_date_params)
         selection = response.data['selection']
 
-        self.assertIn('date_lte', selection)
-        self.assertIn('date_gte', selection)
-        self.assertEqual('2024', selection['date_lte'])
-        self.assertEqual('2010', selection['date_gte'])
+        self.assertIn('year_lte', selection)
+        self.assertIn('year_gte', selection)
+        self.assertEqual(2024, selection['year_lte'])
+        self.assertEqual(2015, selection['year_gte'])
 
     def test_aggregation_vakken(self):
 

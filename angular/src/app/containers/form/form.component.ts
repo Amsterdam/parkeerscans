@@ -37,7 +37,11 @@ export class FormComponent implements OnInit {
       dayLte: [''],
       dayGte: [''],
       hour: [''],
+      hour_gte: [''],
+      hour_lte: [''],
       month: [''],
+      month_gte: [''],
+      month_lte: [''],
       year: ['']
     });
     this.selection.valueChanges.subscribe((value) => {
@@ -51,7 +55,11 @@ export class FormComponent implements OnInit {
       dayLte: '',
       dayGte: '',
       hour: '',
+      hour_gte: '',
+      hour_lte: '',
       month: '',
+      month_gte: '',
+      month_lte: '',
       year: ''
     });
   }

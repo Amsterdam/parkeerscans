@@ -21,6 +21,7 @@ export class WegdelenService {
       year: string,
       month: string
   ): any {
+
     return this.http.get('https://acc.api.data.amsterdam.nl/predictiveparking' +
         '/metingen/aggregations/wegdelen/?' +
         `bgt_wegdeel=${wegdeelId}` +

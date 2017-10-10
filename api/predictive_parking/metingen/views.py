@@ -266,7 +266,6 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
     # for each date we get some statistics
     date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
     for date, data in date_buckets.items():
-
         proces_single_date(date, data, wegdelen)
 
     return wegdelen
@@ -316,6 +315,16 @@ def calculate_occupation(wegdelen, query_params):
     return wegdelen
 
 
+#  Disabled not suitable for public.
+#  too detailed
+
+#  minute_gte      [0 .. 59]
+#  minute_lte      [0 .. 59]
+
+#  date_gte        [2017, 2016-11-1]   # greater then equal
+#  date_lte        [2018, 2016-11-1]   # less then equal
+#
+
 class WegdelenAggregationViewSet(viewsets.ViewSet):
     """
     Given bounding box  `bbox` return aggregations
@@ -340,8 +349,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         hour            [0 .. 23]
         hour_gte        [0 .. 23]
         hour_lte        [0 .. 23]
-        minute_gte      [0 .. 59]
-        minute_lte      [0 .. 59]
         day             [0 ..  6]
         day_gte         [0 ..  6]
         day_lte         [0 ..  6]
@@ -351,8 +358,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         You can use date-math on date fields:
         https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#date-math
 
-        date_gte        [2017, 2016-11-1]   # greater then equal
-        date_lte        [2018, 2016-11-1]   # less then equal
 
         stadsdeel       [A ..]
         buurtcode       [A04a ..]
@@ -406,7 +411,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             }
         }
 
-
     """
 
     def list(self, request):
@@ -435,6 +439,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         # get aggregations from elastic
         wegdelen_size = cleaned_data.get('wegdelen_size', 150)
+
         elk_response, err = self.do_wegdelen_search(
             bbox, must, wegdelen_size=wegdelen_size)
 
@@ -445,12 +450,14 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             pass
 
         if err:
+            log.error(err)
             return Response([err], status=500)
 
         # collect all wegdelen id's in elastic response
         wegdelen, err = collect_wegdelen(elk_response)
 
         if err:
+            log.error(err)
             return Response([err], status=400)
 
         # find and collect wegdelen meta data from DB.
@@ -499,6 +506,7 @@ def load_db_wegdelen(bbox, wegdelen):
     Given aggregation counts, determine "bezetting"
     """
     lat1, lon1, lat2, lon2 = bbox
+
     bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
 
     wd_qs = WegDeel.objects.all().filter(
@@ -507,6 +515,7 @@ def load_db_wegdelen(bbox, wegdelen):
     db_wegdelen = wd_qs.filter(bgt_id__in=wegdelen.keys())
 
     for wegdeel in db_wegdelen:
+
         wegdelen[wegdeel.bgt_id].update({
             # 'bgt_functie': wegdeel.bgt_functie,
             # 'total_vakken': wegdeel.vakken,
@@ -555,6 +564,12 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
     def get_aggregations(self, bbox):
         """
         Given bbox find
+
+        max-boundaties bounding-box. (groot Amsterdam)
+
+                  4.58565,  52.03560,  5.31360, 52.48769,
+        bbox      bottom,       left,      top,    right
+
 
         - distinct wegdelen seen
         """
