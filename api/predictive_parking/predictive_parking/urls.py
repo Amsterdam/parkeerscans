@@ -1,7 +1,7 @@
 """predictive_parking ROOT URL Configuration
 """
 
-from parkeerkans import views as kansviews
+from occupation import views as occupation_views
 
 from rest_framework_swagger.views import get_swagger_view
 from rest_framework import routers
@@ -11,8 +11,8 @@ from django.conf.urls import url, include
 from django.conf import settings
 
 
-from metingen import views as metingViews
-from wegdelen import views as wegdelenViews
+from metingen import views as meting_views
+from wegdelen import views as wegdelen_views
 
 
 class PredictiveParkingView(routers.APIRootView):
@@ -48,39 +48,35 @@ class PredictiveParkingRouter(routers.DefaultRouter):
     APIRootView = PredictiveParkingView
 
 
-# kansen.register(r'kansen/', kansviews.KansmodelViewSet, base_name='mvp')
-
-
 predictiveparking = PredictiveParkingRouter()
 
-predictiveparking.register(r'kansen/buurt', kansviews.KansmodelViewSet, 'mvp')
+predictiveparking.register(
+    r'occupation/roadparts',
+    occupation_views.RoadOccupationViewSet, 'occupation')
 
 
 predictiveparking.register(
-    r'wegdelen', wegdelenViews.WegdelenViewSet, 'wegdeel')
+    r'wegdelen', wegdelen_views.WegdelenViewSet, 'wegdeel')
 
 predictiveparking.register(
-    r'vakken', wegdelenViews.VakkenViewSet, 'parkeervak')
+    r'vakken', wegdelen_views.VakkenViewSet, 'parkeervak')
 
-# mag niet publiek
-#predictiveparking.register(
-#    r'metingen/scans', metingViews.MetingenViewSet, 'scan')
 
 predictiveparking.register(
     r'metingen/aggregations/wegdelen',
-    metingViews.WegdelenAggregationViewSet, 'wegdelen')
+    meting_views.WegdelenAggregationViewSet, 'wegdelen')
 
 
 predictiveparking.register(
     r'metingen/aggregations/vakken',
-    metingViews.VakkenAggregationViewSet, 'vakken')
+    meting_views.VakkenAggregationViewSet, 'vakken')
 
 predictiveparking.urls.append(url(
     r'voutevakken',
-    wegdelenViews.verdachte_vakken_view))
+    wegdelen_views.verdachte_vakken_view))
 
 predictiveparking.urls.append(
-    url(r'gratis', wegdelenViews.verdachte_bgt_parkeervlak))
+    url(r'gratis', wegdelen_views.verdachte_bgt_parkeervlak))
 
 
 # predictiveparking.extend(kansen)
@@ -94,8 +90,6 @@ urlpatterns = [
     url(r'^schema/', json_schema_view),
     url(r'^predictiveparking/doc', schema_view),
     url(r'^predictiveparking/', include(predictiveparking.urls)),
-
-
     # url(r'^metingen/', include(kansen.urls)),
 ]
 

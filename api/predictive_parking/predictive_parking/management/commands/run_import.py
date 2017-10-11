@@ -14,13 +14,7 @@ log = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     """
-    Import/Modify table data from csv
-
-    clear data using:
-
-    - manage.py migrate bbga_data zero
-    - manage.py migrate bbga_data
-
+    Import raw parking data
     """
 
     def add_arguments(self, parser):

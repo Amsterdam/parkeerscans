@@ -371,7 +371,12 @@ def add_parkeervak_count_to_buurt():
         log.debug(
             "%6s: Buurt zonder pv count %s",
             state,
-            WegDeel.objects.filter(vakken=None).count())
+            Buurt.objects.filter(vakken=None).count())
+
+        log.debug(
+            "%6s: Buurt zonder fiscale vakken count %s",
+            state,
+            Buurt.objects.filter(fiscale_vakken=None).count())
 
     status('before')
 
@@ -384,7 +389,20 @@ def add_parkeervak_count_to_buurt():
             GROUP BY buurt
         )
         AS sq
-        WHERE id = buurt
+        WHERE code = buurt
+    """)
+
+    with connection.cursor() as c:
+        c.execute("""
+    UPDATE wegdelen_buurt b SET fiscale_vakken=sq.vakken
+    FROM (
+        SELECT buurt, count(id) as vakken
+        FROM wegdelen_parkeervak
+        WHERE soort = 'FISCAAL'
+            GROUP BY buurt
+        )
+        AS sq
+        WHERE code = buurt
     """)
 
     status('after')
