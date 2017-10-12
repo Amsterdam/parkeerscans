@@ -25,6 +25,26 @@ class Selection(models.Model):
     status = models.IntegerField(blank=True, null=True)
     # buurt = models.CharField(db_index=True, null=True, max_length=4, )
 
+    def _name(self):
+
+        month2 = self.month2 or self.month1
+        year2 = self.year2 or self.year1
+        day2 = self.day2 or self.day1
+
+        s = self
+
+        return \
+            f'{s.year1}:{year2}:{s.month1}:{month2}:' + \
+            f'{s.day1}:{day2}:{s.hour1}:{s.hour2}'
+
+    def __repr__(self):
+        return 'Selection: ' + self.name()
+
+    def view_name(self):
+        view_name = self._name()
+        view_name = view_name.replace(':', '_')
+        return view_name
+
 
 class RoadOccupation(models.Model):
     """

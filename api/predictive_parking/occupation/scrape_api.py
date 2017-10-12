@@ -14,6 +14,8 @@ from wegdelen.models import Buurt
 from occupation.models import RoadOccupation
 from occupation.models import Selection
 
+from django.db import connection
+
 
 log = logging.getLogger(__name__)
 
@@ -63,11 +65,12 @@ def create_selections(buckets):
 
     for b in buckets:
 
-        Selection.objects.update_or_create(
+        Selection.objects.get_or_create(
             day1=b.day,
             hour1=b.h1,
             hour2=b.h2,
-            month1=b.month,
+            month1=b.month1,
+            month2=b.month2,
             year1=2016,
             year2=2017,
         )
@@ -137,11 +140,7 @@ def fill_occupation_roadparts():
 
     for s in work_selections:
 
-        working_on = 'selection: ' +  \
-             f'{s.year1}{s.year2}:{s.month1}:{s.month2}:' + \
-             f'{s.day1}:{s.day2}:{s.hour1}:{s.hour2}'
-
-        log.info(f'Working on {s.id} {working_on}')
+        log.info(f'Working on {s.id} {s}')
 
         for buurt in relevante_buurten:
 
@@ -149,6 +148,8 @@ def fill_occupation_roadparts():
                 'year_gte': s.year1,
                 'year_lte': s.year2,
                 'month': s.month1,
+                'month_gte': s.month1,
+                'month_lte': s.month2 or s.month1,
                 'day': s.day1,
                 'hour_gte': s.hour1,
                 'hour_lte': s.hour2,
@@ -172,4 +173,34 @@ def fill_occupation_roadparts():
             .values_list('selection_id')
             .annotate(wdcount=Count('selection_id'))
         )
-        log.info(f'Roadparts {wd_count[0][1]} for  {working_on}')
+        log.info(f'Roadparts {wd_count[0][1]} for  {s}')
+
+
+def execute_sql(sql):
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+
+
+def create_selection_views():
+    """
+    Create views of selections usable for mapserver / qgis
+    """
+
+    work_done = Selection.objects.filter(status=1)
+
+    for selection in work_done:
+        view_name = selection.view_name()
+
+        log.info('Created view %s', view_name)
+        # create view for each selection with
+        # geometry data.
+
+        sql = f"""
+CREATE OR REPLACE VIEW sv{str(view_name)} as
+SELECT wd.bgt_id, occupation, geometrie
+FROM wegdelen_wegdeel wd, occupation_roadoccupation oc, occupation_selection s
+WHERE wd.bgt_id = oc.bgt_id
+AND s.id = oc.selection_id
+AND s.id = {selection.id}
+        """
+        execute_sql(sql)
