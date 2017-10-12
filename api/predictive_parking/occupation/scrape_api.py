@@ -3,31 +3,39 @@ Load occupation from our own elastic API
 in the database for easy to consume datasets
 """
 import logging
+import requests
 
 from collections import namedtuple
+from django.db.models import F, Count
 
+from django.conf import settings
 # from wegdelen.models import WegDeel
 from wegdelen.models import Buurt
-
 from occupation.models import RoadOccupation
 from occupation.models import Selection
 
-import requests
 
 log = logging.getLogger(__name__)
 
-API_URL = 'https://api.datapunt.amsterdam.nl/predictiveparking/metingen/aggregations/wegdelen/'  # noqa
+API_URL = 'https://acc.api.data.amsterdam.nl/predictiveparking/metingen/aggregations/wegdelen/'  # noqa
 
 hour_range = [
-    (17, 19),
     (9, 12),
     (13, 16),
+    (17, 19),
     (20, 23),
     # (0, 4),
     # (4, 8),
 ]
 
-Bucket = namedtuple('bucket', ['month', 'day', 'h1', 'h2'])
+month_range = [
+    (0, 3),
+    (4, 6),
+    (7, 9),
+    (10, 12),
+]
+
+Bucket = namedtuple('bucket', ['m1', 'm2', 'day', 'h1', 'h2'])
 
 
 def occupation_buckets():
@@ -41,7 +49,7 @@ def occupation_buckets():
         for day in range(0, 7):
             for h1, h2 in hour_range:
 
-                b = Bucket(month, day, h1, h2)
+                b = Bucket(month, month, day, h1, h2)
 
                 buckets.append(b)
 
@@ -74,13 +82,17 @@ def store_occupation_data(json, selection):
     for wd_id, wd_data in json['wegdelen'].items():
 
         if not wd_data.get('occupation'):
+            # no occupation ?
+            # parking sport dissapeared?
             continue
 
         r, created = RoadOccupation.objects.get_or_create(
             bgt_id=wd_id,
             selection=selection,
         )
+
         # float fields elastic - postgres are different
+        # so get_or_create will not work
         if created is False:
             continue
         else:
@@ -93,18 +105,45 @@ def create_selection_buckets():
     create_selections(buckets)
 
 
+def get_work_to_do():
+    """
+    Determine which selections need to be done
+    """
+
+    work_selections = Selection.objects.filter(status__isnull=True)
+
+    # select a part
+    part = settings.SCRAPE['IMPORT_PART']
+    if part:
+        log.info('Doing chunck %d of 4', part)
+        work_selections = (
+            work_selections
+            .annotate(idmod=F('id') % 4)
+            .filter(idmod=part-1))
+
+    return work_selections
+
+
 def fill_occupation_roadparts():
     """
     Fill occupation table with occupation
     cijfers
     """
 
+    work_selections = get_work_to_do()
+
+    # determine all neigborhoods with 'payed parking spots'
     relevante_buurten = Buurt.objects.filter(fiscale_vakken__gt=0)
-    all_selections = Selection.objects.all()
 
-    for buurt in relevante_buurten:
+    for s in work_selections:
 
-        for s in all_selections:
+        working_on = 'selection: ' +  \
+             f'{s.year1}{s.year2}:{s.month1}:{s.month2}:' + \
+             f'{s.day1}:{s.day2}:{s.hour1}:{s.hour2}'
+
+        log.info(f'Working on {s.id} {working_on}')
+
+        for buurt in relevante_buurten:
 
             payload = {
                 'year_gte': s.year1,
@@ -122,3 +161,15 @@ def fill_occupation_roadparts():
                 raise ValueError
 
             store_occupation_data(r.json(), s)
+
+        # mark this selection as done.
+        s.status = 1
+        s.save()
+
+        wd_count = (
+            RoadOccupation.objects.select_related()
+            .filter(selection_id=s.id)
+            .values_list('selection_id')
+            .annotate(wdcount=Count('selection_id'))
+        )
+        log.info(f'Roadparts {wd_count[0][1]} for  {working_on}')

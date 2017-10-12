@@ -100,6 +100,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'predictive_parking.wsgi.application'
 
+# determine which chunck to do.
+
+SCRAPE = {
+    'IMPORT_PART': 0
+}
+
 
 def get_docker_host():
     """Find the local docker-deamon

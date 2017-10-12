@@ -22,6 +22,7 @@ class Selection(models.Model):
     year1 = models.IntegerField(blank=False, null=False)
     year2 = models.IntegerField(blank=False, null=True)
 
+    status = models.IntegerField(blank=True, null=True)
     # buurt = models.CharField(db_index=True, null=True, max_length=4, )
 
 
