@@ -84,6 +84,11 @@ dc run --rm csvimporter app
 # crate table list for logstash / scan count stats on wegdelen / vakken
 dc run --rm importer ./docker-scanstats.sh
 
+
+echo "create occupation tables and views"
+dc run --rm importer ./docker-occupation-bakker.sh
+
+
 echo "DONE! importing scans into database"
 
 echo "create scan db dump"

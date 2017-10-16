@@ -4,8 +4,8 @@ in the database for easy to consume datasets
 """
 import logging
 import requests
-
-from requests_futures.sessions import FuturesSession
+from datetime import datetime
+from datetime import timedelta
 
 from collections import namedtuple
 from django.db.models import F, Count
@@ -53,6 +53,25 @@ Bucket = namedtuple(
     'bucket', ['y1', 'y2', 'm1', 'm2', 'd1', 'd2', 'h1', 'h2'])
 
 
+def make_year_month_range():
+    """
+    now - 3 months
+    """
+    today = datetime.today()
+    delta = timedelta(days=90)
+    before = today - delta
+
+    year1 = before.year
+    year2 = today.year
+
+    month1 = before.month
+    # this month we have no data.
+    # so we should take month before
+    month2 = today.month - 1
+
+    return year1, year2, month1, month2
+
+
 def occupation_buckets():
     """
     Determine the occupation buckets
@@ -60,14 +79,14 @@ def occupation_buckets():
     """
     buckets = []
 
-    for y1, y2 in year_range:
-        for m1, m2 in month_range:
-            for d1, d2 in day_range:
-                for h1, h2 in hour_range:
+    y1, y2, m1, m2 = make_year_month_range()
 
-                    b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2)
+    for d1, d2 in day_range:
+        for h1, h2 in hour_range:
 
-                    buckets.append(b)
+            b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2)
+
+            buckets.append(b)
 
     return buckets
 
@@ -208,11 +227,6 @@ def store_selection_status(selection):
     """
     Given selection
     """
-
-    # mark this selection as done.
-    selection.status = 1
-    selection.save()
-
     wd_count = (
         RoadOccupation.objects.select_related()
         .filter(selection_id=selection.id)
@@ -220,7 +234,12 @@ def store_selection_status(selection):
         .annotate(wdcount=Count('selection_id'))
     )
 
-    log.info(f'Roadparts {wd_count[0][1]} for {selection}')
+    # mark this selection as done.
+    selection.status = 1
+    selection.save()
+
+    if wd_count:
+        log.info(f'Roadparts {wd_count[0][1]} for {selection}')
 
 
 def fill_occupation_roadparts():
