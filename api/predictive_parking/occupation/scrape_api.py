@@ -5,39 +5,52 @@ in the database for easy to consume datasets
 import logging
 import requests
 
+from requests_futures.sessions import FuturesSession
+
 from collections import namedtuple
 from django.db.models import F, Count
 
 from django.conf import settings
+from django.db import connection
 # from wegdelen.models import WegDeel
 from wegdelen.models import Buurt
 from occupation.models import RoadOccupation
 from occupation.models import Selection
 
-from django.db import connection
-
 
 log = logging.getLogger(__name__)
+
 
 API_URL = 'https://acc.api.data.amsterdam.nl/predictiveparking/metingen/aggregations/wegdelen/'  # noqa
 
 hour_range = [
-    (9, 12),
-    (13, 16),
-    (17, 19),
-    (20, 23),
+    (9, 12),   # ochtend
+    (13, 16),  # middag
+    (17, 19),  # spits
+    (20, 23),  # avond
     # (0, 4),
-    # (4, 8),
+    (0, 23),
 ]
 
 month_range = [
-    (0, 3),
-    (4, 6),
-    (7, 9),
-    (10, 12),
+    # (0, 3),
+    # (4, 6),
+    (6, 10),
+    # (10, 12),
 ]
 
-Bucket = namedtuple('bucket', ['m1', 'm2', 'day', 'h1', 'h2'])
+day_range = [
+    (0, 6),  # hele week
+    (0, 4),  # werkdag
+    (5, 6),  # weekend
+]
+
+year_range = [
+    (2017, 2017),
+]
+
+Bucket = namedtuple(
+    'bucket', ['y1', 'y2', 'm1', 'm2', 'd1', 'd2', 'h1', 'h2'])
 
 
 def occupation_buckets():
@@ -47,13 +60,14 @@ def occupation_buckets():
     """
     buckets = []
 
-    for month in range(4, 10):
-        for day in range(0, 7):
-            for h1, h2 in hour_range:
+    for y1, y2 in year_range:
+        for m1, m2 in month_range:
+            for d1, d2 in day_range:
+                for h1, h2 in hour_range:
 
-                b = Bucket(month, month, day, h1, h2)
+                    b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2)
 
-                buckets.append(b)
+                    buckets.append(b)
 
     return buckets
 
@@ -66,14 +80,45 @@ def create_selections(buckets):
     for b in buckets:
 
         Selection.objects.get_or_create(
-            day1=b.day,
+            day1=b.d1,
+            day2=b.d2,
             hour1=b.h1,
             hour2=b.h2,
-            month1=b.month1,
-            month2=b.month2,
-            year1=2016,
-            year2=2017,
+            month1=b.m1,
+            month2=b.m2,
+            year1=b.y1,
+            year2=b.y2,
         )
+
+
+def create_single_selection(longstring):
+    """
+    Create a manual selection
+
+    validate input..
+    """
+    manual_selection = longstring.split(':')
+    assert len(manual_selection) == 8
+    y1, y2, m1, m2, d1, d2, h1, h2 = map(int, manual_selection)
+    # lets do some validation..
+    assert min(manual_selection) >= 0
+    assert y1 in range(2016, 2025)
+    assert y2 in range(2016, 2025)
+    assert m1 in range(0, 12)
+    assert m2 in range(0, 12)
+    assert d1 in range(0, 7)
+    assert d2 in range(0, 7)
+    assert h1 in range(0, 24)
+    assert h2 in range(0, 24)
+    assert y1 <= y2
+    assert m1 <= m2
+    assert d1 <= d2
+    assert y1 <= y2
+    assert h1 <= h2
+
+    # add the new selection
+    b = Bucket(*manual_selection)
+    create_selections([b])
 
 
 # make sure selections and weg_id are unique
@@ -115,16 +160,67 @@ def get_work_to_do():
 
     work_selections = Selection.objects.filter(status__isnull=True)
 
+    log.debug('Selections to load: %d', work_selections.count())
+
     # select a part
     part = settings.SCRAPE['IMPORT_PART']
     if part:
-        log.info('Doing chunck %d of 4', part)
         work_selections = (
             work_selections
             .annotate(idmod=F('id') % 4)
             .filter(idmod=part-1))
+        log.info(
+            'Doing chunck %d of 4 left: %d',
+            part, work_selections.count())
 
     return work_selections
+
+
+def do_request(selection, buurt):
+    """
+    Build a single request to PP api.
+    """
+    s = selection
+
+    payload = {
+        'year_gte': s.year1,
+        'year_lte': s.year2,
+        'month': s.month1,
+        'month_gte': s.month1,
+        'month_lte': s.month2 or s.month1,
+        'day': s.day1,
+        'hour_gte': s.hour1,
+        'hour_lte': s.hour2,
+        'buurtcode': buurt.code,
+    }
+
+    response = requests.get(API_URL, payload)
+
+    if response.status_code != 200:
+        selection.status = None
+        selection.save()
+        raise ValueError
+
+    return response
+
+
+def store_selection_status(selection):
+    """
+    Given selection
+    """
+
+    # mark this selection as done.
+    selection.status = 1
+    selection.save()
+
+    wd_count = (
+        RoadOccupation.objects.select_related()
+        .filter(selection_id=selection.id)
+        .values_list('selection_id')
+        .annotate(wdcount=Count('selection_id'))
+    )
+
+    log.info(f'Roadparts {wd_count[0][1]} for {selection}')
 
 
 def fill_occupation_roadparts():
@@ -138,42 +234,25 @@ def fill_occupation_roadparts():
     # determine all neigborhoods with 'payed parking spots'
     relevante_buurten = Buurt.objects.filter(fiscale_vakken__gt=0)
 
-    for s in work_selections:
+    buurt_count = relevante_buurten.count()
+    work_count = work_selections.count()
 
-        log.info(f'Working on {s.id} {s}')
+    for selection in work_selections:
+        _s = selection
+        log.info(f'Working on {_s.id} {_s.view_name()}')
 
-        for buurt in relevante_buurten:
+        for i, buurt in enumerate(relevante_buurten):
 
-            payload = {
-                'year_gte': s.year1,
-                'year_lte': s.year2,
-                'month': s.month1,
-                'month_gte': s.month1,
-                'month_lte': s.month2 or s.month1,
-                'day': s.day1,
-                'hour_gte': s.hour1,
-                'hour_lte': s.hour2,
-                'buurtcode': buurt.code,
-            }
+            log.debug(
+                '%d %d/%d : %4s %s',
+                work_count, i, buurt_count,
+                buurt.code, selection._name())
 
-            r = requests.get(API_URL, payload)
+            # do parallel requests
+            response = do_request(selection, buurt)
+            store_occupation_data(response.json(), selection)
 
-            if r.status_code != 200:
-                raise ValueError
-
-            store_occupation_data(r.json(), s)
-
-        # mark this selection as done.
-        s.status = 1
-        s.save()
-
-        wd_count = (
-            RoadOccupation.objects.select_related()
-            .filter(selection_id=s.id)
-            .values_list('selection_id')
-            .annotate(wdcount=Count('selection_id'))
-        )
-        log.info(f'Roadparts {wd_count[0][1]} for  {s}')
+        store_selection_status(selection)
 
 
 def execute_sql(sql):

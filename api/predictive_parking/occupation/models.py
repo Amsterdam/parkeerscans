@@ -38,7 +38,7 @@ class Selection(models.Model):
             f'{s.day1}:{day2}:{s.hour1}:{s.hour2}'
 
     def __repr__(self):
-        return 'Selection: ' + self.name()
+        return 'Selection: ' + self._name()
 
     def view_name(self):
         view_name = self._name()
