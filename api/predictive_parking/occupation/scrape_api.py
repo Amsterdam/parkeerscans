@@ -238,7 +238,7 @@ def store_selection_status(selection):
     selection.status = 1
     selection.save()
 
-    if wd_count:
+    if len(wd_count):
         log.info(f'Roadparts {wd_count[0][1]} for {selection}')
 
 
