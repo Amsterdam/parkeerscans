@@ -19,7 +19,7 @@ class RoadOccupancy(rest.HALSerializer):
 
     _display = rest.DisplayField()
 
-    bezettingsgraad = serializers.DecimalField(
+    occupancy = serializers.DecimalField(
         max_digits=5,
         decimal_places=2
     )
@@ -34,7 +34,6 @@ class RoadOccupancy(rest.HALSerializer):
         fields = (
             '_links',
             '_display',
-            'fiscale_vakken',
             'occupancy',
             'selection',
             'geometrie',

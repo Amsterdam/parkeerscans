@@ -13,7 +13,8 @@ from django.db.models import F, Count
 from django.conf import settings
 from django.db import connection
 from django.test import Client
-# from wegdelen.models import WegDeel
+
+from wegdelen.models import WegDeel
 from wegdelen.models import Buurt
 from occupancy.models import RoadOccupancy
 from occupancy.models import Selection
@@ -24,7 +25,8 @@ log = logging.getLogger(__name__)
 
 API_ROOT = 'https://acc.api.data.amsterdam.nl'
 API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/'
-API_URL = 'f{API_ROOT}{API_PATH}'
+
+API_URL = f'{API_ROOT}{API_PATH}'
 
 TEST_CLIENT = None
 if settings.TESTING:

@@ -260,7 +260,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'INFO',
         },
 
         # Debug all batch jobs
@@ -320,7 +320,7 @@ LOGGING = {
         # Log all unhandled exceptions
         'django.request': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': False,
         },
 
