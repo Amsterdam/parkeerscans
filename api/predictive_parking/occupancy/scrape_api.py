@@ -12,6 +12,7 @@ from django.db.models import F, Count
 
 from django.conf import settings
 from django.db import connection
+from django.test import Client
 # from wegdelen.models import WegDeel
 from wegdelen.models import Buurt
 from occupancy.models import RoadOccupancy
@@ -21,7 +22,13 @@ from occupancy.models import Selection
 log = logging.getLogger(__name__)
 
 
-API_URL = 'https://acc.api.data.amsterdam.nl/predictiveparking/metingen/aggregations/wegdelen/'  # noqa
+API_ROOT = 'https://acc.api.data.amsterdam.nl'
+API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/'
+API_URL = 'f{API_ROOT}{API_PATH}'
+
+TEST_CLIENT = None
+if settings.TESTING:
+    TEST_CLIENT = Client()
 
 hour_range = [
     (9, 12),   # ochtend
@@ -65,9 +72,9 @@ def make_year_month_range():
     year2 = today.year
 
     month1 = before.month
-    # this month we have no data.
+    # This month we have no data.
     # so we should take month before
-    month2 = today.month - 1
+    month2 = today.month
 
     return year1, year2, month1, month2
 
@@ -119,13 +126,12 @@ def create_single_selection(longstring):
     validate input..
     """
     manual_selection = longstring.split(':')
+    manual_selection = list(map(int, manual_selection))
     assert len(manual_selection) == 8
     assert min(manual_selection) >= 0
-    manual_selection = map(int, manual_selection)
     b = Bucket(*manual_selection)
-    validate_selection(b)
     # add the new selection
-    create_selections(b)
+    create_selections([b])
 
 
 def validate_selection(bucket):
@@ -152,8 +158,6 @@ def validate_selection(bucket):
 
 
 def store_occupancy_data(json, selection):
-
-    print(json['selection'])
 
     for wd_id, wd_data in json['wegdelen'].items():
 
@@ -235,14 +239,18 @@ def do_request(selection, buurt):
         'buurtcode': buurt.code,
     }
 
-    response = requests.get(API_URL, payload)
+    if settings.TESTING:
+        response = TEST_CLIENT.get(API_PATH, payload)
+        return response.data
+    else:
+        response = requests.get(API_URL, payload)
 
     if response.status_code != 200:
         selection.status = None
         selection.save()
         raise ValueError
 
-    return response
+    return response.json()
 
 
 def store_selection_status(selection):
@@ -285,8 +293,8 @@ def fill_occupancy_roadparts():
 
         for i, buurt in enumerate(relevante_buurten):
             # TODO do parallel requests
-            response = do_request(selection, buurt)
-            wd_count = store_occupancy_data(response.json(), selection)
+            response_json = do_request(selection, buurt)
+            wd_count = store_occupancy_data(response_json, selection)
 
             log.debug(
                 '%d %d/%d : %4s %s  wegdelen: %d',

@@ -72,7 +72,7 @@ class Command(BaseCommand):
             settings.SCRAPE['IMPORT_PART'] = part
 
         if options['newselection']:
-            pass
+            scrape_api.create_single_selection(options['newselection'])
 
         if options['createviews']:
             scrape_api.create_selection_views()

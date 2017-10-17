@@ -18,14 +18,13 @@ class RoadOccupancyViewSet(rest.DatapuntViewSet):
 
     filter_fields = (
         'bgt_id',
-
-        #'weekdag',
-        #'uur',
-        #'maand',
-        #'buurt',
-
-        #'fiscale_vakken',
-        #'bezettingsgraad',
+        'selection__year1',
+        'selection__year2',
+        'selection__month1',
+        'selection__month2',
+        'selection__day1',
+        'selection__day2',
+        'selection__hour1',
+        'selection__hour2',
+        'occupancy',
     )
-
-    # ordering = ('naam', 'weekdag', 'uur')

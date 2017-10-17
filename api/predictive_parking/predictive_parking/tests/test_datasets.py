@@ -20,6 +20,10 @@ def pretty_data(data):
 class BrowseDatasetsTestCase(APITestCase):
     """
     Verifies that browsing the API works correctly.
+    We test elastic and database API
+    We load some custom datasets in elastic using
+    logstash. We cannot use the 'default' way
+    to create test data..
     """
 
     datasets = [
@@ -213,6 +217,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
         # TODO auth for minute field
         # range_fields = ['minute', 'hour', 'month']
+
         range_fields = [
             # range  gte, lte, answers
             ('hour',  (0, 6), (0, 6)),

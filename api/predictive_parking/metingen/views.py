@@ -353,6 +353,8 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         day_gte         [0 ..  6]
         day_lte         [0 ..  6]
         month           [0 .. 11]
+        month_gte       [0 .. 11]
+        month_lte       [0 .. 11]
         wegdelen_size   [1 .. 190]           # amount of wegdelen to ask
 
         You can use date-math on date fields:
@@ -363,6 +365,8 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         buurtcode       [A04a ..]
         buurtcombinatie [A04 ..]
         year            [2015.. 2024]
+        year_gte        [2015.. 2024]
+        year_lte        [2015.. 2024]
         bgt_wegdeel     [wegdeelid]
         qualcode        [
                             BEWONERP
@@ -581,7 +585,8 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         search = self.add_agg_to_search(search)
 
         if settings.DEBUG:
-            log.debug(json.dumps(search.to_dict(), indent=4))
+            pass
+            # log.debug(json.dumps(search.to_dict(), indent=4))
 
         # result = search.execute(ignore_cache=ignore_cache)
         result = search.execute()

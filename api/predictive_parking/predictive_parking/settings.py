@@ -48,10 +48,6 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_filters',
 
-    'rest_framework_swagger',
-    'rest_framework_gis',
-    'rest_framework',
-
     'datapunt',
     'health',
 
@@ -61,6 +57,10 @@ INSTALLED_APPS = [
     'occupancy',
 
     'predictive_parking',
+
+    'rest_framework_swagger',
+    'rest_framework_gis',
+    'rest_framework',
 ]
 
 if DEBUG:
@@ -125,6 +125,7 @@ def in_docker():
     docker env.
     :return: true when running in a docker container, false otherwise
     """
+
     try:
         return ':/docker/' in open('/proc/1/cgroup', 'r').read()
     except:
@@ -209,6 +210,9 @@ REST_FRAMEWORK = dict(
     PAGE_SIZE=20,
 
     MAX_PAGINATE_BY=100,
+
+    DEFAULT_AUTHENTICATION_CLASSES=[],
+    DEFAULT_PERMISSION_CLASSES=[],
 
     UNAUTHENTICATED_USER={},
     UNAUTHENTICATED_TOKEN={},
