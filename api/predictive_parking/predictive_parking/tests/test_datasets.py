@@ -160,6 +160,7 @@ class BrowseDatasetsTestCase(APITestCase):
         params = '&year_gte=2016&hour_gte=0&hour_lte=23'
         dayrange = '&day_lte=6&day_gte=0'
         response = self.client.get('/{}'.format(url+params+dayrange))
+
         for _wegdeelid, data in response.data['wegdelen'].items():
             # self.assertIn('bgt_functie', data)
             self.assertIn('total_vakken', data)
@@ -212,16 +213,26 @@ class BrowseDatasetsTestCase(APITestCase):
 
         # TODO auth for minute field
         # range_fields = ['minute', 'hour', 'month']
-        range_fields = ['hour', 'month']
+        range_fields = [
+            # range  gte, lte, answers
+            ('hour',  (0, 6), (0, 6)),
+            ('month',  (0, 6), ("january  ", "july     ")),
+        ]
 
-        for field in range_fields:
-            params = f'&{field}_lte=6&{field}_gte=0'
+        for field, r, a in range_fields:
+
+            # do request with range
+            params = f'&{field}_lte={r[1]}&{field}_gte={r[0]}'
             response = self.client.get('/{}'.format(url+params))
             self.assertEqual(response.status_code, 200)
             self.assertIn(f'{field}_gte', response.data['selection'])
             self.assertIn(f'{field}_lte', response.data['selection'])
             self.assertNotIn(f'{field}', response.data['selection'])
 
+            self.assertEqual(response.data['selection'][f'{field}_gte'], a[0])
+            self.assertEqual(response.data['selection'][f'{field}_lte'], a[1])
+
+            # request with no range
             response2 = self.client.get('/{}'.format(url + f'&{field}=1'))
             self.assertNotIn(f'{field}_lte', response2.data['selection'])
             self.assertNotIn(f'{field}_gte', response2.data['selection'])

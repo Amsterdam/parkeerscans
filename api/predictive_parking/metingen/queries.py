@@ -186,7 +186,7 @@ POSSIBLE_INT_PARAMS = [
     ('year_gte', range(2015, 2035)),
     ('year_lte', range(2015, 2035)),
 
-    ('wegdelen_size', range(1, 190)),
+    ('wegdelen_size', range(1, 290)),
 ]
 
 # we provide optional list of options
@@ -410,13 +410,15 @@ def build_term_query(field, value):
 def make_terms_queries(cleaned_data):
     """
     Given cleaned data build some elastic term queries
+
+    day, month,
     """
     term_q = []
 
     for m_field in ['month', 'month_gte', 'month_lte']:
         if m_field in cleaned_data:
             cleaned_data[m_field] = MONTHS[
-            int(cleaned_data[m_field])]
+                int(cleaned_data[m_field])]
 
     if 'day' in cleaned_data:
         cleaned_data['day'] = DAYS[int(cleaned_data['day'])]
@@ -470,40 +472,50 @@ def make_range_q(field, gte_field, lte_field, cleaned_data):
     return range_q
 
 
-def make_day_bool_query(day, gte_day, lte_day, cleaned_data):
+def make_field_bool_query(
+        field, field_gte, field_lte,
+        cleaned_data, all_options):
     """
     Days are a special case.
-    """
-    # clean_ambigious_fields(day, gte_day, lte_day, cleaned_data)
-    if gte_day in cleaned_data and lte_day in cleaned_data:
-        del cleaned_data[day]
 
-    low = cleaned_data.get(gte_day)
-    high = cleaned_data.get(lte_day)
+    conert day ints to strings.
+
+    0 => monday
+    """
+    # clean_ambigious_fields(day, day_gte, day_lte, cleaned_data)
+    if field_gte in cleaned_data and field_lte in cleaned_data:
+        if field in cleaned_data:
+            del cleaned_data[field]
+
+    low = cleaned_data.get(field_gte)
+    high = cleaned_data.get(field_lte)
 
     if low is None or high is None:
         # do not build range query
         return
 
-    involved_days = []
+    involved_terms = []
 
     for x in range(int(low), int(high)+1):
-        involved_days.append(DAYS[int(x)])
+        involved_terms.append(all_options[int(x)])
 
     should = []
-    for stringday in involved_days:
-        should.append({"term": {"day.keyword": stringday}})
+
+    for stringfield in involved_terms:
+        should.append(
+            {"term": {
+                f"{field}.keyword": stringfield}})
 
     if not should:
         return
 
-    day_bool_q = {
+    field_bool_q = {
         "bool": {
             "should": should
         }
     }
 
-    return day_bool_q
+    return field_bool_q
 
 
 def clean_parameter_data(request):
@@ -538,19 +550,24 @@ def build_must_queries(cleaned_data):
     h_range_q = make_range_q(
         'hour', 'hour_gte', 'hour_lte', cleaned_data)
 
-    month_range_q = make_range_q(
-        'month', 'month_gte', 'month_lte', cleaned_data)
-
     year_range_q = make_range_q(
         'year', 'year_gte', 'year_lte', cleaned_data)
 
-    day_bool_q = make_day_bool_query(
-        'day', 'day_gte', 'day_lte', cleaned_data)
+    month_bool_q = make_field_bool_query(
+        'month', 'month_gte', 'month_lte',
+        cleaned_data, MONTHS)
+
+    day_bool_q = make_field_bool_query(
+        'day', 'day_gte', 'day_lte',
+        cleaned_data, DAYS)
 
     date_range_q = make_range_q(
         '@timestamp', 'date_gte', 'date_lte', cleaned_data)
 
+    # make selection human readable and
+    # and create term queries if needed.
     terms_q = make_terms_queries(cleaned_data)
+
     must.extend(terms_q)
 
     if h_range_q:
@@ -559,10 +576,8 @@ def build_must_queries(cleaned_data):
         must.append(m_range_q)
     if date_range_q:
         must.append(date_range_q)
-
-    if month_range_q:
-        must.append(month_range_q)
-
+    if month_bool_q:
+        must.append(month_bool_q)
     if year_range_q:
         must.append(year_range_q)
 

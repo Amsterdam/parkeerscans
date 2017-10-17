@@ -28,14 +28,14 @@ hour_range = [
     (13, 16),  # middag
     (17, 19),  # spits
     (20, 23),  # avond
-    # (0, 4),
+    (0, 4),
     (0, 23),
 ]
 
 month_range = [
     # (0, 3),
     # (4, 6),
-    (6, 10),
+    (5, 10),
     # (10, 12),
 ]
 
@@ -98,6 +98,8 @@ def create_selections(buckets):
 
     for b in buckets:
 
+        assert validate_selection(b)
+
         Selection.objects.get_or_create(
             day1=b.d1,
             day2=b.d2,
@@ -118,26 +120,31 @@ def create_single_selection(longstring):
     """
     manual_selection = longstring.split(':')
     assert len(manual_selection) == 8
-    y1, y2, m1, m2, d1, d2, h1, h2 = map(int, manual_selection)
-    # lets do some validation..
     assert min(manual_selection) >= 0
-    assert y1 in range(2016, 2025)
-    assert y2 in range(2016, 2025)
-    assert m1 in range(0, 12)
-    assert m2 in range(0, 12)
-    assert d1 in range(0, 7)
-    assert d2 in range(0, 7)
-    assert h1 in range(0, 24)
-    assert h2 in range(0, 24)
-    assert y1 <= y2
-    assert m1 <= m2
-    assert d1 <= d2
-    assert y1 <= y2
-    assert h1 <= h2
-
-    # add the new selection
+    manual_selection = map(int, manual_selection)
     b = Bucket(*manual_selection)
-    create_selections([b])
+    validate_selection(b)
+    # add the new selection
+    create_selections(b)
+
+
+def validate_selection(bucket):
+    b = bucket
+    # lets do some validation..
+    assert b.y1 in range(2016, 2025)
+    assert b.y2 in range(2016, 2025)
+    assert b.m1 in range(0, 12)
+    assert b.m2 in range(0, 12)
+    assert b.d1 in range(0, 7)
+    assert b.d2 in range(0, 7)
+    assert b.h1 in range(0, 24)
+    assert b.h2 in range(0, 24)
+    assert b.y1 <= b.y2
+    assert b.m1 <= b.m2
+    assert b.d1 <= b.d2
+    assert b.h1 <= b.h2
+
+    return True
 
 
 # make sure selections and weg_id are unique
@@ -146,9 +153,15 @@ def create_single_selection(longstring):
 
 def store_occupancy_data(json, selection):
 
+    print(json['selection'])
+
     for wd_id, wd_data in json['wegdelen'].items():
 
-        if not wd_data.get('occupancy'):
+        occupancy = wd_data.get('occupancy')
+        if not occupancy:
+            occupancy = wd_data.get('occupation')
+
+        if not occupancy:
             # no occupancy ?
             # parking sport dissapeared?
             continue
@@ -166,10 +179,19 @@ def store_occupancy_data(json, selection):
             r.occupancy = wd_data['occupancy']
             r.save()
 
+    wd_count = RoadOccupancy.objects.filter(selection__id=selection.id).count()
+    # check how many roadpards are now available for selection
+    return wd_count
+
 
 def create_selection_buckets():
     buckets = occupancy_buckets()
     create_selections(buckets)
+
+    todo_selections = Selection.objects.filter(status__isnull=True).count()
+    done_selections = Selection.objects.filter(status__isnull=1).count()
+
+    log.info(f'Selections: TODO: {todo_selections} READY: {done_selections}')
 
 
 def get_work_to_do():
@@ -204,10 +226,10 @@ def do_request(selection, buurt):
     payload = {
         'year_gte': s.year1,
         'year_lte': s.year2,
-        'month': s.month1,
         'month_gte': s.month1,
         'month_lte': s.month2 or s.month1,
-        'day': s.day1,
+        'day_gte': s.day1,
+        'day_lte': s.day2,
         'hour_gte': s.hour1,
         'hour_lte': s.hour2,
         'buurtcode': buurt.code,
@@ -258,18 +280,20 @@ def fill_occupancy_roadparts():
 
     for selection in work_selections:
         _s = selection
+
         log.info(f'Working on {_s.id} {_s.view_name()}')
 
         for i, buurt in enumerate(relevante_buurten):
+            # TODO do parallel requests
+            response = do_request(selection, buurt)
+            wd_count = store_occupancy_data(response.json(), selection)
 
             log.debug(
-                '%d %d/%d : %4s %s',
+                '%d %d/%d : %4s %s  wegdelen: %d',
                 work_count, i, buurt_count,
-                buurt.code, selection._name())
-
-            # do parallel requests
-            response = do_request(selection, buurt)
-            store_occupancy_data(response.json(), selection)
+                buurt.code, selection._name(),
+                wd_count
+            )
 
         store_selection_status(selection)
 
@@ -294,8 +318,13 @@ def create_selection_views():
         # geometry data.
 
         sql = f"""
-CREATE OR REPLACE VIEW sv{str(view_name)} as
-SELECT wd.bgt_id, occupancy, geometrie
+DROP VIEW IF EXISTS sv{str(view_name)};
+CREATE VIEW sv{str(view_name)} as
+SELECT
+    row_number() OVER (ORDER BY wd.bgt_id) as id,
+    wd.bgt_id,
+    occupancy,
+    geometrie
 FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc, occupancy_selection s
 WHERE wd.bgt_id = oc.bgt_id
 AND s.id = oc.selection_id

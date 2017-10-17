@@ -1,8 +1,6 @@
 """predictive_parking ROOT URL Configuration
 """
 
-from occupation import views as occupation_views
-
 from rest_framework_swagger.views import get_swagger_view
 from rest_framework import routers
 from rest_framework.schemas import get_schema_view

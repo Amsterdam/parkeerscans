@@ -6,25 +6,26 @@ from . import models
 from datapunt import rest
 
 
-class RoadOccupationViewSet(rest.DatapuntViewSet):
+class RoadOccupancyViewSet(rest.DatapuntViewSet):
     """
     Geometrie / gebieden met parkeerkans informatie
     """
 
-    queryset = models.RoadOccupation.objects.all()
+    queryset = models.RoadOccupancy.objects.all()
 
-    serializer_class = serializers.RoadOccupation
+    serializer_class = serializers.RoadOccupancy
+    serializer_detail_class = serializers.RoadOccupancy
 
     filter_fields = (
         'bgt_id',
 
-        'weekdag',
-        'uur',
-        'maand',
-        'buurt',
+        #'weekdag',
+        #'uur',
+        #'maand',
+        #'buurt',
 
-        'fiscale_vakken',
-        'bezettingsgraad',
+        #'fiscale_vakken',
+        #'bezettingsgraad',
     )
 
     # ordering = ('naam', 'weekdag', 'uur')
