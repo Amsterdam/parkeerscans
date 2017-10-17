@@ -11,3 +11,5 @@ dedb wegdelen_parkeervak > vakken.csv
 
 dedb metingen_scan > scans.csv
 
+dedb wegdelen_buurt > buurt.csv
+

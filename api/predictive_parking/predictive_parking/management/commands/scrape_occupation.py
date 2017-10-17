@@ -8,14 +8,14 @@ import logging
 from django.core.management import BaseCommand
 from django.conf import settings
 
-from occupation import scrape_api
+from occupancy import scrape_api
 
 log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
     """
-    Load occupation data from API.
+    Load occupancy data from API.
     """
 
     def add_arguments(self, parser):
@@ -59,12 +59,12 @@ class Command(BaseCommand):
             action='store_true',
             dest='createviews',
             default=False,
-            help='create occupation views',
+            help='create occupancy views',
         )
 
     def handle(self, *args, **options):
         """
-        Scrape occupation table to fill
+        Scrape occupancy table to fill
         """
         if options['part']:
             part = int(options['part'])
@@ -78,7 +78,7 @@ class Command(BaseCommand):
             scrape_api.create_selection_views()
 
         if options['wegdelen']:
-            scrape_api.fill_occupation_roadparts()
+            scrape_api.fill_occupancy_roadparts()
 
         if options['selections']:
             scrape_api.create_selection_buckets()

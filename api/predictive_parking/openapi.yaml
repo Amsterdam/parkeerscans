@@ -105,25 +105,25 @@ paths:
             4.58565,  52.03560,  5.31360, 52.48769,
             bbox      bottom,       left,      top,    right
           type: string
-          
+
         - name: explain
           required: false
           in: query
-          description: 'Return all deta related to occupation calculation, handy for graphs'
+          description: 'Return all deta related to occupancy calculation, handy for graphs'
           type: boolean
-          
+
         - name: hour
           required: false
           in: query
           description: Hour of the day 0..23
           type: integer
-          
+
         - name: minute
           required: false
           in: query
           description: 0..59
           type: integer
-          
+
         - name: minute_gte
           required: false
           in: query
@@ -167,7 +167,7 @@ paths:
         - name: date_gte
           required: false
           in: query
-          description: elastic date math 
+          description: elastic date math
           type: integer
         - name: date_lte
           required: false
@@ -182,11 +182,11 @@ paths:
           in: query
           type: string
           description: "BEWONERP, BETAALDP, BEDRIJFP, STADSBREED, DOUBLESCAN, DISTANCE, ANPRERROR, TIMEOUT, DOUBLEPCN, TIMEOUT-PERMITCHECKER, BEZOEKP"
-          
+
       description: |-
         List dates with wegdeelen and distinct vakken count
         combined with meta road information.
-        
+
         Default behaviour is to return values for NOW. so the currenct day and time us used
         when no parameters are given.
       summary: List dates with wegdeelen and distinct vakken count

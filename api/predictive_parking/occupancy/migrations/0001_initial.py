@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='BuurtOccupation',
+            name='BuurtOccupancy',
             fields=[
                 ('id', models.CharField(max_length=14, primary_key=True, serialize=False)),
                 ('code', models.CharField(db_index=True, max_length=4)),
@@ -24,15 +24,15 @@ class Migration(migrations.Migration):
                 ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
                 ('vakken', models.IntegerField(null=True)),
                 ('fiscale_vakken', models.IntegerField(null=True)),
-                ('occupation', models.FloatField(blank=True, null=True)),
+                ('occupancy', models.FloatField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='RoadOccupation',
+            name='RoadOccupancy',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('bgt_id', models.CharField(db_index=True, max_length=38)),
-                ('occupation', models.FloatField(blank=True, null=True)),
+                ('occupancy', models.FloatField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
@@ -50,17 +50,19 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
-            model_name='roadoccupation',
+            model_name='roadoccupancy',
             name='selection',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='occupation.Selection'),
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.CASCADE, to='occupancy.Selection'),
         ),
         migrations.AddField(
-            model_name='buurtoccupation',
+            model_name='buurtoccupancy',
             name='selection',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='occupation.Selection'),
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.CASCADE, to='occupancy.Selection'),
         ),
         migrations.AlterUniqueTogether(
-            name='roadoccupation',
+            name='roadoccupancy',
             unique_together=set([('bgt_id', 'selection')]),
         ),
     ]

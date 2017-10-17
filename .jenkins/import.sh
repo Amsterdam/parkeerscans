@@ -85,8 +85,8 @@ dc run --rm csvimporter app
 dc run --rm importer ./docker-scanstats.sh
 
 
-echo "create occupation tables and views"
-dc run --rm importer ./docker-occupation-bakker.sh
+# echo "create occupancy tables and views"
+# dc run --rm importer ./docker-occupancy-bakker.sh
 
 
 echo "DONE! importing scans into database"

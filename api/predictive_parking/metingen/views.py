@@ -271,10 +271,10 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
     return wegdelen
 
 
-def calculate_average_occupation(wegdeel, day_data):
+def calculate_average_occupancy(wegdeel, day_data):
     """
     From days and hours messured of a wegdeel
-    give back the occupation
+    give back the occupancy
     """
 
     result_list = []
@@ -283,13 +283,13 @@ def calculate_average_occupation(wegdeel, day_data):
         for _hour, percentage in hour_measurements:
             result_list.append(percentage)
 
-    wegdeel['occupation'] = None
+    wegdeel['occupancy'] = None
 
     if result_list:
-        wegdeel['occupation'] = sum(result_list) / len(result_list)
+        wegdeel['occupancy'] = sum(result_list) / len(result_list)
 
 
-def calculate_occupation(wegdelen, query_params):
+def calculate_occupancy(wegdelen, query_params):
     """
     calculate "bezetting"
 
@@ -307,7 +307,7 @@ def calculate_occupation(wegdelen, query_params):
         # lookup the stored counts by date and hour
         day_data = wegd['cardinal_vakken_by_day']
 
-        calculate_average_occupation(wegd, day_data)
+        calculate_average_occupancy(wegd, day_data)
 
         if not explain:
             del wegd['cardinal_vakken_by_day']
@@ -329,7 +329,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
     """
     Given bounding box  `bbox` return aggregations
     of wegdelen / vakken derived from scandata with a
-    'occupation' value. The value is determined by how many different
+    'occupancy' value. The value is determined by how many different
     parking spots where seen divided by the maximum capacity
     according the parking map/ parkeerkaart
 
@@ -404,7 +404,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             wegdelen: {
                 "wegdeelID": {
                     totalvakken: unique vakken for wegdeel
-                    occupation: xx
+                    occupancy: xx
                     wegdeelDataX: ..
                     wegdeelDataFoo: ..
                 }
@@ -467,7 +467,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         # calculate bezetting
         wegdelen_data = build_wegdelen_data(elk_response, wegdelen)
 
-        wegdelen_data = calculate_occupation(
+        wegdelen_data = calculate_occupancy(
             wegdelen_data, request.query_params)
 
         return Response({

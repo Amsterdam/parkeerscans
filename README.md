@@ -9,7 +9,7 @@ The project is devided in a few docker-containers with their own functions.
      - provide web api on scan data
      - contains database building / migrations and loading of related databases
   - angluar
-     - occupation viewer build on top of api.
+     - occupancy viewer build on top of api.
   - csvimporter
     - golang code which crunches to and cleans up scan data and import csv data into postgres database
   - kibana
@@ -26,7 +26,7 @@ There are two steps
 
  - 1. Prepare, combine, cleanup the data.
  - 2. Visualize the data in kibana.
- - 3. Visualize the occupation special viewer.
+ - 3. Visualize the occupancy special viewer.
 
 https://dokuwiki.datapunt.amsterdam.nl/doku.php?id=start:pparking:architectuur
 

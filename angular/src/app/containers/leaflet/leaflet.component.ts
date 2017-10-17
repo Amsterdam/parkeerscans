@@ -27,7 +27,7 @@ import { ParkeervakkenService } from '../../services/parkeervakken';
 export class LeafletComponent implements AfterViewInit {
   private leafletMap: L.Map;
   private selection$: Observable<any>;
-  private occupation: {[wegdeelId: string]: number};
+  private occupancy: {[wegdeelId: string]: number};
   private parkeervakkenLayer: any;
   private wegdelenLayer: any;
   private day;
@@ -111,11 +111,11 @@ export class LeafletComponent implements AfterViewInit {
   }
 
   private showWegdelen([parkeerkans, wegdelen]: [Parkeerkans, any]) {
-    this.occupation = {};
+    this.occupancy = {};
     const data = wegdelen.map((wegdeel) => {
       const wegdeelKans = parkeerkans.wegdelen[wegdeel.properties.bgt_id];
-      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.occupation : undefined;
-      this.occupation[wegdeel.properties.bgt_id] = wegdeel.properties.bezetting;
+      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.occupancy : undefined;
+      this.occupancy[wegdeel.properties.bgt_id] = wegdeel.properties.bezetting;
       return wegdeel;
     }).filter((wegdeel) => {
       return wegdeel.properties.bezetting === 'fout' ? false
@@ -161,7 +161,7 @@ export class LeafletComponent implements AfterViewInit {
   private showParkeervakken(parkeervakken) {
     parkeervakken = parkeervakken
         .map((parkeervak) => {
-          parkeervak.properties.bezetting = this.occupation[parkeervak.properties.bgt_wegdeel];
+          parkeervak.properties.bezetting = this.occupancy[parkeervak.properties.bgt_wegdeel];
           return parkeervak;
         }, this)
         .filter((parkeervak) => {

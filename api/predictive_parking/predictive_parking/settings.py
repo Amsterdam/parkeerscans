@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     'metingen',
     'wegdelen',
 
-    'occupation',
+    'occupancy',
 
     'predictive_parking',
 ]

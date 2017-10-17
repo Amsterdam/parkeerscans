@@ -5,7 +5,7 @@ from datapunt import rest
 from . import models
 
 
-class RoadOccupation(rest.HALSerializer):
+class RoadOccupancy(rest.HALSerializer):
 
     dataset = 'wegdeelbezetting'
 
@@ -19,17 +19,16 @@ class RoadOccupation(rest.HALSerializer):
     geometrie = rest.MultipleGeometryField()
 
     class Meta(object):
-        model = models.RoadOccupation
+        model = models.RoadOccupancy
 
         fields = (
             '_links',
             '_display',
-
-            'uur',
-            'weekdag',
-            'maand',
-            'fiscale_vakken',
-            'bezettingsgraad',
+            #'uur',
+            #'weekdag',
+            #'maand',
+            # 'fiscale_vakken',
+            # 'bezettingsgraad',
             'buurt',
             'geometrie',
         )

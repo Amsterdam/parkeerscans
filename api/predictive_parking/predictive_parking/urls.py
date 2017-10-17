@@ -11,6 +11,7 @@ from django.conf.urls import url, include
 from django.conf import settings
 
 
+from occupancy import views as occupancy_views
 from metingen import views as meting_views
 from wegdelen import views as wegdelen_views
 
@@ -51,8 +52,8 @@ class PredictiveParkingRouter(routers.DefaultRouter):
 predictiveparking = PredictiveParkingRouter()
 
 predictiveparking.register(
-    r'occupation/roadparts',
-    occupation_views.RoadOccupationViewSet, 'occupation')
+    r'occupancy/roadparts',
+    occupancy_views.RoadOccupancyViewSet, 'occupancy')
 
 
 predictiveparking.register(

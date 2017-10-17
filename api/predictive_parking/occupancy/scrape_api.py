@@ -1,5 +1,5 @@
 """
-Load occupation from our own elastic API
+Load occupancy from our own elastic API
 in the database for easy to consume datasets
 """
 import logging
@@ -14,8 +14,8 @@ from django.conf import settings
 from django.db import connection
 # from wegdelen.models import WegDeel
 from wegdelen.models import Buurt
-from occupation.models import RoadOccupation
-from occupation.models import Selection
+from occupancy.models import RoadOccupancy
+from occupancy.models import Selection
 
 
 log = logging.getLogger(__name__)
@@ -72,9 +72,9 @@ def make_year_month_range():
     return year1, year2, month1, month2
 
 
-def occupation_buckets():
+def occupancy_buckets():
     """
-    Determine the occupation buckets
+    Determine the occupancy buckets
     we need
     """
     buckets = []
@@ -144,16 +144,16 @@ def create_single_selection(longstring):
 # selection_road_mapping = {}
 
 
-def store_occupation_data(json, selection):
+def store_occupancy_data(json, selection):
 
     for wd_id, wd_data in json['wegdelen'].items():
 
-        if not wd_data.get('occupation'):
-            # no occupation ?
+        if not wd_data.get('occupancy'):
+            # no occupancy ?
             # parking sport dissapeared?
             continue
 
-        r, created = RoadOccupation.objects.get_or_create(
+        r, created = RoadOccupancy.objects.get_or_create(
             bgt_id=wd_id,
             selection=selection,
         )
@@ -163,12 +163,12 @@ def store_occupation_data(json, selection):
         if created is False:
             continue
         else:
-            r.occupation = wd_data['occupation']
+            r.occupancy = wd_data['occupancy']
             r.save()
 
 
 def create_selection_buckets():
-    buckets = occupation_buckets()
+    buckets = occupancy_buckets()
     create_selections(buckets)
 
 
@@ -228,7 +228,7 @@ def store_selection_status(selection):
     Given selection
     """
     wd_count = (
-        RoadOccupation.objects.select_related()
+        RoadOccupancy.objects.select_related()
         .filter(selection_id=selection.id)
         .values_list('selection_id')
         .annotate(wdcount=Count('selection_id'))
@@ -242,9 +242,9 @@ def store_selection_status(selection):
         log.info(f'Roadparts {wd_count[0][1]} for {selection}')
 
 
-def fill_occupation_roadparts():
+def fill_occupancy_roadparts():
     """
-    Fill occupation table with occupation
+    Fill occupancy table with occupancy
     cijfers
     """
 
@@ -269,7 +269,7 @@ def fill_occupation_roadparts():
 
             # do parallel requests
             response = do_request(selection, buurt)
-            store_occupation_data(response.json(), selection)
+            store_occupancy_data(response.json(), selection)
 
         store_selection_status(selection)
 
@@ -295,8 +295,8 @@ def create_selection_views():
 
         sql = f"""
 CREATE OR REPLACE VIEW sv{str(view_name)} as
-SELECT wd.bgt_id, occupation, geometrie
-FROM wegdelen_wegdeel wd, occupation_roadoccupation oc, occupation_selection s
+SELECT wd.bgt_id, occupancy, geometrie
+FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc, occupancy_selection s
 WHERE wd.bgt_id = oc.bgt_id
 AND s.id = oc.selection_id
 AND s.id = {selection.id}

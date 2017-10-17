@@ -65,11 +65,10 @@ services:
                           -Fc \
                           -t wegdelen* \
                           -t metingen* \
-                          -t occupation* \
+                          -t occupancy* \
                           -t sv*\
                           -t scans* \
                           -t django_migrations  \
-                          -T auth*    \
                           -U predictiveparking \
                           -h database -p 5432 \
                           predictiveparking > /tmp/backups/database.dump"

@@ -16,3 +16,4 @@ loaddata() {
 loaddata $DB wegdelen_wegdeel < testdata/wegdeel.csv
 loaddata $DB wegdelen_parkeervak < testdata/vakken.csv
 loaddata $DB metingen_scan < testdata/scans.csv
+loaddata $DB wegdelen_buurt < testdata/buurt.csv

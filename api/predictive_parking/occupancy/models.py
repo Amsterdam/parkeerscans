@@ -46,7 +46,7 @@ class Selection(models.Model):
         return view_name
 
 
-class RoadOccupation(models.Model):
+class RoadOccupancy(models.Model):
     """
     Wegdeel parkeerdruk
     """
@@ -57,13 +57,13 @@ class RoadOccupation(models.Model):
     selection = models.ForeignKey(Selection, null=True)
 
     # fiscale_vakken = models.IntegerField(blank=True, null=True)
-    occupation = models.FloatField(blank=True, null=True)
+    occupancy = models.FloatField(blank=True, null=True)
 
     class Meta:
         unique_together = (("bgt_id", "selection"),)
 
 
-class BuurtOccupation(models.Model):
+class BuurtOccupancy(models.Model):
     """
     Buurt
     """
@@ -77,4 +77,4 @@ class BuurtOccupation(models.Model):
 
     selection = models.ForeignKey(Selection, null=True)
 
-    occupation = models.FloatField(blank=True, null=True)
+    occupancy = models.FloatField(blank=True, null=True)
