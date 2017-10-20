@@ -6,7 +6,6 @@ from django import db
 from django.core.management import call_command
 
 from rest_framework.test import APITestCase
-from rest_framework.reverse import reverse
 
 
 from metingen.models import Scan
@@ -86,16 +85,8 @@ class OccupancyTestCase(APITestCase):
             'scrape_occupancy', '--selections',
             verbosity=0, interactive=False)
 
-        from .scrape_api import hour_range
-        from .scrape_api import month_range
-        from .scrape_api import day_range
-        from .scrape_api import year_range
-
-        count = len(hour_range) * len(month_range) \
-            * len(day_range) * len(year_range)
-
         self.assertEqual(
-            Selection.objects.count(), count)
+            Selection.objects.count(), 36)
         # cleanup
         Selection.objects.all().delete()
 
