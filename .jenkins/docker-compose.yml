@@ -73,6 +73,27 @@ services:
                           -h database -p 5432 \
                           predictiveparking > /tmp/backups/database.dump"
 
+  # backup OCCUPANCY
+  db-backup-occupancy:
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    # build: ../postgres
+    networks:
+      predictiveparking:
+    environment:
+      PGPASSWORD: insecure
+    volumes:
+      - ./backups:/tmp/backups
+    command: >
+      bash -c "echo database:5432:predictiveparking:predictiveparking:insecure > ~/.pgpass \
+              && chmod 600 ~/.pgpass \
+              && pg_dump  -t occupancy* \
+                          -t sv*\
+                          -U predictiveparking \
+                          -h database -p 5432 \
+                          predictiveparking > /tmp/backups/occupancy.dump"
+
+
+
   # incemental
   db-backup-scans:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
