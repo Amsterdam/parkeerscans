@@ -52,7 +52,7 @@ dc run --rm importer ./docker-occupancy-bakker.sh
 # run the DB backup shizzle
 dc run --rm  db-backup-occupancy
 
-# dc up db-backup-occupation
+dc up db-backup-occupancy
 
 dc down
 echo "DONE! with OCCUPATION data import. You are awesome! <3"

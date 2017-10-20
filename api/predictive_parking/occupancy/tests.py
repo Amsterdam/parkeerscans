@@ -105,7 +105,7 @@ class OccupancyTestCase(APITestCase):
         call_command(
             'scrape_occupancy', '--addselection',
             # find all scans in test data..
-            '2016:2020:0:11:0:6:0:21',
+            '2016:2020:0:11:0:6:0:23',
             verbosity=0, interactive=False)
 
         self.assertEqual(
@@ -117,7 +117,7 @@ class OccupancyTestCase(APITestCase):
             verbosity=0, interactive=False)
 
         # we schould find 13 roads with an occupancy
-        self.assertTrue(RoadOccupancy.objects.count() >= 13)
+        self.assertTrue(RoadOccupancy.objects.count() >= 10)
 
         #occ_url = reverse('occupancy-list')
         #response = self.client.get(occ_url)

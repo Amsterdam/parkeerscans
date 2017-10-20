@@ -29,6 +29,7 @@ API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/'
 API_URL = f'{API_ROOT}{API_PATH}'
 
 TEST_CLIENT = None
+
 if settings.TESTING:
     TEST_CLIENT = Client()
 
@@ -129,9 +130,15 @@ def create_single_selection(longstring):
     validate input..
     """
     manual_selection = longstring.split(':')
+
     manual_selection = list(map(int, manual_selection))
-    assert len(manual_selection) == 8
-    assert min(manual_selection) >= 0
+
+    if len(manual_selection) == 8:
+        # qualcode is None
+        manual_selection.append('')
+
+    assert len(manual_selection) == 9
+    assert min(manual_selection[:8]) >= 0
     b = Bucket(*manual_selection)
     # add the new selection
     create_selections([b])
