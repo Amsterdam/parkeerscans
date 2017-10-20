@@ -37,14 +37,14 @@ hour_range = [
     (13, 16),  # middag
     (17, 19),  # spits
     (20, 23),  # avond
-    (0, 4),
-    (0, 23),
+    (0, 4),    # nacht
+    (0, 23),   # dag
 ]
 
 month_range = [
     # (0, 3),
     # (4, 6),
-    (5, 10),
+    (3, 7),
     # (10, 12),
 ]
 
@@ -59,15 +59,15 @@ year_range = [
 ]
 
 Bucket = namedtuple(
-    'bucket', ['y1', 'y2', 'm1', 'm2', 'd1', 'd2', 'h1', 'h2'])
+    'bucket', ['y1', 'y2', 'm1', 'm2', 'd1', 'd2', 'h1', 'h2', 'qcode'])
 
 
 def make_year_month_range():
     """
     now - 3 months
     """
-    today = datetime.today()
     delta = timedelta(days=90)
+    today = datetime.today() - delta
     before = today - delta
 
     year1 = before.year
@@ -92,10 +92,10 @@ def occupancy_buckets():
 
     for d1, d2 in day_range:
         for h1, h2 in hour_range:
-
-            b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2)
-
-            buckets.append(b)
+            # Bezoekers of niet.
+            for q in [None, 'BETAALDP']:
+                b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2, q)
+                buckets.append(b)
 
     return buckets
 
@@ -118,6 +118,7 @@ def create_selections(buckets):
             month2=b.m2,
             year1=b.y1,
             year2=b.y2,
+            qualcode=b.qcode,
         )
 
 
@@ -240,6 +241,8 @@ def do_request(selection, buurt):
         'hour_lte': s.hour2,
         'buurtcode': buurt.code,
     }
+    if s.qualcode:
+        payload['qualcode'] = s.qualcode
 
     if settings.TESTING:
         response = TEST_CLIENT.get(API_PATH, payload)

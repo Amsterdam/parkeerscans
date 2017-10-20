@@ -17,7 +17,6 @@ dcdb() {
 }
 
 
-
 dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose-es.yml $*;
 }

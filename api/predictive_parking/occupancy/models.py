@@ -5,6 +5,32 @@ OIS model parkeerkans uitkomsten
 from django.contrib.gis.db import models
 
 
+MONTHS = (
+    (0, 'Jan'),
+    (1, 'Feb'),
+    (2, 'Mar'),
+    (3, 'Apr'),
+    (4, 'May'),
+    (5, 'Jun'),
+    (6, 'Jul'),
+    (7, 'Aug'),
+    (8, 'Sep'),
+    (9, 'Okt'),
+    (10, 'Nov'),
+    (11, 'Dec'),
+)
+
+DAYS = (
+    (0, 'Ma'),
+    (1, 'Tu'),
+    (2, 'We'),
+    (3, 'Th'),
+    (4, 'Fr'),
+    (5, 'Sa'),
+    (6, 'Su'),
+)
+
+
 class Selection(models.Model):
     """
     Selections..
@@ -24,6 +50,8 @@ class Selection(models.Model):
 
     status = models.IntegerField(blank=True, null=True)
     # buurt = models.CharField(db_index=True, null=True, max_length=4, )
+    qualcode = models.CharField(blank=True, null=True, max_length=20)
+    sperscode = models.CharField(blank=True, null=True, max_length=20)
 
     def _name(self):
 
@@ -33,9 +61,15 @@ class Selection(models.Model):
 
         s = self
 
+        m = MONTHS
+        d = DAYS
+
+        code = self.qualcode or ''
+
         return \
-            f'{s.year1}:{year2}:{s.month1}:{month2}:' + \
-            f'{s.day1}:{day2}:{s.hour1}:{s.hour2}'
+            f'{s.year1}:{year2}:{m[s.month1][1]}:{m[month2][1]}:' + \
+            f'{d[s.day1][1]}:{d[day2][1]}:{s.hour1:02}:{s.hour2:02}' + \
+            f'{code}'
 
     def __repr__(self):
         return 'Selection: ' + self._name()

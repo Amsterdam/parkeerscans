@@ -45,13 +45,14 @@ dc build
 dc up -d database
 #
 
+dc run --rm importer ./docker-wait.sh
 
 echo "create scan api database"
 dc run --rm importer ./docker-migrate.sh
+
 echo "download latest files.."
 dc run --rm importer ./docker-prepare-csvdata.sh
 #
-dc exec -T database pg_restore -O -U predictiveparking -d predictiveparking /app/data/mvp.dump
 echo "Load latest parkeervakken.."
 dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
 echo "Load latest wegdelen.."
@@ -84,13 +85,7 @@ dc run --rm csvimporter app
 # crate table list for logstash / scan count stats on wegdelen / vakken
 dc run --rm importer ./docker-scanstats.sh
 
-
-# SHOULD BECOME SEPERATE.
-echo "create occupancy tables and views"
-dc run --rm importer ./docker-occupancy-bakker.sh
-
-
-echo "DONE! importing scans into database"
+echo "DONE! importing scans into DATABASE"
 
 echo "create scan db dump"
 
