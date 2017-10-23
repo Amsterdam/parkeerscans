@@ -113,6 +113,7 @@ def store_row_data(rows):
 
     with open('/app/data/tables.txt', 'w') as output:
         for tablename in rows:
+            log.debug(f'table: {tablename}')
             output.write(f"{tablename}\n")
 
 

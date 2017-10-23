@@ -18,7 +18,7 @@ dc() {
 }
 
 # so we can delete named volumes
-dc stop
+dc down --remove-orphans
 dc rm -f -v
 
 # Elastic needs to run afterwards..
@@ -96,4 +96,11 @@ dc run --rm  db-backup
 
 echo "DONE! with scan data import. You are awesome! <3"
 echo "Leaving docker and data around for elastic import"
-# dc stop
+
+if [ $RUNELASTIC == "yes" ]
+then
+	source ${DIR}/import-es.sh
+fi
+
+
+dc down --remove-orphans

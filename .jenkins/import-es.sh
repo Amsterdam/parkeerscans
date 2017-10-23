@@ -33,4 +33,4 @@ dc up -d elasticsearch
 dc run --rm logstash
 dc run --rm el-backup
 
-dc stop
+dc down
