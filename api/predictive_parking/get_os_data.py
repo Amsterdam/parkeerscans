@@ -2,6 +2,7 @@
 We use the objectstore to get the latest and greatest of the mks dump
 """
 
+import re
 import os
 import logging
 from pathlib import Path
@@ -15,6 +16,7 @@ log = logging.getLogger(__file__)
 
 assert os.getenv('PARKEERVAKKEN_OBJECTSTORE_PASSWORD')
 
+DATE_RE = re.compile('\d\d\d\d\d\d')
 
 OBJECTSTORE = dict(
     VERSION='2.0',
@@ -76,10 +78,8 @@ def file_exists(target):
     return target.is_file()
 
 
-def get_latest_rarfile():
-    """
-    Get latest rarfile
-    """
+def full_file_list():
+
     rar_list = []
 
     meta_data = get_full_container_list(
@@ -93,14 +93,43 @@ def get_latest_rarfile():
             rar_list.append((dt, o_info))
 
     rars_sorted_by_time = sorted(rar_list)
+    return rars_sorted_by_time
+
+
+def get_latest_rarfiles():
+    """
+    Get latest rarfile
+    """
+    rars_sorted_by_time = full_file_list()
+
+    rar_files = []
 
     for time, object_meta_data in rars_sorted_by_time:
         rarname = object_meta_data['name'].split('/')[-1]
-        file_location = '{}/{}'.format(DATA_DIR, rarname)
 
         if 'totaal' not in rarname and '2017' not in rarname:
+
             log.debug('skiped %s', rarname)
             continue
+
+        if os.getenv('STARTDATE'):
+            start_month = int(os.getenv('STARTDATE'))
+            m = DATE_RE.findall(rarname)
+            if m and int(m[0]) < start_month:
+                log.debug('skiped %s, too old', rarname)
+                continue
+
+        rar_files.append((time, object_meta_data))
+
+    return rar_files
+
+
+def download_files(rar_files):
+
+    for time, object_meta_data in rar_files:
+
+        rarname = object_meta_data['name'].split('/')[-1]
+        file_location = '{}/{}'.format(DATA_DIR, rarname)
 
         if file_exists(file_location):
             # Already downloaded
@@ -117,32 +146,7 @@ def get_latest_rarfile():
             outputzip.write(latest_zip)
 
 
-def get_parkeerkans_db_dumps():
-    """
-    Find database dumps
-    """
-
-    meta_data = get_full_container_list(
-        parkeren_conn, 'predictive')
-
-    for object_meta_data in meta_data:
-
-        if not object_meta_data['name'].startswith('parkeerkans'):
-            continue
-
-        if object_meta_data['content_type'] not in [
-                'application/octet-stream',
-                'application/rar']:
-            continue
-
-        dumpname = object_meta_data['name'].split('/')[-1]
-        dt = parser.parse(object_meta_data['last_modified'])
-        log.info('Downloading: %s %s', dt, dumpname)
-        pg_dump_file = get_store_object(object_meta_data)
-
-        with open('{}/{}.dump'.format(DATA_DIR, dumpname), 'wb') as output:
-            output.write(pg_dump_file)
-
-
-get_parkeerkans_db_dumps()
-get_latest_rarfile()
+if __name__ == '__main__':
+    # get_parkeerkans_db_dumps()
+    rar_files_to_download = get_latest_rarfiles()
+    download_files(rar_files_to_download)
