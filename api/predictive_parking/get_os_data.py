@@ -125,6 +125,8 @@ def get_latest_rarfiles():
                 if file_month < start_month:
                     log.debug('skiped %s, too old', rarname)
                     continue
+            else:
+                continue
 
         rar_files.append((time, object_meta_data))
 
