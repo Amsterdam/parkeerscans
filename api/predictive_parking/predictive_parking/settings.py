@@ -178,7 +178,6 @@ DATABASES = {
 
 DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
 
-print(DATABASES)
 
 ELASTIC_INDICES = {
     'scans': 'scans-*',

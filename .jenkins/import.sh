@@ -8,6 +8,10 @@ DIR="$(dirname $0)"
 
 echo $0
 
+echo "Is there some space?"
+
+df -h
+
 echo "Do we have OS password?"
 echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 #
