@@ -27,6 +27,7 @@ services:
       DATABASE_PASSWORD: insecure
       PARKEERVAKKEN_OBJECTSTORE_PASSWORD: ${PARKEERVAKKEN_OBJECTSTORE_PASSWORD}
       PGPASSWORD: insecure
+      STARTDATE:
       TESTING:
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
     networks:
