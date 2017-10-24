@@ -17,6 +17,8 @@ dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
 }
 
+trap 'dc kill ; dc down; dc rm -f -v' EXIT
+
 # so we can delete named volumes
 dc down --remove-orphans
 dc rm -f -v
