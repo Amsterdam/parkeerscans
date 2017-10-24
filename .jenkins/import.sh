@@ -12,6 +12,8 @@ echo $PARKEERVAKKEN_OBJECTSTORE_PASSWORD
 #
 echo "Testing import? if (yes)"
 echo $TESTING
+echo "DO we have a startdate?"
+echo $STARTDATE
 
 dc() {
 	docker-compose -p pp -f ${DIR}/docker-compose.yml $*;
@@ -22,6 +24,9 @@ trap 'dc kill ; dc down; dc rm -f -v' EXIT
 # so we can delete named volumes
 dc down --remove-orphans
 dc rm -f -v
+
+## get the latest and greatest
+dc pull
 
 # Elastic needs to run afterwards..
 # trap 'dc kill ; dc rm -f -v' EXIT
@@ -35,9 +40,6 @@ docker volume rm pp_databasevolume || true
 docker volume rm pp_unzip-volume || true
 
 #
-## get the latest and greatest
-
-dc pull
 
 dc rm -f importer
 dc rm -f csvimporter
