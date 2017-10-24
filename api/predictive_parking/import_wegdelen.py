@@ -491,7 +491,7 @@ def add_scan_count_wegdelen_vakken():
         add_scan_count_to_vakken(table)
 
         if total_scans > 9800000:
-            log.debug(f'We hane enough sample data sample size: {total_scans}')
+            log.debug(f'We have enough sample data sample size: {total_scans}')
             break
 
 

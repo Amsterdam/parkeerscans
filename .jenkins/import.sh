@@ -2,6 +2,7 @@
 
 set -e
 set -u
+set -x
 
 DIR="$(dirname $0)"
 
@@ -91,10 +92,12 @@ dc run --rm importer ./docker-scanstats.sh
 
 echo "DONE! importing scans into DATABASE"
 
-echo "create scan db dump"
-
-# run the DB backup shizzle
-dc run --rm  db-backup
+if [ $RUNELASTIC != "yes" ]
+then
+	echo "create scan db dump"
+	# run the DB backup shizzle
+	dc run --rm  db-backup
+fi
 
 # dc up db-backup-scans
 
@@ -105,6 +108,5 @@ if [ $RUNELASTIC == "yes" ]
 then
 	source ${DIR}/import-es.sh
 fi
-
 
 dc down --remove-orphans
