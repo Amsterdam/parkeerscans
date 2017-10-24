@@ -103,6 +103,12 @@ def get_latest_rarfiles():
     rars_sorted_by_time = full_file_list()
 
     rar_files = []
+    start_month = None
+
+    if os.getenv('STARTDATE'):
+        start_month = int(os.getenv('STARTDATE'))
+
+    log.debug('START_MONTH: %s', start_month)
 
     for time, object_meta_data in rars_sorted_by_time:
         rarname = object_meta_data['name'].split('/')[-1]
@@ -112,12 +118,13 @@ def get_latest_rarfiles():
             log.debug('skiped %s', rarname)
             continue
 
-        if os.getenv('STARTDATE'):
-            start_month = int(os.getenv('STARTDATE'))
+        if start_month:
             m = DATE_RE.findall(rarname)
-            if m and int(m[0]) < start_month:
-                log.debug('skiped %s, too old', rarname)
-                continue
+            if m:
+                file_month = int(m[0])
+                if file_month < start_month:
+                    log.debug('skiped %s, too old', rarname)
+                    continue
 
         rar_files.append((time, object_meta_data))
 
