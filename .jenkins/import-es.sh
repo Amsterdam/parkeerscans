@@ -17,6 +17,9 @@ dces() {
 }
 
 
+trap 'dces down; dces rm -f -v' EXIT
+
+
 # remove dockers from elastic import on exit
 # remove dockers from database run on exit
 # trap 'dcdb kill ; dc rm -f -v' EXIT
@@ -25,10 +28,10 @@ dces up -d elasticsearch
 
 dces run --rm logstash
 
-dc run --rm importer chmod -R 777 /tmp/backups
+dces run --rm elasticsearch chmod -R 777 /tmp/backups
 
 dc run --rm importer ./docker-el-backup.sh
 
-dc run --rm importer chmod -R 777 /tmp/backups
+dces run --rm elasticsearch chmod -R 777 /tmp/backups
 
 dces down

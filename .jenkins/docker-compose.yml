@@ -3,8 +3,8 @@ services:
   database:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres:latest
     # build: ../postgres
-    ports:
-      - "5434:5432"
+    #ports:
+    #  - "5434:5432"
     environment:
       POSTGRES_PASSWORD: insecure
       POSTGRES_USER: predictiveparking
@@ -36,7 +36,6 @@ services:
     volumes:
       - data-volume:/app/data
       - unzip-volume:/app/unzipped
-      - ./backups/elasticsearch:/tmp/backups
 
   csvimporter:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
