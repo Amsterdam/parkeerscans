@@ -209,9 +209,6 @@ USE_L10N = True
 USE_TZ = True
 
 REST_FRAMEWORK = dict(
-    PAGE_SIZE=20,
-
-    MAX_PAGINATE_BY=100,
 
     DEFAULT_AUTHENTICATION_CLASSES=[],
     DEFAULT_PERMISSION_CLASSES=[],
@@ -224,11 +221,9 @@ REST_FRAMEWORK = dict(
         'rest_framework.renderers.BrowsableAPIRenderer'
     ),
     DEFAULT_FILTER_BACKENDS=(
-        'rest_framework.filters.DjangoFilterBackend',
-        # 'rest_framework.filters.OrderingFilter',
+        'django_filters.rest_framework.DjangoFilterBackend',),
 
-        ),
-    COERCE_DECIMAL_TO_STRING=True,
+    COERCE_DECIMAL_TO_STRING=False,
 )
 
 LOGGING = {

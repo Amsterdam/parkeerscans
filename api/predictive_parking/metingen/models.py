@@ -48,7 +48,7 @@ class Scan(models.Model):
     # Follow field, desk field
     ff_df = models.CharField(null=True, max_length=15)
 
-    nha_nr = models.IntegerField(null=True)
+    nha_nr = models.CharField(max_length=15, null=True)
 
     nha_hoogte = models.DecimalField(null=True, max_digits=6, decimal_places=3)
     uitval_nachtrun = models.CharField(null=True, max_length=8)

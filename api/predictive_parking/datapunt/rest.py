@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 import json
+import django_filters
 
 from rest_framework import pagination, response
 from rest_framework import renderers, serializers
@@ -51,7 +52,7 @@ class HALSerializer(serializers.HyperlinkedModelSerializer):
     serializer_url_field = LinksField
 
 
-class HALPagination(pagination.PageNumberPagination):
+class DatapuntPagination(pagination.PageNumberPagination):
     page_size_query_param = 'page_size'
 
     def get_paginated_response(self, data):
@@ -83,11 +84,12 @@ class HALPagination(pagination.PageNumberPagination):
         ]))
 
 
-class DisabledHTMLFilterBackend(filters.DjangoFilterBackend):
+class DisabledHTMLFilterBackend(
+        django_filters.rest_framework.DjangoFilterBackend):
     """
     See https://github.com/tomchristie/django-rest-framework/issues/3766
-    This prevents DRF from generating the filter dropdowns
-    which can be HUGE in our case
+    This prevents DRF (Django Rest Framework)
+    from generating the filter dropdowns which can be HUGE in our case
     """
 
     def to_html(self, _request, _queryset, _view):
@@ -96,7 +98,7 @@ class DisabledHTMLFilterBackend(filters.DjangoFilterBackend):
 
 class DatapuntViewSet(DetailSerializerMixin, viewsets.ReadOnlyModelViewSet):
     renderer_classes = DEFAULT_RENDERERS
-    pagination_class = HALPagination
+    pagination_class = DatapuntPagination
     filter_backends = (DisabledHTMLFilterBackend,)
 
 

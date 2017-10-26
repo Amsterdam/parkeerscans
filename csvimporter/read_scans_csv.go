@@ -204,9 +204,15 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 			cols[idxMap["buurtcombinatie"]] = field[:3]
 		}
 
-		//ignore afstand
+		//parse afstand
 		if i == idxMap["afstand"] {
-			cols[i] = ""
+			parsedFloat, err := strconv.ParseFloat(field, 64)
+		        if err != nil {
+				cols[i] = ""
+			} else {
+
+				cols[i] = parsedFloat
+			}
 		}
 	}
 

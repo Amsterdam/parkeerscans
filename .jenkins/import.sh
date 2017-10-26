@@ -91,6 +91,9 @@ echo "loading the unzipped scans into database, add wegdelen / pv to scans"
 
 dc run --rm csvimporter app
 
+echo "Logging database output. just in case of errors"
+dc logs database
+
 # crate table list for logstash / scan count stats on wegdelen / vakken
 dc run --rm importer ./docker-scanstats.sh
 
