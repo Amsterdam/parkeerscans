@@ -36,6 +36,7 @@ services:
     volumes:
       - data-volume:/app/data
       - unzip-volume:/app/unzipped
+      - ./backups/elasticsearch:/tmp/backups
 
   csvimporter:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
