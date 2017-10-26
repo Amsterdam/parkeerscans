@@ -210,11 +210,16 @@ USE_TZ = True
 
 REST_FRAMEWORK = dict(
 
+    PAGE_SIZE=25,
+    MAX_PAGINATE_BY=100,
+
     DEFAULT_AUTHENTICATION_CLASSES=[],
     DEFAULT_PERMISSION_CLASSES=[],
 
     UNAUTHENTICATED_USER={},
     UNAUTHENTICATED_TOKEN={},
+
+    DEFAULT_PAGINATION_CLASS='rest_framework.pagination.PageNumberPagination',
 
     DEFAULT_RENDERER_CLASSES=(
         'rest_framework.renderers.JSONRenderer',
