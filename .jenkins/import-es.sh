@@ -25,10 +25,10 @@ dces up -d elasticsearch
 
 dces run --rm logstash
 
-dces run --rm importer chmod -R 777 /tmp/backups
+dc run --rm importer chmod -R 777 /tmp/backups
 
 dc run --rm importer ./docker-el-backup.sh
 
-dces run --rm importer chmod -R 777 /tmp/backups
+dc run --rm importer chmod -R 777 /tmp/backups
 
 dces down
