@@ -34,4 +34,4 @@ dc run --rm importer ./docker-el-backup.sh
 
 dces run --rm elasticsearch chmod -R 777 /tmp/backups
 
-dces down
+#dces down

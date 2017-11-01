@@ -27,7 +27,7 @@ dc() {
 trap 'dc down; dc rm -f -v' EXIT
 
 # so we can delete named volumes
-dc down --remove-orphans
+# dc down --remove-orphans
 dc rm -f -v
 
 ## get the latest and greatest
@@ -110,10 +110,11 @@ fi
 
 echo "DONE! with scan data import. You are awesome! <3"
 echo "Leaving docker and data around for elastic import"
+echo "if $RUNELASTIC == yes"
 
 if [ $RUNELASTIC == "yes" ]
 then
 	source ${DIR}/import-es.sh
 fi
 
-dc down --remove-orphans
+#dc down --remove-orphans
