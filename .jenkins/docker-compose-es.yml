@@ -3,7 +3,7 @@ services:
 
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5
-    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
     user: root
     environment:
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"

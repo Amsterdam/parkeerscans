@@ -8,6 +8,7 @@ dc() {
 }
 
 dc build
+dc pull
 
 dc up -d database
 dc up -d elasticsearch
