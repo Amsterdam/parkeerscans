@@ -17,7 +17,7 @@ dces() {
 }
 
 
-trap 'dces down; dces rm -f -v' EXIT
+trap 'dces down;' EXIT
 
 
 # remove dockers from elastic import on exit
