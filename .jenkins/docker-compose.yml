@@ -14,6 +14,8 @@ services:
     volumes:
       - databasevolume:/tmp
       - data-volume:/app/data
+    extra_hosts:
+      admin.datapunt.amsterdam.nl: 10.99.157.24
 
   importer:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
