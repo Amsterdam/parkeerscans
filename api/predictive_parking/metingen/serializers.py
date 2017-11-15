@@ -1,6 +1,6 @@
 from rest_framework_gis.fields import GeometryField
 
-from datapunt import rest
+from datapunt_api import rest
 
 from . import models
 

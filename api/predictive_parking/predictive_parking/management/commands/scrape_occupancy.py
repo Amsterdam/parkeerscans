@@ -34,13 +34,6 @@ class Command(BaseCommand):
             help='bouw de mogelijke selecties')
 
         parser.add_argument(
-            '--buurten',
-            action='store_true',
-            dest='buurten',
-            default=False,
-            help='importeer buurten uit bag')
-
-        parser.add_argument(
             '--part',
             action='store',
             dest='part',
@@ -60,6 +53,14 @@ class Command(BaseCommand):
             dest='createviews',
             default=False,
             help='create occupancy views',
+        )
+
+        parser.add_argument(
+            '--dumpcsv',
+            action='store_true',
+            dest='dumpcsv',
+            default=False,
+            help='dump csv views',
         )
 
     def handle(self, *args, **options):
@@ -83,5 +84,5 @@ class Command(BaseCommand):
         if options['selections']:
             scrape_api.create_selection_buckets()
 
-        elif options['buurten']:
-            pass
+        if options['dumpcsv']:
+            scrape_api.dump_csv_files()

@@ -1,0 +1,19 @@
+{% extends "rest_framework/base.html" %}
+
+{% block title %}Datapunt: PARKEER SCAN API{% endblock %}
+
+{% block branding %}
+    <a class='navbar-brand' rel="nofollow" href='/'>
+        Datapunt APIs
+    </a>
+{% endblock %}
+
+{% block bootstrap_theme %}
+    <link rel="stylesheet" href="/static/datapunt_api/bootstrap.min.css" type="text/css">
+{% endblock %}
+
+{% block description %}
+    <div style="max-width: 50em; text-align: justify">
+    {{ description }}
+    </div>
+{% endblock %}

@@ -231,7 +231,7 @@ def get_work_to_do():
     return work_selections
 
 
-def do_request(selection, buurt):
+def do_request(selection):
     """
     Build a single request to PP api.
     """
@@ -246,7 +246,7 @@ def do_request(selection, buurt):
         'day_lte': s.day2,
         'hour_gte': s.hour1,
         'hour_lte': s.hour2,
-        'buurtcode': buurt.code,
+        'wegdelen_size': 8000,
     }
     if s.qualcode:
         payload['qualcode'] = s.qualcode
@@ -258,6 +258,7 @@ def do_request(selection, buurt):
         response = requests.get(API_URL, payload)
 
     if response.status_code != 200:
+        log.error(response.url)
         selection.status = None
         selection.save()
         raise ValueError
@@ -292,28 +293,21 @@ def fill_occupancy_roadparts():
 
     work_selections = get_work_to_do()
 
-    # determine all neigborhoods with 'payed parking spots'
-    relevante_buurten = Buurt.objects.filter(fiscale_vakken__gt=0)
-
-    buurt_count = relevante_buurten.count()
     work_count = work_selections.count()
 
-    for selection in work_selections:
+    for i, selection in enumerate(work_selections):
         _s = selection
 
         log.info(f'Working on {_s.id} {_s.view_name()}')
 
-        for i, buurt in enumerate(relevante_buurten):
-            # TODO do parallel requests
-            response_json = do_request(selection, buurt)
-            wd_count = store_occupancy_data(response_json, selection)
+        response_json = do_request(selection)
+        wd_count = store_occupancy_data(response_json, selection)
 
-            log.debug(
-                '%d %d/%d : %4s %s  wegdelen: %d',
-                work_count, i, buurt_count,
-                buurt.code, selection._name(),
-                wd_count
-            )
+        log.debug(
+            '%d of %d: %4s wegdelen: %d',
+            i, work_count, selection._name(),
+            wd_count
+        )
 
         store_selection_status(selection)
 
@@ -321,6 +315,7 @@ def fill_occupancy_roadparts():
 def execute_sql(sql):
     with connection.cursor() as cursor:
         cursor.execute(sql)
+
 
 
 def create_selection_views():
@@ -351,3 +346,46 @@ AND s.id = oc.selection_id
 AND s.id = {selection.id}
         """
         execute_sql(sql)
+
+
+def dump_csv_files():
+    """
+    For each view create a csv file.
+    """
+
+    work_done = Selection.objects.filter(status=1)
+
+    for selection in work_done:
+        view_name = selection.view_name()
+
+        select = f"""
+        SELECT
+            id, bgt_id, occupancy,
+            ST_AsText(geometrie)
+        FROM sv{str(view_name)}
+        """
+
+        select_no_geo = f"""
+        SELECT
+            id, bgt_id, occupancy
+        FROM sv{str(view_name)}
+        """
+
+        outputquery = f"COPY ({select}) TO STDOUT WITH CSV HEADER"
+        outputquery_no_geo = f"COPY ({select_no_geo}) TO STDOUT WITH CSV HEADER"
+
+        file_name = f'{settings.CSV_DIR}/{str(view_name)}.csv'
+        file_name_no_geo = f'{settings.CSV_DIR}/{str(view_name)}.nogeo.csv'
+
+        with connection.cursor() as cursor:
+
+            with open(file_name, 'w') as f:
+                log.debug('saving view: %s', file_name)
+                cursor.copy_expert(outputquery, f)
+
+            with open(file_name_no_geo, 'w') as f:
+                log.debug('saving view: %s', file_name_no_geo)
+                cursor.copy_expert(outputquery_no_geo, f)
+
+
+

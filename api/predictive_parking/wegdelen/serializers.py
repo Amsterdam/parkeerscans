@@ -1,6 +1,7 @@
 from rest_framework_gis.fields import GeometryField
+from rest_framework import serializers
 
-from datapunt import rest
+from datapunt_api import rest
 
 from . import models
 
@@ -9,23 +10,30 @@ class WegDeelList(rest.HALSerializer):
 
     dataset = 'wegdelen'
 
-    # _display = rest.DisplayField()
+    _display = rest.DisplayField()
+
+
 
     class Meta(object):
         model = models.WegDeel
 
         fields = (
             '_links',
-            # '_display',
+            '_display',
             'id',
             'vakken',
             'scan_count',
         )
 
+    def get_selection(self, obj):
+        return str(obj)
+
 
 class WegDeel(rest.HALSerializer):
 
     dataset = 'wegdelen'
+
+    _display = rest.DisplayField()
 
     geometrie = rest.MultipleGeometryField()
 
@@ -35,6 +43,7 @@ class WegDeel(rest.HALSerializer):
         fields = (
             '_links',
             'id',
+            '_display',
             'vakken',
             'fiscale_vakken',
             'scan_count',

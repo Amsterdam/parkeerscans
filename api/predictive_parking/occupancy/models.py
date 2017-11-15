@@ -3,6 +3,7 @@ OIS model parkeerkans uitkomsten
 """
 
 from django.contrib.gis.db import models
+from wegdelen.models import WegDeel
 
 
 MONTHS = (
@@ -89,6 +90,7 @@ class RoadOccupancy(models.Model):
     # geometrie = models.GeometryField(blank=True, null=True, db_index=True)
 
     selection = models.ForeignKey(Selection, null=True)
+    wegdeel = models.ForeignKey(WegDeel, null=True)
 
     # fiscale_vakken = models.IntegerField(blank=True, null=True)
     occupancy = models.FloatField(blank=True, null=True)

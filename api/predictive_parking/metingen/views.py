@@ -8,11 +8,13 @@ import logging
 import json
 
 from rest_framework import viewsets
+from rest_framework import metadata
 from rest_framework.response import Response
 
 from django.db.models import Q
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
+from django.utils.encoding import force_text
 
 
 from elasticsearch import Elasticsearch
@@ -20,13 +22,14 @@ from elasticsearch_dsl import A
 
 # from elasticsearch.exceptions import TransportError
 # from elasticsearch_dsl import Search
-# from rest_framework.compat import coreapi
-# from rest_framework.compat import coreschema
+from rest_framework.compat import coreapi
+from rest_framework.compat import coreschema
 
 from django_filters.rest_framework.filterset import FilterSet
 from django_filters.rest_framework import filters
 
-from datapunt import rest
+from datapunt_api import rest
+from datapunt_api import bbox
 
 from metingen import serializers
 from metingen import models
@@ -37,10 +40,6 @@ from wegdelen.models import WegDeel
 
 log = logging.getLogger(__name__)
 
-# default amstermdam bbox lon, lat, lon, lat
-
-BBOX = [52.03560, 4.58565,
-        52.48769, 5.31360]
 
 ELK_CLIENT = Elasticsearch(
     settings.ELASTIC_SEARCH_HOSTS,
@@ -77,16 +76,16 @@ class MetingenFilter(FilterSet):
 
     def box_filter(self, queryset, _filter_name, value):
 
-        bbox, err = valid_bbox(value)
+        bbox_values, err = bbox.valid_bbox(value)
 
         if err:
             return queryset
 
-        lat1, lon1, lat2, lon2 = bbox
-        bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
+        lat1, lon1, lat2, lon2 = bbox_values
+        poly_bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
 
         return queryset.filter(
-            Q(**{"geometrie__bboverlaps": bbox}))
+            Q(**{"geometrie__bboverlaps": poly_bbox}))
 
 
 class MetingenViewSet(rest.DatapuntViewSet):
@@ -122,75 +121,6 @@ class MetingenViewSet(rest.DatapuntViewSet):
     # filter_backends = [MetingenFilter]
 
     ordering = ('scan_id')
-
-
-def valid_bbox(bboxp):
-    """
-    Check if bbox is a valid bounding box
-    """
-    bbox = bboxp.split(',')
-    err = None
-
-    # check if we got 4 parametes
-    if not len(bbox) == 4:
-        return [], "wrong numer of arguments (lon, lat, lon, lat)"
-
-    # check if we got floats
-    try:
-        bbox = [float(f) for f in bbox]
-    except ValueError:
-        return [], "Did not recieve floats"
-
-    # max bbox sizes from mapserver
-    # RD  EXTENT      100000    450000   150000 500000
-    # WGS             52.03560, 4.58565  52.48769, 5.31360
-    lat_min = 52.03560
-    lat_max = 52.48769
-    lon_min = 4.58565
-    lon_max = 5.31360
-
-    # check if coorinates are withing amsterdam
-    # lat1, lon1, lat2, lon2 = bbox
-
-    # bbox given by leaflet
-    lon1, lat1, lon2, lat2 = bbox
-
-    if not lat_max >= lat1 >= lat_min:
-        err = f"lat not within max bbox {lat_max} > {lat1} > {lat_min}"
-
-    if not lat_max >= lat2 >= lat_min:
-        err = f"lat not within max bbox {lat_max} > {lat2} > {lat_min}"
-
-    if not lon_max >= lon2 >= lon_min:
-        err = f"lon not within max bbox {lon_max} > {lon2} > {lon_min}"
-
-    if not lon_max >= lon1 >= lon_min:
-        err = f"lon not within max bbox {lon_max} > {lon1} > {lon_min}"
-
-    # this is how the code expects the bbox
-    bbox = [lat1, lon1, lat2, lon2]
-
-    return bbox, err
-
-
-def determine_bbox(request):
-    """
-    Create a bounding box if it is given with the request.
-    """
-
-    err = "invalid bbox given"
-
-    if 'bbox' not in request.query_params:
-        # set default value
-        return BBOX, None
-
-    bboxp = request.query_params['bbox']
-    bbox, err = valid_bbox(bboxp)
-
-    if err:
-        return None, err
-
-    return bbox, err
 
 
 def collect_wegdelen(elk_response):
@@ -325,6 +255,119 @@ def calculate_occupancy(wegdelen, query_params):
 #  date_lte        [2018, 2016-11-1]   # less then equal
 #
 
+# =============================================
+# Search view sets
+# =============================================
+class ElasticFilter(object):
+    """
+    For OpenApi documentation purposes
+    return the filter fields
+    """
+
+    elastic_int_filters = [
+        ('hour_gte', '0 .. 23'),
+        ('hour_lte', '0 .. 23'),
+        # ('minute_gte',  '0 .. 60'),
+        # ('minute_lte',  '0 .. 60'),
+        ('year_gte', '2016 .. 2025'),
+        ('year_lte', '2016 .. 2040'),
+        ('month_gte', '0 .. 11'),
+        ('month_lte', '0 .. 11'),
+        ('day_gte',  '0 .. 6 Monday = 0'),
+        ('day_lte', '0 .. 6 Monday = 0'),
+        ('year', '20xx'),
+        ('day', '0 .. 6'),
+        ('hour', '0 .. 23'),
+        ('month', '0 .. 11'),
+    ]
+
+    elastic_char_filters = [
+        ('format', 'json/html'),
+        ('explain', ''),
+        ('stadsdeel', 'A, Z ..'),
+        ('buurtcode', ''),
+        ('buurtcombinatie', ''),
+        ('bgt_wegdeel', ''),
+        ('qualcode', """
+            BEWONERP
+            BETAALDP
+            BEDRIJFP
+            STADSBREED
+            DOUBLESCAN
+            DISTANCE
+            ANPRERROR
+            TIMEOUT
+            DOUBLEPCN
+            TIMEOUT-PERMITCHECKER
+            BEZOEKP
+        """),
+        ('sperscode', """
+            PermittedPRDB
+            Skipped
+            UnPermitted
+            NotFound
+            Exception
+            Suspect
+            PermittedHH
+        """),
+        ('parkeervak_soort', """
+            MULDER FISCAAL
+        """),
+    ]
+
+    # bbox
+    bbox_desc = """
+                  4.58565,  52.03560,  5.31360, 52.48769,
+        bbox      bottom,       left,      top,    right
+    """
+
+    def get_schema_fields(self, _view):
+        """
+        return Q parameter documentation
+        """
+        fields = [
+            coreapi.Field(
+                name='bbox',
+                required=False,
+                location='query',
+                schema=coreschema.String(
+                    title=force_text('Bounding box.'),
+                    description=force_text(self.bbox_desc)
+                )
+            )
+        ]
+
+        for filtername, desc in self.elastic_int_filters:
+            fields.append(
+                coreapi.Field(
+                    name=filtername,
+                    required=False,
+                    location='query',
+                    schema=coreschema.Integer(
+                        title=force_text(filtername),
+                        description=force_text(desc)
+                    )
+                )
+
+            )
+
+        for filtername, desc in self.elastic_char_filters:
+            fields.append(
+                coreapi.Field(
+                    name=filtername,
+                    required=False,
+                    location='query',
+                    schema=coreschema.String(
+                        title=force_text(filtername),
+                        description=force_text(desc)
+                    )
+                )
+
+            )
+
+        return fields
+
+
 class WegdelenAggregationViewSet(viewsets.ViewSet):
     """
     Given bounding box  `bbox` return aggregations
@@ -417,6 +460,14 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
     """
 
+    filter_backends = [ElasticFilter]
+
+    def get_queryset(self):
+        """
+        Not an database view..
+        """
+        pass
+
     def list(self, request):
         """
         List dates with wegdeelen and distinct vakken count
@@ -427,10 +478,10 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         err = None
 
-        bbox, err = determine_bbox(request)
+        bbox_values, err = bbox.determine_bbox(request)
 
         if err:
-            return Response([f"bbox invalid {err}:{bbox}"], status=400)
+            return Response([f"bbox invalid {err}:{bbox_values}"], status=400)
 
         # clean client input
         cleaned_data, err = queries.clean_parameter_data(request)
@@ -445,7 +496,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         wegdelen_size = cleaned_data.get('wegdelen_size', 150)
 
         elk_response, err = self.do_wegdelen_search(
-            bbox, must, wegdelen_size=wegdelen_size)
+            bbox_values, must, wegdelen_size=wegdelen_size)
 
         if settings.DEBUG:
             # Print elk response to console
@@ -465,7 +516,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             return Response([err], status=400)
 
         # find and collect wegdelen meta data from DB.
-        load_db_wegdelen(bbox, wegdelen)
+        load_db_wegdelen(bbox_values, wegdelen)
 
         # now we have elastic data and database date to
         # calculate bezetting
@@ -479,7 +530,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             'wegdelen': wegdelen_data
         })
 
-    def do_wegdelen_search(self, bbox, must=(), wegdelen_size=90):
+    def do_wegdelen_search(self, bbox_values, must=(), wegdelen_size=90):
         """
         Given bbox find
 
@@ -487,7 +538,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         - distinct vakken seen for each wegdeel with counts
         """
 
-        elk_q = queries.build_wegdeel_query(bbox, must, wegdelen_size)
+        elk_q = queries.build_wegdeel_query(bbox_values, must, wegdelen_size)
 
         build_q = json.loads(elk_q)
         # log.debug(json.dumps(build_q, indent=4))
@@ -505,16 +556,16 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         return result, None
 
 
-def load_db_wegdelen(bbox, wegdelen):
+def load_db_wegdelen(bbox_values, wegdelen):
     """
     Given aggregation counts, determine "bezetting"
     """
-    lat1, lon1, lat2, lon2 = bbox
+    lat1, lon1, lat2, lon2 = bbox_values
 
-    bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
+    poly_bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
 
     wd_qs = WegDeel.objects.all().filter(
-        Q(**{"geometrie__bboverlaps": bbox}))
+        Q(**{"geometrie__bboverlaps": poly_bbox}))
 
     db_wegdelen = wd_qs.filter(bgt_id__in=wegdelen.keys())
 
@@ -544,12 +595,12 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
 
         err = None
 
-        bbox, err = determine_bbox(request)
+        bbox_values, err = bbox.determine_bbox(request)
 
         if err:
-            return Response([f"bbox invalid {err}:{bbox}"], status=400)
+            return Response([f"bbox invalid {err}:{bbox_values}"], status=400)
 
-        elk_response = self.get_aggregations(bbox)
+        elk_response = self.get_aggregations(bbox_values)
 
         # count in involved scans
         count = elk_response.hits.total
@@ -565,7 +616,7 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
 
         return Response(result)
 
-    def get_aggregations(self, bbox):
+    def get_aggregations(self, bbox_values):
         """
         Given bbox find
 
@@ -578,7 +629,7 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         - distinct wegdelen seen
         """
 
-        elk_q = queries.aggregation_query(bbox)
+        elk_q = queries.aggregation_query(bbox_values)
 
         search = elk_q.to_elasticsearch_object(ELK_CLIENT)
 

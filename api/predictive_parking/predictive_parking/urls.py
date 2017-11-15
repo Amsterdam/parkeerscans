@@ -16,30 +16,30 @@ from wegdelen import views as wegdelen_views
 
 class PredictiveParkingView(routers.APIRootView):
     """
-    Data-sources related to predictive parking
 
-    * parking probaility model output (not finished)
-    * aggregation counts for parking spots (vakken)
-    # aggregation counts for roadparts (wegdelen)
+    * Messured occupation
+    * Aggregation counts for parking spots (vakken)
+    * Aggregation counts for roadparts (wegdelen)
+
+    ## WFS
 
     WFS data of vakken, wegdelen:
 
-    [https://acc.map.amsterdam.nl/predictiveparking]
-    [https://map.amsterdam.nl/parkeervakken]
+    [WFS wegdelen](https://map.data.amsterdam.nl/maps/predictiveparking?REQUEST=GetCapabilities&SERVICE=wfs)
 
-    De scan data in deze api is opgeschoond en verrijkt met
-    actuele BGT wegdelen informatie en BAG gebieden informatie.
-    elke scan is gekoppeld aan een parkeervak uit de parkeervakken
-    kaart mits de scan binnen 1.5 meter van een Parkeervak is.
+    [WFS parkeervakken](https://map.data.amsterdam.nl/maps/parkeervakken?REQUEST=GetCapabilities&SERVICE=wfs)
+
+    ### Scan data source
 
     The scan data is cleaned and combines with map data from BGT.
     Every scan within 1.5 meter of an official parking spot
     is counted as parked car.
 
     source code:
-    [https://github.com/DatapuntAmsterdam/predictive_parking/tree/master/api]
-    [https://github.com/DatapuntAmsterdam/predictive_parking]
-    """
+    -----------
+
+    <https://github.com/DatapuntAmsterdam/predictive_parking>
+    """  # noqa
 
 
 class PredictiveParkingRouter(routers.DefaultRouter):
@@ -50,9 +50,13 @@ class PredictiveParkingRouter(routers.DefaultRouter):
 predictiveparking = PredictiveParkingRouter()
 
 predictiveparking.register(
-    r'occupancy/roadparts',
-    occupancy_views.RoadOccupancyViewSet, 'occupancy')
+    r'occupancy/public',
+    occupancy_views.OccupancyInBBOX, 'bboxoccupancy')
 
+
+predictiveparking.register(
+    r'occupancy/roadparts',
+    occupancy_views.RoadOccupancyViewSet, 'roadoccupancy')
 
 predictiveparking.register(
     r'wegdelen', wegdelen_views.WegdelenViewSet, 'wegdeel')
@@ -76,7 +80,6 @@ predictiveparking.urls.append(url(
 
 predictiveparking.urls.append(
     url(r'gratis', wegdelen_views.verdachte_bgt_parkeervlak))
-
 
 # predictiveparking.extend(kansen)
 schema_view = get_swagger_view(title='Parkeer Scans')

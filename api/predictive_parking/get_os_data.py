@@ -45,8 +45,10 @@ parkeren_conn = Connection(
     key=store['PASSWORD'],
     tenant_name=store['TENANT_NAME'],
     auth_version=store['VERSION'],
-    os_options={'tenant_id': store['TENANT_ID'],
-                'region_name': store['REGION_NAME']})
+    os_options={
+        'tenant_id': store['TENANT_ID'],
+        'region_name': store['REGION_NAME']}
+    )
 
 
 def get_store_object(object_meta_data):

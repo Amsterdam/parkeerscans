@@ -99,7 +99,7 @@ class DisabledHTMLFilterBackend(
 class DatapuntViewSet(DetailSerializerMixin, viewsets.ReadOnlyModelViewSet):
     renderer_classes = DEFAULT_RENDERERS
     pagination_class = DatapuntPagination
-    filter_backends = (DisabledHTMLFilterBackend,)
+    # filter_backends = (DisabledHTMLFilterBackend,)
 
 
 class RelatedSummaryField(serializers.Field):

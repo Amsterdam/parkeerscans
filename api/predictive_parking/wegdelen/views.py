@@ -1,7 +1,7 @@
 # Create your views here.
 import csv
 
-from datapunt import rest
+from datapunt_api import rest
 
 from django.http import HttpResponse
 from django.template import loader
