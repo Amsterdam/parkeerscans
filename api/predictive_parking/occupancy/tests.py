@@ -85,8 +85,8 @@ class OccupancyTestCase(APITestCase):
             'scrape_occupancy', '--selections',
             verbosity=0, interactive=False)
 
-        self.assertEqual(
-            Selection.objects.count(), 36)
+        self.assertTrue(
+            Selection.objects.count() > 36)
         # cleanup
         Selection.objects.all().delete()
 
