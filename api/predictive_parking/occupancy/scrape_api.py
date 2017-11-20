@@ -179,11 +179,12 @@ def store_occupancy_data(json, selection):
 
     for wd_id, wd_data in json['wegdelen'].items():
 
-        occupancy = wd_data.get('occupancy')
-        if not occupancy:
-            occupancy = wd_data.get('occupation')
+        avg_occupancy = wd_data.get('avg_occupancy')
+        min_occupancy = wd_data.get('max_occupancy')
+        max_occupancy = wd_data.get('min_occupancy')
+        std_occupancy = wd_data.get('std_occupancy')
 
-        if not occupancy:
+        if not avg_occupancy:
             # no occupancy ?
             # parking sport dissapeared?
             continue
@@ -198,7 +199,11 @@ def store_occupancy_data(json, selection):
         if created is False:
             continue
         else:
-            r.occupancy = wd_data['occupancy']
+            r.occupancy = avg_occupancy
+            r.min_occupancy = min_occupancy
+            r.max_occupancy = max_occupancy
+            r.std_occupancy = std_occupancy
+            r.unique_scans = wd_data.get('unique_scans')
             r.save()
 
     wd_count = RoadOccupancy.objects.filter(selection__id=selection.id).count()

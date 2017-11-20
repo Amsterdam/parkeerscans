@@ -229,16 +229,18 @@ def calculate_average_occupancy(wegdeel, day_data):
                 _min = percentage
             _sum += percentage
 
-    wegdeel['occupancy'] = None
-    print(result_list)
+    wegdeel['avg_occupancy'] = None
+
+    _len_results = len(result_list)
 
     # calculate the average occupancy.
     if result_list:
-        _avg = _sum / len(result_list)
+        _avg = _sum / _len_results
         wegdeel['avg_occupancy'] = _avg
         wegdeel['min_occupancy'] = _min
         wegdeel['max_occupancy'] = _max
-        wegdeel['std_occupancy'] = int(statistics.stdev(result_list))
+        if _len_results > 1:
+            wegdeel['std_occupancy'] = int(statistics.stdev(result_list))
 
 
 def calculate_occupancy(wegdelen, query_params):

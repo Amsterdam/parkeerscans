@@ -94,6 +94,11 @@ class RoadOccupancy(models.Model):
 
     # fiscale_vakken = models.IntegerField(blank=True, null=True)
     occupancy = models.FloatField(blank=True, null=True)
+    max_occupancy = models.IntegerField(blank=True, null=True)
+    min_occupancy = models.IntegerField(blank=True, null=True)
+    std_occupancy = models.IntegerField(blank=True, null=True)
+    days = models.IntegerField(blank=True, null=True)
+    unique_scans = models.IntegerField(blank=True, null=True)
 
     class Meta:
         unique_together = (("bgt_id", "selection"),)
