@@ -1,6 +1,5 @@
 from random import uniform
 import datetime
-import random
 
 # import string
 
@@ -10,13 +9,13 @@ import factory
 # import faker
 from factory import fuzzy
 
+from datapunt_api.bbox import BBOX
 from metingen import models
-from metingen import views
 
 
 UTC = datetime.timezone.utc
 
-lat1, lon1, lat2, lon2 = views.BBOX
+lat1, lon1, lat2, lon2 = BBOX
 
 
 class ScanFactory(factory.DjangoModelFactory):

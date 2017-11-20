@@ -172,7 +172,7 @@ class BrowseDatasetsTestCase(APITestCase):
             self.assertIn('days_seen', data)
             # self.assertIn('fiscaal', data)
             if data['total_vakken']:
-                self.assertIn('occupancy', data)
+                self.assertIn('avg_occupancy', data)
 
         self.assertIn('selection', response.data)
 
@@ -191,7 +191,7 @@ class BrowseDatasetsTestCase(APITestCase):
             self.assertIn('unique_scans', data)
             self.assertIn('days_seen', data)
             if data['total_vakken']:
-                self.assertIn('occupancy', data)
+                self.assertIn('avg_occupancy', data)
                 self.assertIn('cardinal_vakken_by_day', data)
 
         self.assertIn('selection', response.data)
