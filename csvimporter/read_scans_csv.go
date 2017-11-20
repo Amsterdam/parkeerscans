@@ -89,29 +89,48 @@ func ConnectStr() string {
 }
 
 /*
-Example csv row
+Example csv row (OLD)
 
-ScanId;scnMoment;scan_source;scnLongitude;scnLatitude;buurtcode;afstand;spersCode;qualCode;FF_DF;NHA_nr;NHA_hoogte;uitval_nachtrun
-149018849;2016-11-21 00:07:58;SCANCAR;4.9030151;52.375652;A04d;Distance:13.83;Skipped;DISTANCE;;;0;
+ScanId     scnMoment            device_id  scan_source  scnLongitude  scnLatitude  buurtcode       afstand  spersCode  qualCode  FF_DF  NHA_nr  NHA_hoogte  uitval_nachtrun
+149018849  2016-11-21 00:07:58  SCANCAR    4.9030151    52.375652     A04d         Distance:13.83  Skipped  DISTANCE   0
+
+*/
+
+/*
+
+Example csv row (NEW)
+
+ScanId     scnMoment            device_id  scan_source  scnLongitude        scnLatitude         buurtcode  afstand        spersCode  qualCode  FF_DF  NHA_nr  NHA_hoogte  uitval_nachtrun  DistanceToParkingBay  GPS_Vehicle  GPS_PLate  GPS_ScanDevice  location_ParkingBay  ParkingBay_angle  Reliability_GPS  Reliability_ANPR
+202075788  2017-10-30 00:00:01  299        SCANCAR      4.9025221859999997  52.371931009999997  A04E       PermittedPRDB  BEWONERP   0
+
 */
 
 func init() {
 	columns = []string{
-		"scan_id",         //  ScanId;
-		"scan_moment",     //  scnMoment;
-		"device_id",       //  device id
-		"scan_source",     //  scan_source;
-		"longitude",       //  scnLongitude;
-		"latitude",        //  scnLatitude;
-		"buurtcode",       //  buurtcode;
-		"afstand",         //  aftand to pvak?
-		"sperscode",       //  spersCode;
-		"qualcode",        //  qualCode;
-		"ff_df",           //   FF_DF;
-		"nha_nr",          //  NHA_nr;
-		"nha_hoogte",      //  NHA_hoogte;
-		"uitval_nachtrun", //  uitval_nachtrun;
+		"scan_id",               //  ScanId;
+		"scan_moment",           //  scnMoment;
+		"device_id",             //  device id
+		"scan_source",           //  scan_source;
+		"longitude",             //  scnLongitude;
+		"latitude",              //  scnLatitude;
+		"buurtcode",             //  buurtcode;
+		"afstand",               //  aftand to pvak?
+		"sperscode",             //  spersCode;
+		"qualcode",              //  qualCode;
+		"ff_df",                 //  FF_DF;
+		"nha_nr",                //  NHA_nr;
+		"nha_hoogte",            //  NHA_hoogte;
+		"uitval_nachtrun",       //  uitval_nachtrun;
+		"parkingbag_distance",   //  DistanceToParkingBay;
+		"gsp_vehicle",           //  GPS_Vehicle;
+		"gps_plate",             //  GPS_PLate;
+		"gps_scandevice",        //  GPS_ScanDevice;
+		"location_parking_bay",  //  location_ParkingBay;
+		"parking_bay_angle",     //  ParkingBay_angle;
+		"reliability_gps",       //  Reliability_GPS
+		"reliability_ANPR",      //  Reliability_ANPR
 
+		// extra fields
 		"stadsdeel",       //  stadsdeel;
 		"buurtcombinatie", //  buurtcombinatie;
 		"geometrie",       //  geometrie
@@ -183,6 +202,18 @@ func setLatLong(cols []interface{}) error {
 
 }
 
+func cleanBuurtCode(buurt string, cols []interface{}) {
+
+	size := len(buurt)
+	if(size > 0 && size < 5) {
+		cols[idxMap["stadsdeel"]] = string(buurt[0])
+		cols[idxMap["buurtcombinatie"]] = buurt[:3]
+	} else {
+
+		cols[idxMap["buurtcode"]] = ""
+	}
+}
+
 //NormalizeRow cleanup fields in csv we recieve a single row
 func NormalizeRow(record *[]string) ([]interface{}, error) {
 
@@ -200,8 +231,7 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		cols[i] = cleanedField
 
 		if i == idxMap["buurtcode"] {
-			cols[idxMap["stadsdeel"]] = string(field[0])
-			cols[idxMap["buurtcombinatie"]] = field[:3]
+			cleanBuurtCode(field, cols)
 		}
 
 		//parse afstand

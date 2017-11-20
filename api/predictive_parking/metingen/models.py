@@ -22,6 +22,14 @@ class Scan(models.Model):
     - nha_nr            # naheffings_nummer
     - nha_hoogte        # geldboete
     - uitval_nachtrun   # nachtelijke correctie
+    - parkingbag_distance # afstand tot parkeervak
+    - gps_vehicle       # gps_car
+    - gps_plate         #
+    - gps_scandevice    #
+    - location_parking_bay # parkeervak geo / id
+    - parking_bay_angle
+    - reliability_gps
+    - reliability_ANPR
     """
 
     scan_id = models.IntegerField()  # not unique!!

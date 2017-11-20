@@ -236,7 +236,7 @@ def calculate_average_occupancy(wegdeel, day_data):
     # calculate the average occupancy.
     if result_list:
         _avg = _sum / _len_results
-        wegdeel['avg_occupancy'] = _avg
+        wegdeel['avg_occupancy'] = round(_avg, 3)
         wegdeel['min_occupancy'] = _min
         wegdeel['max_occupancy'] = _max
         if _len_results > 1:
