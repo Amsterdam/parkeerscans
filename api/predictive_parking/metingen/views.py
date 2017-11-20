@@ -4,6 +4,7 @@ given a bounding box
 
 """
 import logging
+import statistics
 # import sys
 import json
 
@@ -143,49 +144,53 @@ def collect_wegdelen(elk_response):
     return wegdelen, None
 
 
-def proces_single_date(date: str, data: dict, wegdelen: dict):
+def proces_single_day(date: str, data: dict, wegdelen: dict):
     """
-    For each date we get cardinality by hour
+    For each date / single day we get cardinality by hour
 
     Average the cardinality
     """
+    print(data)
 
-    for b_wegdeel in data['wegdeel']['buckets']:
+    for bucket_wegdeel in data['wegdeel']['buckets']:
 
-        scans = b_wegdeel['doc_count']
+        scans = bucket_wegdeel['doc_count']
         # update how many scans have been totally for this wegdeel
 
-        key = b_wegdeel['key']
-
+        key = bucket_wegdeel['key']
         db_wegdeel = wegdelen[key]
-
         capacity = db_wegdeel.get('total_vakken')
-
         db_wegdeel['unique_scans'] = db_wegdeel.setdefault(
             'unique_scans', 0) + scans
 
         # update how many days this road is observed
         db_wegdeel['days_seen'] = db_wegdeel.setdefault('days_seen', 0) + 1
-
         c_vakken = db_wegdeel.setdefault('cardinal_vakken_by_day', [])
 
         # update distinct vakken for date hour
-        date_data = []
+        date_data = _calculate_occupancy_by_hour(bucket_wegdeel, capacity)
+        c_vakken.append((date, date_data))
 
-        for hour_d in b_wegdeel['hour']['buckets']:
+
+def _calculate_occupancy_by_hour(bucket_wegdeel: dict, capacity: int) -> list:
+
+        date_data = []
+        # calculate occupancy by hour
+        for hour_d in bucket_wegdeel['hour']['buckets']:
             hour = hour_d['key']
             # h_scans = hour_d['doc_count']
             cardinal_vakken = hour_d['vakken']['value']
-            if capacity:
-                bezetting = int(cardinal_vakken / capacity * 100)
-            else:
-                bezetting = 0
 
-            date_data.append([hour, bezetting])
+            if capacity:
+                occupancy = int(cardinal_vakken / capacity * 100)
+            else:
+                occupancy = 0
+
+            date_data.append([hour, occupancy])
 
         date_data.sort()
 
-        c_vakken.append((date, date_data))
+        return date_data
 
 
 def build_wegdelen_data(elk_response: dict, wegdelen: dict):
@@ -195,8 +200,9 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
     """
     # for each date we get some statistics
     date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
+
     for date, data in date_buckets.items():
-        proces_single_date(date, data, wegdelen)
+        proces_single_day(date, data, wegdelen)
 
     return wegdelen
 
@@ -204,19 +210,35 @@ def build_wegdelen_data(elk_response: dict, wegdelen: dict):
 def calculate_average_occupancy(wegdeel, day_data):
     """
     From days and hours messured of a wegdeel
-    give back the occupancy
+    give back occupancy statistics
     """
 
     result_list = []
+    _max = 0
+    _min = 800
+    _sum = 0
+    _avg = 0
 
+    # collect all occupancy's for each hour/day
     for _date, hour_measurements in day_data:
         for _hour, percentage in hour_measurements:
             result_list.append(percentage)
+            if percentage > _max:
+                _max = percentage
+            elif percentage < _min:
+                _min = percentage
+            _sum += percentage
 
     wegdeel['occupancy'] = None
+    print(result_list)
 
+    # calculate the average occupancy.
     if result_list:
-        wegdeel['occupancy'] = sum(result_list) / len(result_list)
+        _avg = _sum / len(result_list)
+        wegdeel['avg_occupancy'] = _avg
+        wegdeel['min_occupancy'] = _min
+        wegdeel['max_occupancy'] = _max
+        wegdeel['std_occupancy'] = int(statistics.stdev(result_list))
 
 
 def calculate_occupancy(wegdelen, query_params):
@@ -239,6 +261,7 @@ def calculate_occupancy(wegdelen, query_params):
 
         calculate_average_occupancy(wegd, day_data)
 
+        # remove the scan information by day!
         if not explain:
             del wegd['cardinal_vakken_by_day']
 

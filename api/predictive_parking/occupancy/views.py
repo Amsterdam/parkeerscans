@@ -113,7 +113,7 @@ class OccupancyInBBOX(viewsets.ViewSet):
             Q(**{"wegdeel__geometrie__bboverlaps": poly_bbox}))
 
         db_wegdelen = wd_qs.filter(wegdeel__vakken__gte=3)
-        db_wegdelen = wd_qs.filter(wegdeel__scan_count__gte=100)
+        db_wegdelen = db_wegdelen.filter(wegdeel__scan_count__gte=100)
 
         return db_wegdelen
 

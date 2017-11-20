@@ -53,6 +53,14 @@ day_range = [
     (0, 6),  # hele week
     (0, 4),  # werkdag
     (5, 6),  # weekend
+
+    (0, 0),  # maandag
+    (1, 1),  # dinsdag
+    (2, 2),  # woensdag
+    (3, 3),  # donderdag
+    (4, 4),  # vrijdag
+    (5, 5),  # zaterdag
+    (6, 6),  # zondag
 ]
 
 year_range = [
@@ -317,7 +325,6 @@ def execute_sql(sql):
         cursor.execute(sql)
 
 
-
 def create_selection_views():
     """
     Create views of selections usable for mapserver / qgis
@@ -338,14 +345,54 @@ CREATE VIEW sv{str(view_name)} as
 SELECT
     row_number() OVER (ORDER BY wd.bgt_id) as id,
     wd.bgt_id,
+    wd.vakken,
+    wd.fiscale_vakken,
     occupancy,
     geometrie
 FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc, occupancy_selection s
 WHERE wd.bgt_id = oc.bgt_id
+AND wd.vakken >= 3
 AND s.id = oc.selection_id
 AND s.id = {selection.id}
         """
         execute_sql(sql)
+
+
+def create_wegdelen_stats():
+
+    sql = """
+CREATE VIEW wegdelen_statistiek AS
+SELECT
+        o.bgt_id,
+        wd.fiscale_vakken,
+        count(*),
+        AVG(occupancy),
+        MIN(occupancy),
+        MAX(occupancy),
+        STDDEV(occupancy)
+FROM occupancy_roadoccupancy o
+JOIN occupancy_selection s on (s.id = o.selection_id)
+JOIN wegdelen_wegdeel wd on (o.bgt_id = wd.bgt_id)
+WHERE s.day1 = s.day2
+GROUP BY(o.bgt_id, wd.fiscale_vakken)
+    """
+
+    execute_sql(sql)
+
+
+def create_statistiek_csv():
+    """
+    Per wegdeel even kijken.
+    """
+
+    select = "select * from wegdelen_statistiek"
+    outputquery = f"COPY ({select}) TO STDOUT WITH CSV HEADER"
+    # wegdelen stats.
+    with connection.cursor() as cursor:
+        file_name = f'{settings.CSV_DIR}/wegdelen_stats.csv'
+        with open(file_name, 'w') as f:
+                log.debug('saving view: %s', file_name)
+                cursor.copy_expert(outputquery, f)
 
 
 def dump_csv_files():
@@ -355,24 +402,26 @@ def dump_csv_files():
 
     work_done = Selection.objects.filter(status=1)
 
+    create_statistiek_csv()
+
     for selection in work_done:
         view_name = selection.view_name()
 
         select = f"""
         SELECT
-            id, bgt_id, occupancy,
+            id, bgt_id, occupancy, vakken, fiscale_vakken,
             ST_AsText(geometrie)
         FROM sv{str(view_name)}
         """
 
         select_no_geo = f"""
         SELECT
-            id, bgt_id, occupancy
+            id, bgt_id, occupancy, vakken, fiscale_vakken
         FROM sv{str(view_name)}
         """
 
         outputquery = f"COPY ({select}) TO STDOUT WITH CSV HEADER"
-        outputquery_no_geo = f"COPY ({select_no_geo}) TO STDOUT WITH CSV HEADER"
+        outputquery_no_geo = f"COPY ({select_no_geo}) TO STDOUT WITH CSV HEADER"   # noqa
 
         file_name = f'{settings.CSV_DIR}/{str(view_name)}.csv'
         file_name_no_geo = f'{settings.CSV_DIR}/{str(view_name)}.nogeo.csv'
@@ -386,6 +435,3 @@ def dump_csv_files():
             with open(file_name_no_geo, 'w') as f:
                 log.debug('saving view: %s', file_name_no_geo)
                 cursor.copy_expert(outputquery_no_geo, f)
-
-
-

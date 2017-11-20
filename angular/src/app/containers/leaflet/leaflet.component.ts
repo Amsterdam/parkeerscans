@@ -114,7 +114,7 @@ export class LeafletComponent implements AfterViewInit {
     this.occupancy = {};
     const data = wegdelen.map((wegdeel) => {
       const wegdeelKans = parkeerkans.wegdelen[wegdeel.properties.bgt_id];
-      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.occupancy : undefined;
+      wegdeel.properties.bezetting = wegdeelKans ? wegdeelKans.avg_occupancy : undefined;
       this.occupancy[wegdeel.properties.bgt_id] = wegdeel.properties.bezetting;
       return wegdeel;
     }).filter((wegdeel) => {
