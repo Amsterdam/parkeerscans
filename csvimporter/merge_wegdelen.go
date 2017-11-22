@@ -52,6 +52,16 @@ func mergeScansParkeervakWegdelen(
 	s.nha_hoogte,
 	s.uitval_nachtrun,
 
+	/* new fields 10-2017 */
+	s.parkingbay_distance,
+	s.gps_vehicle,
+	s.gps_scandevice,
+	s.location_parking_bay,
+	s.parkingbay_angle,
+	s.reliability_gps,
+	s."reliability_ANPR",
+
+
 	pv.id,
 	pv.soort,
 	pv.bgt_wegdeel,
@@ -66,11 +76,11 @@ func mergeScansParkeervakWegdelen(
 
         longitude,
         latitude,
-	geometrie,
+   	    geometrie,
 
-	stadsdeel,
+	    stadsdeel,
         buurtcode,
-	buurtcombinatie,
+	    buurtcombinatie,
 
         sperscode,
         qualcode,
@@ -78,6 +88,15 @@ func mergeScansParkeervakWegdelen(
         nha_nr,
         nha_hoogte,
         uitval_nachtrun,
+
+		/* new fields 10-2017 */
+		parkingbay_distance,
+		gps_vehicle,
+		gps_scandevice,
+		location_parking_bay,
+		parkingbay_angle,
+		reliability_gps,
+		"reliability_ANPR",
 
         /* add parkeervak AND wegdeel infromation */
 
@@ -135,6 +154,15 @@ func mergeScansWegdelen(
 	s.nha_hoogte,
 	s.uitval_nachtrun,
 
+	/* new fields 10-2017 */
+	s.parkingbay_distance,
+	s.gps_vehicle,
+	s.gps_scandevice,
+	s.location_parking_bay,
+	s.parkingbay_angle,
+	s.reliability_gps,
+	s."reliability_ANPR",
+
 	wd.bgt_id,
 	wd.bgt_functie
     )
@@ -159,6 +187,15 @@ func mergeScansWegdelen(
 	nha_nr,
 	nha_hoogte,
 	uitval_nachtrun,
+
+	/* new fields 10-2017 */
+	parkingbay_distance,
+	gps_vehicle,
+	gps_scandevice,
+	location_parking_bay,
+	parkingbay_angle,
+	reliability_gps,
+	"reliability_ANPR",
 
 	bgt_wegdeel,
 	bgt_wegdeel_functie

@@ -122,6 +122,7 @@ func init() {
 		"nha_nr",          //  NHA_nr;
 		"nha_hoogte",      //  NHA_hoogte;
 		"uitval_nachtrun", //  uitval_nachtrun;
+
 		// new since 10-2017
 		"parkingbay_distance",  //  DistanceToParkingBay;
 		"gps_vehicle",          //  GPS_Vehicle;
@@ -231,6 +232,7 @@ func parseReliabilityGPS(gpsfield string, cols []interface{}) error {
 
 	point = geo.NewPointFromLatLng(lat, long).ToWKT()
 	point = fmt.Sprintf("SRID=4326;%s", point)
+
 	cols[idxMap["reliability_gps"]] = point
 
 	return nil
@@ -266,9 +268,12 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 
 		if i == idxMap["buurtcode"] {
 			cleanBuurtCode(field, cols)
+			continue
 		}
+
 		if i == idxMap["reliability_gps"] {
 			parseReliabilityGPS(field, cols)
+			continue
 		}
 
 		//parse afstand
