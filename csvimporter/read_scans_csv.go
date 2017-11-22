@@ -14,11 +14,12 @@ import (
 	"os"
 	"path/filepath"
 	//"net"
-	"github.com/paulmach/go.geo"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/paulmach/go.geo"
 )
 
 //DatePair start and end data string values
@@ -107,28 +108,29 @@ ScanId     scnMoment            device_id  scan_source  scnLongitude        scnL
 
 func init() {
 	columns = []string{
-		"scan_id",               //  ScanId;
-		"scan_moment",           //  scnMoment;
-		"device_id",             //  device id
-		"scan_source",           //  scan_source;
-		"longitude",             //  scnLongitude;
-		"latitude",              //  scnLatitude;
-		"buurtcode",             //  buurtcode;
-		"afstand",               //  aftand to pvak?
-		"sperscode",             //  spersCode;
-		"qualcode",              //  qualCode;
-		"ff_df",                 //  FF_DF;
-		"nha_nr",                //  NHA_nr;
-		"nha_hoogte",            //  NHA_hoogte;
-		"uitval_nachtrun",       //  uitval_nachtrun;
-		"parkingbag_distance",   //  DistanceToParkingBay;
-		"gsp_vehicle",           //  GPS_Vehicle;
-		"gps_plate",             //  GPS_PLate;
-		"gps_scandevice",        //  GPS_ScanDevice;
-		"location_parking_bay",  //  location_ParkingBay;
-		"parking_bay_angle",     //  ParkingBay_angle;
-		"reliability_gps",       //  Reliability_GPS
-		"reliability_ANPR",      //  Reliability_ANPR
+		"scan_id",         //  ScanId;
+		"scan_moment",     //  scnMoment;
+		"device_id",       //  device id
+		"scan_source",     //  scan_source;
+		"longitude",       //  scnLongitude;
+		"latitude",        //  scnLatitude;
+		"buurtcode",       //  buurtcode;
+		"afstand",         //  aftand to pvak?
+		"sperscode",       //  spersCode;
+		"qualcode",        //  qualCode;
+		"ff_df",           //  FF_DF;
+		"nha_nr",          //  NHA_nr;
+		"nha_hoogte",      //  NHA_hoogte;
+		"uitval_nachtrun", //  uitval_nachtrun;
+		// new since 10-2017
+		"parkingbay_distance",  //  DistanceToParkingBay;
+		"gps_vehicle",          //  GPS_Vehicle;
+		"gps_plate",            //  GPS_PLate;
+		"gps_scandevice",       //  GPS_ScanDevice;
+		"location_parking_bay", //  location_ParkingBay;
+		"parkingbay_angle",     //  ParkingBay_angle;
+		"reliability_gps",      //  Reliability_GPS
+		"reliability_ANPR",     //  Reliability_ANPR
 
 		// extra fields
 		"stadsdeel",       //  stadsdeel;
@@ -202,10 +204,42 @@ func setLatLong(cols []interface{}) error {
 
 }
 
+//parseReliabilityGPS check gps value of another field in csv..
+func parseReliabilityGPS(gpsfield string, cols []interface{}) error {
+	var long float64
+	var lat float64
+	var err error
+	var point string
+
+	//lat           long
+	//52.356895123N.4.849403218E
+	split_val := strings.Split(gpsfield, ",")
+	split_n := strings.Split(split_val[0], "N")
+	splitN := split_n[0]
+	splitE := split_val[1]
+	splitE = strings.Split(splitE, "E")[0]
+
+	long, err = strconv.ParseFloat(splitN, 64)
+	if err != nil {
+		return errors.New("gps reliability latitude field value wrong")
+	}
+
+	lat, err = strconv.ParseFloat(splitE, 64)
+	if err != nil {
+		return errors.New("gps reliability longitude field value wrong")
+	}
+
+	point = geo.NewPointFromLatLng(lat, long).ToWKT()
+	point = fmt.Sprintf("SRID=4326;%s", point)
+	cols[idxMap["reliability_gps"]] = point
+
+	return nil
+}
+
 func cleanBuurtCode(buurt string, cols []interface{}) {
 
 	size := len(buurt)
-	if(size > 0 && size < 5) {
+	if size > 0 && size < 5 {
 		cols[idxMap["stadsdeel"]] = string(buurt[0])
 		cols[idxMap["buurtcombinatie"]] = buurt[:3]
 	} else {
@@ -233,11 +267,14 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		if i == idxMap["buurtcode"] {
 			cleanBuurtCode(field, cols)
 		}
+		if i == idxMap["reliability_gps"] {
+			parseReliabilityGPS(field, cols)
+		}
 
 		//parse afstand
 		if i == idxMap["afstand"] {
 			parsedFloat, err := strconv.ParseFloat(field, 64)
-		        if err != nil {
+			if err != nil {
 				cols[i] = ""
 			} else {
 

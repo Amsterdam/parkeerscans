@@ -9,6 +9,9 @@ services:
       POSTGRES_PASSWORD: insecure
       POSTGRES_USER: predictiveparking
       POSTGRES_DB: predictiveparking
+      LOCAL: 'yes'
+    volumes:
+      - /home/stephan/.ssh/datapunt.key:/root/.ssh/datapunt.key
 
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5

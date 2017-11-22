@@ -1,16 +1,25 @@
+"""
+
+We define Scans and RawScans Models. these schema's are used
+by the csv parser.
+
+Scan model/table has more indexes then the RawScan Model/Table
+to increase the speed of handling data.
+
+"""
+
 from __future__ import unicode_literals
 
 from django.db import models
 
 from django.contrib.gis.db import models as geo
-# Create your models here.
 
 
 class Scan(models.Model):
     """
     Een scan punt
 
-    - scan_id          # niet altijd uniek..
+    - scan_id           # niet uniek!
     - scan_moment
     - device_id         # unieke device id / auto id
     - scan_source       # auto of pda
@@ -30,7 +39,19 @@ class Scan(models.Model):
     - parking_bay_angle
     - reliability_gps
     - reliability_ANPR
+
     """
+
+    # parkeervak id ( rd coordinaten xy)
+    parkeervak_id = models.CharField(db_index=True, null=True, max_length=15)
+    # mulder / fiscaal / vrij
+    parkeervak_soort = models.CharField(
+        null=True, max_length=15)
+
+    # wegdelen
+    bgt_wegdeel = models.CharField(null=True, max_length=38)
+
+    bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
 
     scan_id = models.IntegerField()  # not unique!!
     scan_moment = models.DateTimeField(db_index=True)
@@ -61,20 +82,24 @@ class Scan(models.Model):
     nha_hoogte = models.DecimalField(null=True, max_digits=6, decimal_places=3)
     uitval_nachtrun = models.CharField(null=True, max_length=8)
 
+    # extra fields from 10-2017
+
+    # afstand tot parkeervak
+    parkingbay_distance = models.FloatField(null=True)
+    # center point car
+    gps_vehicle = geo.PointField(null=True, srid=4326)
+    gps_plate = geo.PointField(null=True, srid=4326)
+    gps_scandevice = geo.PointField(null=True, srid=4326)
+
+    location_parking_bay = models.CharField(null=True, max_length=15)
+    # parking_bay_angle
+    parkingbay_angle = models.FloatField(null=True)
+    # reliability_gps
+    reliability_gps = models.FloatField(null=True)
+    # reliability_ANPR
+    reliability_ANPR = models.FloatField(null=True)
+
     geometrie = geo.PointField(null=True, srid=4326)
-    geometrie_rd = geo.PointField(null=True, srid=28992)
-
-    # parkeervak id ( rd coordinaten xy)
-    parkeervak_id = models.CharField(db_index=True, null=True, max_length=15)
-    # mulder / fiscaal / vrij
-    parkeervak_soort = models.CharField(
-        null=True, max_length=15)
-
-    # wegdelen
-    bgt_wegdeel = models.CharField(null=True, max_length=38)
-
-    bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
-
     objects = geo.GeoManager()
 
     def __str__(self):
@@ -83,21 +108,20 @@ class Scan(models.Model):
 
 class ScanRaw(models.Model):
     """
-    Een scan punt (zonder indexen)
-
-    - scan_id           # niet altijd uniek..
-    - scan_moment
-    - scan_source       # auto of pda
-    - longitude latitude
-    - buurtcode         # GGW code
-    - afstand           ?
-    - sperscode         # (vergunning..)
-    - qualcode          # status / kwaliteit
-    - ff_df             # field of desk
-    - nha_nr            # naheffings_nummer
-    - nha_hoogte        # geldboete
-    - uitval_nachtrun   # nachtelijke correctie
+    Een scan punt (WITHOUT INDEXES) for fast loading of csv.
     """
+
+    # parkeervak id ( no index )
+    parkeervak_id = models.CharField(null=True, max_length=15)
+
+    # mulder / fiscaal / vrij
+    parkeervak_soort = models.CharField(
+        null=True, max_length=15)
+
+    # wegdelen
+    bgt_wegdeel = models.CharField(null=True, max_length=38)
+
+    bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
 
     scan_id = models.IntegerField()  # not unique!!
     scan_moment = models.DateTimeField(db_index=True)
@@ -123,23 +147,27 @@ class ScanRaw(models.Model):
     # Follow field, desk field
     ff_df = models.CharField(null=True, max_length=15)
 
-    nha_nr = models.IntegerField(null=True)
+    nha_nr = models.CharField(max_length=15, null=True)
 
     nha_hoogte = models.DecimalField(null=True, max_digits=6, decimal_places=3)
     uitval_nachtrun = models.CharField(null=True, max_length=8)
 
+    # extra fields from 10-2017
+
+    # afstand tot parkeervak
+    parkingbay_distance = models.FloatField(null=True)
+    # center point car
+    gps_vehicle = geo.PointField(null=True, srid=4326)
+    gps_plate = geo.PointField(null=True, srid=4326)
+    gps_scandevice = geo.PointField(null=True, srid=4326)
+
+    location_parking_bay = models.CharField(null=True, max_length=15)
+    # parking_bay_angle
+    parkingbay_angle = models.FloatField(null=True)
+    # reliability_gps
+    reliability_gps = models.FloatField(null=True)
+    # reliability_ANPR
+    reliability_ANPR = models.FloatField(null=True)
+
     geometrie = geo.PointField(null=True, srid=4326)
-    geometrie_rd = geo.PointField(null=True, srid=28992)
-
-    # parkeervak id ( rd coordinaten xy)
-    parkeervak_id = models.CharField(null=True, max_length=15)
-    # mulder / fiscaal / vrij
-    parkeervak_soort = models.CharField(
-        null=True, max_length=15)
-
-    # wegdelen
-    bgt_wegdeel = models.CharField(null=True, max_length=38)
-
-    bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
-
     objects = geo.GeoManager()

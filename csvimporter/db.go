@@ -209,7 +209,6 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 		}
 
 		success++
-
 	}
 
 	return nil
