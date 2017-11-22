@@ -87,7 +87,7 @@ class Scan(models.Model):
     # afstand tot parkeervak
     parkingbay_distance = models.FloatField(null=True)
     # center point car
-    gps_vehicle = geo.PointField(null=True, srid=4326)
+    gps_vehicle = models.CharField(max_length=15, null=True)
     gps_plate = geo.PointField(null=True, srid=4326)
     gps_scandevice = geo.PointField(null=True, srid=4326)
 
@@ -95,7 +95,8 @@ class Scan(models.Model):
     # parking_bay_angle
     parkingbay_angle = models.FloatField(null=True)
     # reliability_gps
-    reliability_gps = models.FloatField(null=True)
+    reliability_gps = geo.PointField(null=True, srid=4326)
+
     # reliability_ANPR
     reliability_ANPR = models.FloatField(null=True)
 
@@ -157,7 +158,7 @@ class ScanRaw(models.Model):
     # afstand tot parkeervak
     parkingbay_distance = models.FloatField(null=True)
     # center point car
-    gps_vehicle = geo.PointField(null=True, srid=4326)
+    gps_vehicle = models.CharField(max_length=15, null=True)
     gps_plate = geo.PointField(null=True, srid=4326)
     gps_scandevice = geo.PointField(null=True, srid=4326)
 
@@ -165,7 +166,7 @@ class ScanRaw(models.Model):
     # parking_bay_angle
     parkingbay_angle = models.FloatField(null=True)
     # reliability_gps
-    reliability_gps = models.FloatField(null=True)
+    reliability_gps = geo.PointField(null=True, srid=4326)
     # reliability_ANPR
     reliability_ANPR = models.FloatField(null=True)
 

@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scanraw',
             name='gps_vehicle',
-            field=django.contrib.gis.db.models.fields.PointField(null=True, srid=4326),
+            field=models.CharField(max_length=15, null=True),
         ),
         migrations.AddField(
             model_name='scanraw',
