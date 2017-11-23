@@ -150,7 +150,6 @@ def proces_single_day(date: str, data: dict, wegdelen: dict):
 
     Average the cardinality
     """
-    print(data)
 
     for bucket_wegdeel in data['wegdeel']['buckets']:
 
@@ -663,10 +662,8 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         search = self.add_agg_to_search(search)
 
         if settings.DEBUG:
-            pass
-            # log.debug(json.dumps(search.to_dict(), indent=4))
+            log.debug(json.dumps(search.to_dict(), indent=4))
 
-        # result = search.execute(ignore_cache=ignore_cache)
         result = search.execute()
 
         return result
