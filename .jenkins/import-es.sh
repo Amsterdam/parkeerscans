@@ -17,9 +17,6 @@ dces() {
 }
 
 
-trap 'dces down;' EXIT
-
-
 # remove dockers from elastic import on exit
 # remove dockers from database run on exit
 # trap 'dcdb kill ; dc rm -f -v' EXIT
