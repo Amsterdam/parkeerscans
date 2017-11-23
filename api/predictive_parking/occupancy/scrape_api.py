@@ -175,9 +175,9 @@ def validate_selection(bucket):
 # selection_road_mapping = {}
 
 
-def store_occupancy_data(json, selection):
+def store_occupancy_data(json: dict, selection: dict):
 
-    if not json.get('wegdelen'):
+    if not json:
         return 0
 
     for wd_id, wd_data in json['wegdelen'].items():
@@ -247,7 +247,7 @@ def get_work_to_do():
     return work_selections
 
 
-def do_request(selection):
+def do_request(selection: dict) -> dict:
     """
     Build a single request to PP api.
     """
