@@ -167,11 +167,11 @@ class BrowseDatasetsTestCase(APITestCase):
 
         for _wegdeelid, data in response.data['wegdelen'].items():
             # self.assertIn('bgt_functie', data)
-            self.assertIn('total_vakken', data)
             self.assertIn('unique_scans', data)
             self.assertIn('days_seen', data)
             # self.assertIn('fiscaal', data)
-            if data['total_vakken']:
+            if data.get('total_vakken'):
+                self.assertIn('total_vakken', data)
                 self.assertIn('avg_occupancy', data)
 
         self.assertIn('selection', response.data)
@@ -187,10 +187,10 @@ class BrowseDatasetsTestCase(APITestCase):
 
         for _wegdeelid, data in response.data['wegdelen'].items():
             # self.assertIn('bgt_functie', data)
-            self.assertIn('total_vakken', data)
             self.assertIn('unique_scans', data)
             self.assertIn('days_seen', data)
-            if data['total_vakken']:
+            if data.get('total_vakken'):
+                self.assertIn('total_vakken', data)
                 self.assertIn('avg_occupancy', data)
                 self.assertIn('cardinal_vakken_by_day', data)
 

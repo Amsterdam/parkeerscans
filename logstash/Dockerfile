@@ -22,7 +22,7 @@ COPY geomapping.json /app/
 COPY docker-run.sh /app/
 COPY load-test-data.sh /app/
 
-# For development / testing local
-# COPY tables.txt /app/data/tables.txt
+# UNCOMMENT For development / testing local
+# COPY /app/data/tables.txt /app/data/tables.txt
 
 CMD ["/app/docker-run.sh"]
