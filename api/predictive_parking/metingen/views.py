@@ -396,7 +396,14 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
     """
     Given bounding box  `bbox` return aggregations
     of wegdelen / vakken derived from scandata with a
-    'occupancy' value. The value is determined by how many different
+    'occupancy' values.
+
+    - avg_occupancy
+    - std_occupancy
+    - min_occupancy
+    - max_occupancy
+
+    Occupancy value is determined by how many different
     parking spots where seen divided by the maximum capacity
     according the parking map/ parkeerkaart
 
@@ -475,7 +482,10 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             wegdelen: {
                 "wegdeelID": {
                     totalvakken: unique vakken for wegdeel
-                    occupancy: xx
+                    avg_occupancy: xx.xxx
+                    std_occupancy: xx
+                    min_occupancy: xx%
+                    max_occupancy: xx%
                     wegdeelDataX: ..
                     wegdeelDataFoo: ..
                 }
