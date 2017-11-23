@@ -177,6 +177,9 @@ def validate_selection(bucket):
 
 def store_occupancy_data(json, selection):
 
+    if not json.get('wegdelen'):
+        return 0
+
     for wd_id, wd_data in json['wegdelen'].items():
 
         avg_occupancy = wd_data.get('avg_occupancy')
