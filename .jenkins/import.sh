@@ -28,7 +28,6 @@ dc() {
 
 # so we can delete named volumes
 dc down --remove-orphans
-dc rm -f -v --all
 
 ## get the latest and greatest
 dc pull

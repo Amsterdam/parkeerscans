@@ -27,7 +27,7 @@ dces run --rm logstash
 
 dces run --rm elasticsearch chmod -R 777 /tmp/backups
 
-dc run --rm importer ./docker-el-backup.sh
+dc run --rm esbackup ./docker-el-backup.sh
 
 dces run --rm elasticsearch chmod -R 777 /tmp/backups
 

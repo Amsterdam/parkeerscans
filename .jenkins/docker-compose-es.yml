@@ -10,6 +10,11 @@ services:
     volumes:
       - ./backups/elasticsearch:/tmp/backups
 
+  esbackup:
+    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking:${ENVIRONMENT}
+    links:
+      - elasticsearch:elasticsearch
+
   logstash:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
     # build: ../logstash
