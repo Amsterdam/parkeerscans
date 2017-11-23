@@ -630,9 +630,11 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         # count in involved scans
         count = elk_response.hits.total
 
-        pv_elk = elk_response.aggregations['parkeervaken']
-
-        parkeervakken = [(i['key'], i['doc_count']) for i in pv_elk]
+        pv_elk = []
+        parkeervakken= []
+        if count:
+            pv_elk = elk_response.aggregations['parkeervakken']
+            parkeervakken = [(i['key'], i['doc_count']) for i in pv_elk]
 
         result = {
             'scancount': count,
@@ -677,6 +679,6 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         parkeervak_agg = A(
             'terms', field='parkeervak_id.keyword', size=2000)
 
-        search_object.aggs.bucket('parkeervaken', parkeervak_agg)
+        search_object.aggs.bucket('parkeervakken', parkeervak_agg)
 
         return search_object
