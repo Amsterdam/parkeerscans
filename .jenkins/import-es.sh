@@ -21,6 +21,9 @@ dces() {
 # remove dockers from database run on exit
 # trap 'dcdb kill ; dc rm -f -v' EXIT
 dces rm elasticsearch
+dces rm logstash
+dces rm esbackup
+dces pull
 
 dces up -d elasticsearch
 
