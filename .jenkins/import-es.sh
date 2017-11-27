@@ -20,6 +20,7 @@ dces() {
 # remove dockers from elastic import on exit
 # remove dockers from database run on exit
 # trap 'dcdb kill ; dc rm -f -v' EXIT
+dces rm elasticsearch
 
 dces up -d elasticsearch
 
