@@ -108,6 +108,7 @@ def get_latest_rarfiles():
     start_month = None
 
     if os.getenv('STARTDATE'):
+        # 201708
         start_month = int(os.getenv('STARTDATE'))
 
     log.debug('START_MONTH: %s', start_month)

@@ -35,4 +35,6 @@ dces run --rm esbackup ./docker-el-backup.sh
 
 dces run --rm elasticsearch chmod -R 777 /tmp/backups
 
+dces logs elasticsearch
+
 #dces down
