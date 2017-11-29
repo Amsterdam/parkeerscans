@@ -14,7 +14,7 @@ docurl http://elasticsearch:9200/_snapshot/backup -d '
   "type": "fs",
   "settings": {
       "location": "/tmp/backups" }
-}'  || true
+}'
 
 docurl http://elasticsearch:9200/_snapshot/backup/scans?wait_for_completion=true -d '
 { "indices": "scans*" }'
