@@ -21,21 +21,19 @@ dces() {
 # remove dockers from database run on exit
 # trap 'dcdb kill ; dc rm -f -v' EXIT
 dces rm elasticsearch
-dces rm logstash
-dces rm esbackup
 dces pull
 
 dces up -d elasticsearch
 
 dces run --rm logstash
 
-dces run --rm elasticsearch chmod -R 777 /tmp/backups
+dces run --rm esbackup chmod -R 777 /tmp/backups
 
-dces run --rm elasticsearch rm -rf /tmp/backups/*
+dces run --rm esbackup rm -rf /tmp/backups/*
 
 dces run --rm esbackup ./docker-el-backup.sh
 
-dces run --rm elasticsearch chmod -R 777 /tmp/backups
+dces run --rm esbackup chmod -R 777 /tmp/backups
 
 dces logs elasticsearch
 
