@@ -98,6 +98,25 @@ def full_file_list():
     return rars_sorted_by_time
 
 
+def should_we_download_this(rarname: str, start_month: int) -> bool:
+    """
+    Check if we should download this rar files
+
+    we do checks on age
+    """
+    if start_month:
+        m = DATE_RE.findall(rarname)
+        if m:
+            file_month = int(m[0])
+            if file_month < start_month:
+                log.debug('skiped %s, too old', rarname)
+                return False
+        else:
+            return False
+
+    return True
+
+
 def get_latest_rarfiles():
     """
     Get latest rarfile
@@ -111,27 +130,18 @@ def get_latest_rarfiles():
         # 201708
         start_month = int(os.getenv('STARTDATE'))
 
-    log.debug('START_MONTH: %s', start_month)
+    log.debug('STARTDATE: %s', start_month)
 
     for time, object_meta_data in rars_sorted_by_time:
-        rarname = object_meta_data['name'].split('/')[-1]
+        full_name = object_meta_data['name']
+        rarname = full_name.split('/')[-1]
 
-        if 'totaal' not in rarname and '2017' not in rarname:
-
-            log.debug('skiped %s', rarname)
+        if 'oud' in full_name:
+            log.debug('oud %s', rarname)
             continue
 
-        if start_month:
-            m = DATE_RE.findall(rarname)
-            if m:
-                file_month = int(m[0])
-                if file_month < start_month:
-                    log.debug('skiped %s, too old', rarname)
-                    continue
-            else:
-                continue
-
-        rar_files.append((time, object_meta_data))
+        if should_we_download_this(rarname, start_month):
+            rar_files.append((time, object_meta_data))
 
     return rar_files
 
@@ -145,7 +155,7 @@ def download_files(rar_files):
 
         if file_exists(file_location):
             # Already downloaded
-            log.debug('skiped %s', file_location)
+            log.debug('already downloaded %s', file_location)
             continue
 
         # Download all not missing data
