@@ -29,11 +29,12 @@ dces run --rm logstash
 
 #dces run --rm esbackup chmod -R 777 /tmp/backups
 
-#dces run --rm esbackup rm -rf /tmp/backups/*
+dces run --rm elasticsearch rm -rf /tmp/backups/*
 
 dces run --rm esbackup ./docker-el-backup.sh
 
-#dces run --rm esbackup chmod -R 777 /tmp/backups
+# make sure jenkins has premissions to remove the files
+dces run --rm elasticsearch chmod -R 777 /tmp/backups
 
 dces logs elasticsearch
 
