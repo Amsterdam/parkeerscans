@@ -27,13 +27,13 @@ dces up -d elasticsearch
 
 dces run --rm logstash
 
-dces run --rm esbackup chmod -R 777 /tmp/backups
+#dces run --rm esbackup chmod -R 777 /tmp/backups
 
-dces run --rm esbackup rm -rf /tmp/backups/*
+#dces run --rm esbackup rm -rf /tmp/backups/*
 
 dces run --rm esbackup ./docker-el-backup.sh
 
-dces run --rm esbackup chmod -R 777 /tmp/backups
+#dces run --rm esbackup chmod -R 777 /tmp/backups
 
 dces logs elasticsearch
 
