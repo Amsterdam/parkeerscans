@@ -19,6 +19,8 @@ from wegdelen.models import Buurt
 from occupancy.models import RoadOccupancy
 from occupancy.models import Selection
 
+import time
+
 
 log = logging.getLogger(__name__)
 
@@ -274,10 +276,13 @@ def do_request(selection: dict) -> dict:
         response = requests.get(API_URL, payload)
 
     if response.status_code != 200:
-        log.error(response.url)
+        log.error('%s %s', response.status_code, payload)
         selection.status = None
         selection.save()
-        raise ValueError
+        log.debug('Waiting a bit..')
+        time.sleep(30)
+        return
+        # raise ValueError
 
     return response.json()
 
@@ -317,6 +322,10 @@ def fill_occupancy_roadparts():
         log.info(f'Working on {_s.id} {_s.view_name()}')
 
         response_json = do_request(selection)
+
+        if not response_json:
+            continue
+
         wd_count = store_occupancy_data(response_json, selection)
 
         log.debug(
@@ -326,6 +335,11 @@ def fill_occupancy_roadparts():
         )
 
         store_selection_status(selection)
+
+    work_count = work_selections.count()
+    if work_count:
+        log.debug('not done yet..')
+        fill_occupancy_roadparts()
 
 
 def execute_sql(sql):
@@ -356,6 +370,9 @@ SELECT
     wd.vakken,
     wd.fiscale_vakken,
     occupancy,
+    min_occupancy,
+    max_occupancy,
+    std_occupancy, unique_scans,
     geometrie
 FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc, occupancy_selection s
 WHERE wd.bgt_id = oc.bgt_id
@@ -410,7 +427,7 @@ def dump_csv_files():
 
     work_done = Selection.objects.filter(status=1)
 
-    create_statistiek_csv()
+    #create_statistiek_csv()
 
     for selection in work_done:
         view_name = selection.view_name()
@@ -418,6 +435,7 @@ def dump_csv_files():
         select = f"""
         SELECT
             id, bgt_id, occupancy, vakken, fiscale_vakken,
+            min_occupancy, max_occupancy, std_occupancy, unique_scans,
             ST_AsText(geometrie)
         FROM sv{str(view_name)}
         """
@@ -425,6 +443,7 @@ def dump_csv_files():
         select_no_geo = f"""
         SELECT
             id, bgt_id, occupancy, vakken, fiscale_vakken
+            min_occupancy, max_occupancy, std_occupancy, unique_scans
         FROM sv{str(view_name)}
         """
 
