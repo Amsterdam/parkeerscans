@@ -151,6 +151,11 @@ def get_latest_rarfiles():
             log.debug('oud %s', rarname)
             continue
 
+        # no selection given. do everything.
+        if not start_month and not end_month:
+            rar_files.append((time, object_meta_data))
+
+        # given selection pick rar files.
         if should_we_download_this(rarname, start_month, end_month):
             rar_files.append((time, object_meta_data))
 
