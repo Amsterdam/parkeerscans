@@ -77,17 +77,17 @@ def make_year_month_range():
     """
     now - 3 months
     """
-    delta = timedelta(days=90)
-    today = datetime.today() - delta
+    delta = timedelta(days=100)
+    today = datetime.today()
     before = today - delta
 
     year1 = before.year
     year2 = today.year
 
-    month1 = before.month
+    month1 = before.month - 1   # we start at 0
     # This month we have no data.
     # so we should take month before
-    month2 = today.month
+    month2 = today.month - 1
 
     return year1, year2, month1, month2
 
@@ -347,9 +347,11 @@ def execute_sql(sql):
         cursor.execute(sql)
 
 
-def create_selection_views():
+def create_selection_tables():
     """
-    Create views of selections usable for mapserver / qgis
+    Create tables of selections usable for mapserver / qgis
+
+    We make tables for ease of dumping / restoring tables
     """
 
     work_done = Selection.objects.filter(status=1)
@@ -362,8 +364,8 @@ def create_selection_views():
         # geometry data.
 
         sql = f"""
-DROP VIEW IF EXISTS sv{str(view_name)};
-CREATE VIEW sv{str(view_name)} as
+DROP TABLE IF EXISTS sv{str(view_name)};
+SELECT * INTO sv{str(view_name)} FROM (
 SELECT
     row_number() OVER (ORDER BY wd.bgt_id) as id,
     wd.bgt_id,
@@ -378,46 +380,10 @@ FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc, occupancy_selection s
 WHERE wd.bgt_id = oc.bgt_id
 AND wd.vakken >= 3
 AND s.id = oc.selection_id
-AND s.id = {selection.id}
+AND s.id = {selection.id}) as tmptable
         """
         execute_sql(sql)
 
-
-def create_wegdelen_stats():
-
-    sql = """
-CREATE VIEW wegdelen_statistiek AS
-SELECT
-        o.bgt_id,
-        wd.fiscale_vakken,
-        count(*),
-        AVG(occupancy),
-        MIN(occupancy),
-        MAX(occupancy),
-        STDDEV(occupancy)
-FROM occupancy_roadoccupancy o
-JOIN occupancy_selection s on (s.id = o.selection_id)
-JOIN wegdelen_wegdeel wd on (o.bgt_id = wd.bgt_id)
-WHERE s.day1 = s.day2
-GROUP BY(o.bgt_id, wd.fiscale_vakken)
-    """
-
-    execute_sql(sql)
-
-
-def create_statistiek_csv():
-    """
-    Per wegdeel even kijken.
-    """
-
-    select = "select * from wegdelen_statistiek"
-    outputquery = f"COPY ({select}) TO STDOUT WITH CSV HEADER"
-    # wegdelen stats.
-    with connection.cursor() as cursor:
-        file_name = f'{settings.CSV_DIR}/wegdelen_stats.csv'
-        with open(file_name, 'w') as f:
-                log.debug('saving view: %s', file_name)
-                cursor.copy_expert(outputquery, f)
 
 
 def dump_csv_files():
@@ -426,8 +392,6 @@ def dump_csv_files():
     """
 
     work_done = Selection.objects.filter(status=1)
-
-    #create_statistiek_csv()
 
     for selection in work_done:
         view_name = selection.view_name()

@@ -102,10 +102,8 @@ if [ $RUNELASTIC != "yes" ]
 then
 	echo "create scan db dump"
 	# run the DB backup shizzle
-	dc run --rm  db-backup
+	dc exec database ./backup-db-scans.sh
 fi
-
-# dc up db-backup-scans
 
 echo "DONE! with scan data import. You are awesome! <3"
 echo "Leaving docker and data around for elastic import"
