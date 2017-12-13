@@ -1,5 +1,7 @@
 # from django.shortcuts import render
 import logging
+import datetime
+
 from django.utils.encoding import force_text
 from django.contrib.gis.geos import Polygon
 from django.db.models import Q
@@ -19,6 +21,8 @@ from wegdelen.models import WegDeel
 
 from . import serializers
 from . import models
+
+from .scrape_api import hour_range
 
 log = logging.getLogger(__name__)
 
@@ -75,8 +79,82 @@ class BboxFilter(object):
         return fields
 
     def to_html(self, request, queryset, view):
-        log.error('yay')
+        """ return some help information in filter form """
         return "filter using bbbox=4.58565,52.03560,5.31360,52.48769"
+
+
+def fitting_selections():
+    """
+    Given the current time give fitting selection option
+    """
+
+    delta = datetime.timedelta(days=100)
+    now = datetime.datetime.now()
+    before = now - delta
+
+    year1 = before.year
+    hour = now.hour
+    month2 = now.month - 1
+    month1 = now.month - 4
+
+    day1 = now.weekday()
+
+    hour1 = 0
+    hour2 = 23
+
+    for min_hour, max_hour in hour_range:
+        if min_hour <= hour <= max_hour:
+            hour1 = min_hour
+            hour2 = max_hour
+            break
+
+    print([year1, hour1, hour2, day1, month1, month2])
+
+    x_selections = models.Selection.objects.exclude(
+            qualcode='BETAALDP')
+
+    selection = x_selections.filter(
+        day1=day1, day2=day1, hour1=hour1, hour2=hour2,
+        month1=month1, month2=month2,
+        year1=year1, status=1).first()
+
+    if not selection:
+        selection = x_selections.filter(
+            day1=day1, hour1=hour1, hour2=hour2,
+            month1=month1, year1=year1, status=1).first()
+
+    if not selection:
+        selection = x_selections.filter(
+            hour1=hour1, hour2=hour2,
+            month1=month1, year1=year1, status=1).first()
+
+    if not selection:
+        selection = x_selections.first()
+
+    print(repr(selection))
+
+    return selection
+
+
+def get_wegdelen(occupancy_qs, bbox_values):
+    """
+    retrieve wegdelen within bbox
+    """
+    lat1, lon1, lat2, lon2 = bbox_values
+
+    poly_bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
+
+    wd_qs = occupancy_qs.filter(
+        Q(**{"wegdeel__geometrie__overlaps": poly_bbox}))
+
+    print(wd_qs.count())
+
+    db_wegdelen = wd_qs.filter(wegdeel__vakken__gte=1)
+
+    print(db_wegdelen.count())
+
+    # return db_wegdelen
+    return wd_qs
 
 
 class OccupancyInBBOX(viewsets.ViewSet):
@@ -99,23 +177,8 @@ class OccupancyInBBOX(viewsets.ViewSet):
     filter_backends = [BboxFilter]
 
     def get_queryset(self):
+        """ not used """
         pass
-
-    def get_wegdelen(self, occupancy_qs, bbox_values):
-        """
-        retrieve wegdelen within bbox
-        """
-        lat1, lon1, lat2, lon2 = bbox_values
-
-        poly_bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
-
-        wd_qs = occupancy_qs.filter(
-            Q(**{"wegdeel__geometrie__bboverlaps": poly_bbox}))
-
-        db_wegdelen = wd_qs.filter(wegdeel__vakken__gte=3)
-        db_wegdelen = db_wegdelen.filter(wegdeel__scan_count__gte=100)
-
-        return db_wegdelen
 
     def list(self, request):
         """
@@ -123,6 +186,7 @@ class OccupancyInBBOX(viewsets.ViewSet):
 
         max 200 roadparts are taken
         """
+
         bbox_values, err = bbox.determine_bbox(request)
 
         # WEEKEND, WEEKDAY, DAYRANGE
@@ -130,11 +194,7 @@ class OccupancyInBBOX(viewsets.ViewSet):
         if err:
             return Response([f"bbox invalid {err}:{bbox_values}"], status=400)
 
-        done = 1
-
-        selection = models.Selection.objects.filter(
-                day1=0, day2=6, hour1=0, hour2=23,
-                year1=2017, status=done).first()
+        selection = fitting_selections()
 
         if not selection:
             return Response([f"selections are missing.."], status=500)
@@ -142,21 +202,37 @@ class OccupancyInBBOX(viewsets.ViewSet):
         occupancy_numbers = models.RoadOccupancy.objects.filter(
             selection=selection.id).select_related('wegdeel')
 
-        wegdelen = self.get_wegdelen(occupancy_numbers, bbox_values)
+        print(occupancy_numbers.count())
+
+        wegdelen = get_wegdelen(occupancy_numbers, bbox_values)
+
+        print(wegdelen.count())
 
         occupancy = []
 
         for wd in wegdelen[:100]:
             occupancy.append(wd.occupancy)
 
+        avg_occupancy = 1
+
+        if sum(occupancy) == 0:
+            avg_occupancy = -1
+        else:
+            avg_occupancy = sum(occupancy) / float(len(occupancy))
+
         result = [
             {
                 'roadparts': wegdelen.count(),
-                'occupation':  sum(occupancy) / float(len(occupancy)),
+                'occupancy': avg_occupancy,
                 'bbox': bbox_values
 
             }
         ]
+        # show found numbers (debug)
+        status = 200
         result.extend(occupancy)
+        if not occupancy:
+            result[0]['status'] = 'oops something went wrong'
+            status = 404
 
-        return Response(result)
+        return Response(result, status)

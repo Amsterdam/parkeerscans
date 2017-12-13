@@ -52,7 +52,7 @@ month_range = [
 ]
 
 day_range = [
-    (0, 6),  # hele week
+    #(0, 6),  # hele week too heavy!
     (0, 4),  # werkdag
     (5, 6),  # weekend
 
