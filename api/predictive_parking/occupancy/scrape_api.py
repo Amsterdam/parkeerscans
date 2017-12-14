@@ -306,15 +306,21 @@ def store_selection_status(selection):
         log.info(f'Roadparts {wd_count[0][1]} for {selection}')
 
 
-def fill_occupancy_roadparts():
+def fill_occupancy_roadparts(count=0):
     """
     Fill occupancy table with occupancy
     cijfers
     """
+    if count > 10:
+        # stop retrying
+        return
+
+    count += 1
 
     work_selections = get_work_to_do()
 
     work_count = work_selections.count()
+    work_selections = list(work_selections)
 
     for i, selection in enumerate(work_selections):
         _s = selection
@@ -337,9 +343,10 @@ def fill_occupancy_roadparts():
         store_selection_status(selection)
 
     work_count = work_selections.count()
+
     if work_count:
-        log.debug('not done yet..')
-        fill_occupancy_roadparts()
+        log.debug('not done yet.. lets retry')
+        fill_occupancy_roadparts(count=count)
 
 
 def execute_sql(sql):
