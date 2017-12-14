@@ -102,7 +102,7 @@ if [ $RUNELASTIC != "yes" ]
 then
 	echo "create scan db dump"
 	# run the DB backup shizzle
-	dc exec database ./backup-db-scans.sh
+	dc exec -T database ./backup-db-scans.sh
 fi
 
 echo "DONE! with scan data import. You are awesome! <3"
@@ -113,5 +113,3 @@ if [ $RUNELASTIC == "yes" ]
 then
 	source ${DIR}/import-es.sh
 fi
-
-#dc down --remove-orphans

@@ -10,7 +10,7 @@ echo $0
 #
 
 dc() {
-	docker-compose -p occ -f ${DIR}/docker-compose-occ.yml $*;
+	docker-compose -p occ -f ${DIR}/docker-compose.yml $*;
 }
 
 # so we can delete named volumes
@@ -50,7 +50,7 @@ dc run --rm importer ./docker-occupancy-bakker.sh
 
 
 # run the DB backup shizzle
-dc exec database ./backup-db-occupancy.sh
+dc exec -T database ./backup-db-occupancy.sh
 
 
 dc down
