@@ -4,6 +4,8 @@ in the database for easy to consume datasets
 """
 import logging
 import requests
+import psycopg2
+
 from datetime import datetime
 from datetime import timedelta
 
@@ -419,10 +421,13 @@ def dump_csv_files():
 
         with connection.cursor() as cursor:
 
-            with open(file_name, 'w') as f:
-                log.debug('saving view: %s', file_name)
-                cursor.copy_expert(outputquery, f)
+            try:
+                with open(file_name, 'w') as f:
+                    log.debug('saving view: %s', file_name)
+                    cursor.copy_expert(outputquery, f)
 
-            with open(file_name_no_geo, 'w') as f:
-                log.debug('saving view: %s', file_name_no_geo)
-                cursor.copy_expert(outputquery_no_geo, f)
+                with open(file_name_no_geo, 'w') as f:
+                    log.debug('saving view: %s', file_name_no_geo)
+                    cursor.copy_expert(outputquery_no_geo, f)
+            except psycopg2.ProgrammingError:
+                log.exception('table missing')
