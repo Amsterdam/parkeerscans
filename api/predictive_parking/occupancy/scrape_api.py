@@ -322,7 +322,6 @@ def fill_occupancy_roadparts(count=0):
     work_selections = get_work_to_do()
 
     work_count = work_selections.count()
-    work_selections = list(work_selections)
 
     for i, selection in enumerate(work_selections):
         _s = selection

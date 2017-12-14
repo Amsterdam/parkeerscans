@@ -13,11 +13,10 @@ services:
       predictiveparking:
     volumes:
       - databasevolume:/tmp
-      - data-volume:/app/data
       - ./backups:/tmp/backups
+      - data-volume:/app/data
       - ./backup-db-scans.sh:/backup-db-scans.sh
-      - ./backup-db-occupancy.sh:/backup-occupancy.sh
-
+      - ./backup-db-occupancy.sh:/backup-db-occupancy.sh
     extra_hosts:
       admin.datapunt.amsterdam.nl: 10.99.157.24
 
