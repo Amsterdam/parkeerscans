@@ -13,7 +13,7 @@ python manage.py scrape_occupancy --wegdelen --part 3 &
 python manage.py scrape_occupancy --wegdelen --part 4
 wait
 
-echo "create database views"
-python manage.py scrape_occupancy --create_views
+echo "create database tables"
+python manage.py scrape_occupancy --store_occupation
 
 

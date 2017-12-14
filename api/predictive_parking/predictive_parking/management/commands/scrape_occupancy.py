@@ -48,11 +48,11 @@ class Command(BaseCommand):
             help='selection == yyyy:yyyy:mm:mm:dd:dd:hh:hh')
 
         parser.add_argument(
-            '--create_views',
+            '--store_occupancy',
             action='store_true',
-            dest='createviews',
+            dest='createtables',
             default=False,
-            help='create occupancy views',
+            help='create occupancy tables',
         )
 
         parser.add_argument(
@@ -60,7 +60,7 @@ class Command(BaseCommand):
             action='store_true',
             dest='dumpcsv',
             default=False,
-            help='dump csv views',
+            help='dump csv occupancy tables',
         )
 
     def handle(self, *args, **options):
@@ -75,8 +75,8 @@ class Command(BaseCommand):
         if options['newselection']:
             scrape_api.create_single_selection(options['newselection'])
 
-        if options['createviews']:
-            scrape_api.create_selection_views()
+        if options['createtables']:
+            scrape_api.create_selection_tables()
 
         if options['wegdelen']:
             scrape_api.fill_occupancy_roadparts()
