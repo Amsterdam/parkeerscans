@@ -22,7 +22,7 @@ from wegdelen.models import WegDeel
 from . import serializers
 from . import models
 
-from .scrape_api import hour_range
+from .scrape_api import HOUR_RANGE
 
 log = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ def fitting_selections():
     hour1 = 0
     hour2 = 23
 
-    for min_hour, max_hour in hour_range:
+    for min_hour, max_hour in HOUR_RANGE:
         if min_hour <= hour <= max_hour:
             hour1 = min_hour
             hour2 = max_hour

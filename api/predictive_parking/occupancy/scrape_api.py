@@ -3,28 +3,27 @@ Load occupancy from our own elastic API
 in the database for easy to consume datasets
 """
 import logging
-import requests
-import psycopg2
 
 from datetime import datetime
 from datetime import timedelta
 
 from collections import namedtuple
+
+import time
+import psycopg2
+import requests
+
 from django.db.models import F, Count
 
 from django.conf import settings
 from django.db import connection
 from django.test import Client
 
-from wegdelen.models import WegDeel
-from wegdelen.models import Buurt
 from occupancy.models import RoadOccupancy
 from occupancy.models import Selection
 
-import time
 
-
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)   # noqa
 
 
 API_ROOT = 'https://acc.api.data.amsterdam.nl'
@@ -37,7 +36,8 @@ TEST_CLIENT = None
 if settings.TESTING:
     TEST_CLIENT = Client()
 
-hour_range = [
+
+HOUR_RANGE = [
     (9, 12),   # ochtend
     (13, 16),  # middag
     (17, 19),  # spits
@@ -46,15 +46,17 @@ hour_range = [
     (0, 23),   # dag
 ]
 
-month_range = [
+
+MONTH_RANGE = [
     # (0, 3),
     # (4, 6),
     (3, 7),
     # (10, 12),
 ]
 
-day_range = [
-    #(0, 6),  # hele week too heavy!
+
+DAY_RANGE = [
+    # (0, 6),  # hele week too heavy!
     (0, 4),  # werkdag
     (5, 6),  # weekend
 
@@ -67,9 +69,11 @@ day_range = [
     (6, 6),  # zondag
 ]
 
+
 year_range = [
     (2017, 2017),
 ]
+
 
 Bucket = namedtuple(
     'bucket', ['y1', 'y2', 'm1', 'm2', 'd1', 'd2', 'h1', 'h2', 'qcode'])
@@ -102,8 +106,8 @@ def occupancy_buckets():
 
     y1, y2, m1, m2 = make_year_month_range()
 
-    for d1, d2 in day_range:
-        for h1, h2 in hour_range:
+    for d1, d2 in DAY_RANGE:
+        for h1, h2 in HOUR_RANGE:
             # Bezoekers of niet.
             for q in [None, 'BETAALDP']:
                 b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2, q)
@@ -391,7 +395,6 @@ AND s.id = {selection.id}) as tmptable
         execute_sql(sql)
 
 
-
 def dump_csv_files():
     """
     For each view create a csv file.
@@ -426,12 +429,13 @@ def dump_csv_files():
         with connection.cursor() as cursor:
 
             try:
-                with open(file_name, 'w') as f:
+                with open(file_name, 'w') as csvfile:
                     log.debug('saving view: %s', file_name)
-                    cursor.copy_expert(outputquery, f)
+                    cursor.copy_expert(outputquery, csvfile)
 
-                with open(file_name_no_geo, 'w') as f:
+                with open(file_name_no_geo, 'w') as csvfile:
                     log.debug('saving view: %s', file_name_no_geo)
-                    cursor.copy_expert(outputquery_no_geo, f)
+                    cursor.copy_expert(outputquery_no_geo, csvfile)
+
             except psycopg2.ProgrammingError:
                 log.exception('table missing')

@@ -1,3 +1,37 @@
+# Overview
+
+                       +-------------+
+                       |parkeer scans|    4.000.000 A month
+                       +------+------+
+                              |
+                              |
+       +-------------------+  |
+       |BGT kaart gegevens +--+
+       +-------------------+  |
+                              |      +------------+
+                              +------+parkeerkaart|
+                              |      +------------+
+           +------+           |
+           | BAG  +-----------+
+           +------+           |
+                              |
+                              |
+                      +-------v---------+
+                      |                 |  in blocks of 500.000
+   +------------------+  Database       |
+   |                  |                 |
+   |                  +-------+---------+
++--v------+                   |
+|   API   |                   |
+|         |                   |
++---+-----+                   v
+    ^                 +-------+---------+
+    |                 |                 |
+    +-----------------+  Elsticsearch   |
+                      |                 |
+                      +-----------------+
+
+
 # Predictive Parking
 
 This is a project about the scan data analysis. Making maps of the parking "pressure"
