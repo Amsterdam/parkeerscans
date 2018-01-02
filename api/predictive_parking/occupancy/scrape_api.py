@@ -81,15 +81,14 @@ def make_year_month_range():
     """
     delta = timedelta(days=100)
     today = datetime.today()
+
     before = today - delta
 
     year1 = before.year
     year2 = today.year
 
     month1 = before.month - 1   # we start at 0
-    # This month we have no data.
-    # so we should take month before
-    month2 = today.month - 1
+    month2 = today.month - 1   # we start at 0
 
     return year1, year2, month1, month2
 
@@ -168,7 +167,6 @@ def validate_selection(bucket):
     assert b.h1 in range(0, 24)
     assert b.h2 in range(0, 24)
     assert b.y1 <= b.y2
-    assert b.m1 <= b.m2
     assert b.d1 <= b.d2
     assert b.h1 <= b.h2
 
