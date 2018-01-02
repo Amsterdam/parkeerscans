@@ -38,15 +38,15 @@ in the city is the main goal.
 
 The project is devided in a few docker-containers with their own functions.
 
-  - api
+  - API
      - provide web api on scan data
      - contains database building / migrations and loading of related databases
   - angluar
-     - occupancy viewer build on top of api.
+     - occupancy viewer build on top of API.
   - csvimporter
-    - golang code which crunches to and cleans up scan data and import csv data into postgres database
+    - golang code which crunches and cleans up the raw csv scan data into postgres database
   - kibana
-    - default kibana to analyse scan - data. deployed at: https://acc.parkeren.data.amsterdam.nl
+    - default kibana to analyse scan - data. deployed at: https://kibana.parkeren.data.amsterdam.nl
   - logstash
     - import data from database into elasticsearch
   - postgres
@@ -55,11 +55,12 @@ The project is devided in a few docker-containers with their own functions.
     - import environment to build new dataset
 
 
-There are two steps
+There are the implemented stages
 
  - 1. Prepare, combine, cleanup the data.
  - 2. Visualize the data in kibana.
  - 3. Visualize the occupancy special viewer.
+ - 4. Create occupancy maps from the entire city.
 
 https://dokuwiki.datapunt.amsterdam.nl/doku.php?id=start:pparking:architectuur
 
@@ -108,12 +109,6 @@ Step 3. Customized agular 4 / leaflet viewer.
 After experimenting with kibana we decided to make a specialized viewer using angular4 and leaflet.
 We show parking pressure for year, month, week, day by hour summaries for the parking/road map of Amsterdam.
 this is a work in progres.
-
-
- TODO
-=====
-
- - incremental data loading
 
 
 Development
