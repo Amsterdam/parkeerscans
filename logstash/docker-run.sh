@@ -3,6 +3,8 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
+max_workers=3
+
 # prepare elastic templates for scan documents
 # we need to put in manual elk point
 
@@ -39,9 +41,10 @@ tablenames='/app/data/tables.txt'
 
 export DB=predictiveparking
 
-while read tablename; do
-	echo $tablename
-	TABLE=$tablename logstash -f readdb.conf --pipeline.workers 2
-done < $tablenames
+# while read tablename; do
+# 	echo $tablename
+# 	TABLE=$tablename logstash -f readdb.conf --pipeline.workers 4
+# done < $tablenames
 
-
+# run max_workers logstash instances.
+< $tablenames xargs -P $max_workers -n 1 -I tablename env TABLE=tablename logstash -f readdb.conf --pipeline.workers 4 --path.data /tmp/tablename
