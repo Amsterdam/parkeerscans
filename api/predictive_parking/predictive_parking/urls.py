@@ -88,7 +88,7 @@ json_schema_view = get_schema_view(title='Parkeerscan API')
 # predictiveparking.register(r'parkeerkans', kansen.urls
 
 urlpatterns = [
-    url(r'^status/', include('health.urls', namespace='health')),
+    url(r'^status/', include('health.urls')),
     url(r'^schema/', json_schema_view),
     url(r'^predictiveparking/doc', schema_view),
     url(r'^predictiveparking/', include(predictiveparking.urls)),

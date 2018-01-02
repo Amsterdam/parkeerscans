@@ -89,8 +89,10 @@ class RoadOccupancy(models.Model):
     bgt_id = models.CharField(db_index=True, max_length=38)
     # geometrie = models.GeometryField(blank=True, null=True, db_index=True)
 
-    selection = models.ForeignKey(Selection, null=True)
-    wegdeel = models.ForeignKey(WegDeel, null=True)
+    selection = models.ForeignKey(
+        Selection, null=True, on_delete=models.CASCADE)
+    wegdeel = models.ForeignKey(
+        WegDeel, null=True, on_delete=models.CASCADE)
 
     # fiscale_vakken = models.IntegerField(blank=True, null=True)
     occupancy = models.FloatField(blank=True, null=True)
@@ -116,6 +118,7 @@ class BuurtOccupancy(models.Model):
     vakken = models.IntegerField(null=True)
     fiscale_vakken = models.IntegerField(null=True)
 
-    selection = models.ForeignKey(Selection, null=True)
+    selection = models.ForeignKey(
+        Selection, null=True, on_delete=models.CASCADE)
 
     occupancy = models.FloatField(blank=True, null=True)

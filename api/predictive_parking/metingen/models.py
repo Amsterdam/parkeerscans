@@ -10,9 +10,16 @@ to increase the speed of handling data.
 
 from __future__ import unicode_literals
 
+import django
+
 from django.db import models
 
 from django.contrib.gis.db import models as geo
+
+if django.VERSION < (2, 0):
+    from django.contrib.gis.db.models import GeoManager
+else:
+    from django.db.models import Manager as GeoManager
 
 
 class Scan(models.Model):
@@ -101,7 +108,7 @@ class Scan(models.Model):
     reliability_ANPR = models.FloatField(null=True)
 
     geometrie = geo.PointField(null=True, srid=4326)
-    objects = geo.GeoManager()
+    objects = GeoManager()
 
     def __str__(self):
         return f"{self.scan_id} - {self.parkeervak_id}"
@@ -171,4 +178,4 @@ class ScanRaw(models.Model):
     reliability_ANPR = models.FloatField(null=True)
 
     geometrie = geo.PointField(null=True, srid=4326)
-    objects = geo.GeoManager()
+    objects = GeoManager()
