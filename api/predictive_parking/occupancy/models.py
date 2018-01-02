@@ -56,7 +56,10 @@ class Selection(models.Model):
 
     def _name(self):
 
-        month2 = self.month2 or self.month1
+        month2 = self.month2
+        if month2 is None:
+            month2 = self.month1
+
         year2 = self.year2 or self.year1
         day2 = self.day2 or self.day1
 

@@ -56,7 +56,7 @@ MONTH_RANGE = [
 
 
 DAY_RANGE = [
-    # (0, 6),  # hele week too heavy!
+    (0, 6),  # hele week too heavy!
     (0, 4),  # werkdag
     (5, 6),  # weekend
 
@@ -386,9 +386,12 @@ SELECT
     min_occupancy,
     max_occupancy,
     std_occupancy, unique_scans,
-    geometrie
-FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc, occupancy_selection s
+    b.code,
+    wd.geometrie
+FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc,
+     occupancy_selection s, wegdelen_buurt b
 WHERE wd.bgt_id = oc.bgt_id
+AND ST_Contains(b.geometrie, wd.geometrie)
 AND wd.vakken >= 3
 AND s.id = oc.selection_id
 AND s.id = {selection.id}) as tmptable
