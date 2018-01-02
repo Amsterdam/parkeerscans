@@ -13,7 +13,7 @@ services:
       predictiveparking:
     volumes:
       - databasevolume:/tmp
-      - ./backups:/tmp/backups
+      - ./backups:/backups
       - data-volume:/app/data
       - ./backup-db-scans.sh:/backup-db-scans.sh
       - ./backup-db-occupancy.sh:/backup-db-occupancy.sh
