@@ -270,6 +270,7 @@ def do_request(selection: dict) -> dict:
         'hour_lte': s.hour2,
         'wegdelen_size': 8000,
     }
+
     if s.qualcode:
         payload['qualcode'] = s.qualcode
 

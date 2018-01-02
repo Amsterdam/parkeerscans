@@ -472,6 +472,22 @@ def make_range_q(field, gte_field, lte_field, cleaned_data):
     return range_q
 
 
+def find_options(low, high, size):
+    """
+    Given range find which index values we need
+
+    1, 4 -> 1 2 3 4
+    11, 2 -> 11, 0, 1, 2
+    """
+
+    if low < high:
+        return list(range(int(low), int(high)+1))
+    else:
+        end_options = list(range(size))[low:]
+        start_options = list(range(size))[:high+1]
+        return end_options + start_options
+
+
 def make_field_bool_query(
         field, field_gte, field_lte,
         cleaned_data, all_options):
@@ -495,11 +511,10 @@ def make_field_bool_query(
         return
 
     involved_terms = []
-
-    for x in range(int(low), int(high)+1):
-        involved_terms.append(all_options[int(x)])
-
     should = []
+
+    for x in find_options(low, high, len(all_options)):
+        involved_terms.append(all_options[int(x)])
 
     for stringfield in involved_terms:
         should.append(
