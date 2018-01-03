@@ -56,7 +56,7 @@ MONTH_RANGE = [
 
 
 DAY_RANGE = [
-    (0, 6),  # hele week too heavy!
+    # (0, 6),  # hele week too heavy!
     (0, 4),  # werkdag
     (5, 6),  # weekend
 
@@ -346,11 +346,11 @@ def fill_occupancy_roadparts(count=0):
 
         store_selection_status(selection)
 
-    work_count = work_selections.count()
+    #work_count = work_selections.count()
 
-    if work_count:
-        log.debug('not done yet.. lets retry')
-        fill_occupancy_roadparts(count=count)
+    #if work_count:
+    #    log.debug('not done yet.. lets retry')
+    #    fill_occupancy_roadparts(count=count)
 
 
 def execute_sql(sql):
