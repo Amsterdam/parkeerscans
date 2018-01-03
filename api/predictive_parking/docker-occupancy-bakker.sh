@@ -15,5 +15,3 @@ wait
 
 echo "create database tables"
 python manage.py scrape_occupancy --store_occupation
-
-
