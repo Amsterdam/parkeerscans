@@ -81,9 +81,9 @@ dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_regionale_weg bgt
 #
 #echo "Load buurt / buurtcombinatie"
 dc exec -T database update-table.sh bag bag_buurt public predictiveparking
+
 #
-#
-#echo "create wegdelen / buurten and complete the scans data"
+# echo "create wegdelen / buurten and complete the scans data"
 dc run --rm importer ./docker-wegdelen.sh
 #
 echo "loading the unzipped scans into database, add wegdelen / pv to scans"
