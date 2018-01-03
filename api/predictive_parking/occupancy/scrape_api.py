@@ -413,6 +413,7 @@ def dump_csv_files():
         SELECT
             id, bgt_id, occupancy, vakken, fiscale_vakken,
             min_occupancy, max_occupancy, std_occupancy, unique_scans,
+            code,
             ST_AsText(geometrie)
         FROM sv{str(view_name)}
         """
@@ -420,7 +421,8 @@ def dump_csv_files():
         select_no_geo = f"""
         SELECT
             id, bgt_id, occupancy, vakken, fiscale_vakken
-            min_occupancy, max_occupancy, std_occupancy, unique_scans
+            min_occupancy, max_occupancy, std_occupancy, unique_scans,
+            code
         FROM sv{str(view_name)}
         """
 
