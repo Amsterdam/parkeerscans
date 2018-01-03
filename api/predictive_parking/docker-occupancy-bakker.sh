@@ -17,4 +17,4 @@ python manage.py scrape_occupancy --wegdelen
 wait
 
 echo "create database tables"
-python manage.py scrape_occupancy --store_occupation
+python manage.py scrape_occupancy --store_occupancy
