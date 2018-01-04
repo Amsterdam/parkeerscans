@@ -3,7 +3,7 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-max_workers=3
+max_workers=2
 
 # prepare elastic templates for scan documents
 # we need to put in manual elk point
@@ -18,10 +18,11 @@ done
 # export ELKHOST='http://es01-acc.datapunt.amsterdam.nl'
 
 
-# curl -s -v -f -XDELETE http://${ELKHOST:-elasticsearch}:9200/_template/scan || echo 'OK'
-curl -s -v -f -XPUT http://${ELKHOST:-elasticsearch}:9200/_template/scan -d '
+curl -s -v -f -XDELETE http://${ELKHOST:-elasticsearch}:9200/_template/scan || echo 'OK'
+
+curl -H "Content-Type: application/json" -s --trace-ascii -f -PUT http://${ELKHOST:-elasticsearch}:9200/_template/scan -d '
 {
-  "template": "scans-*",
+  "index_patterns": ["scans-*"],
   "settings": {
     "number_of_shards": 1,
     "number_of_replicas": 0
