@@ -189,8 +189,8 @@ def store_occupancy_data(json: dict, selection: dict):
     for wd_id, wd_data in json['wegdelen'].items():
 
         avg_occupancy = wd_data.get('avg_occupancy')
-        min_occupancy = wd_data.get('max_occupancy')
-        max_occupancy = wd_data.get('min_occupancy')
+        min_occupancy = wd_data.get('min_occupancy')
+        max_occupancy = wd_data.get('max_occupancy')
         std_occupancy = wd_data.get('std_occupancy')
 
         if not avg_occupancy:
