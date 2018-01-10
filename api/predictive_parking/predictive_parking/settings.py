@@ -131,7 +131,8 @@ def in_docker():
     """
 
     try:
-        return ':/docker/' in open('/proc/1/cgroup', 'r').read()
+        cgroup = open('/proc/1/cgroup', 'r').read()
+        return ':/docker/' in cgroup or ':/docker-ce/' in cgroup
     except:
         return False
 
