@@ -8,7 +8,7 @@ max_workers=2
 # prepare elastic templates for scan documents
 # we need to put in manual elk point
 
-while ! nc -z elasticsearch 9200
+while ! ncat --send-only elasticsearch 9200 < /dev/null
 do
  	echo "Waiting for elastic..."
  	sleep 1.5
