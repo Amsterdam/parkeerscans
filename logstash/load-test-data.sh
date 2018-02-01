@@ -4,6 +4,12 @@ set -e
 set -u
 set -x
 
+while ! ncat --send-only elasticsearch 9200 < /dev/null
+do
+ 	echo "Waiting for elastic..."
+ 	sleep 1.5
+done
+
 
 curl -H "Content-Type: application/json" -s --trace-ascii -s -v -f -XPUT http://elasticsearch:9200/_template/scan -d '
 {
