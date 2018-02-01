@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)   # noqa
 
 
 API_ROOT = 'https://acc.api.data.amsterdam.nl'
+# API_ROOT = 'http://127.0.0.1:8000'
 API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/'
 
 API_URL = f'{API_ROOT}{API_PATH}'
@@ -83,7 +84,7 @@ def make_year_month_range():
     """
     now - 3 months
     """
-    delta = timedelta(days=100)
+    delta = timedelta(days=30)
     today = datetime.today()
 
     before = today - delta
@@ -225,7 +226,7 @@ def create_selection_buckets():
     create_selections(buckets)
 
     todo_selections = Selection.objects.filter(status__isnull=True).count()
-    done_selections = Selection.objects.filter(status__isnull=1).count()
+    done_selections = Selection.objects.filter(status__isnull=False).count()
 
     log.info(f'Selections: TODO: {todo_selections} READY: {done_selections}')
 
@@ -263,7 +264,7 @@ def do_request(selection: dict) -> dict:
         'year_gte': s.year1,
         'year_lte': s.year2,
         'month_gte': s.month1,
-        'month_lte': s.month2 or s.month1,
+        'month_lte': s.month2,
         'day_gte': s.day1,
         'day_lte': s.day2,
         'hour_gte': s.hour1,

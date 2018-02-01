@@ -56,7 +56,8 @@ class MetingenTestCase(APITestCase):
         # start , end , expected
         tests = [
             [1, 4,  [1, 2, 3, 4]],  # feb-may
-            [11, 2, [11, 0, 1, 2]]  # dec-march
+            [11, 2, [11, 0, 1, 2]],  # dec-march
+            [8, 0, [8, 9, 10, 11, 0]],  # sept-jan
         ]
 
         for start, end, expected in tests:
@@ -79,3 +80,21 @@ class MetingenTestCase(APITestCase):
             self.assertEqual(set(options), set(expected))
 
             self.assertNotIn('month', cleaned_data)
+
+    def test_term_options(self):
+
+        test_params = {
+            'week': 44,
+            'hour': 12,
+            'month': 4,
+        }
+
+        cleaned, err = queries.clean_parameter_data(test_params)
+        self.assertEqual(err, None, err)
+
+        cleaned, err = queries.clean_parameter_data({'hour': 60})
+        self.assertNotEqual(err, None, err)
+        cleaned, err = queries.clean_parameter_data({'minute': 60})
+        self.assertNotEqual(err, None, err)
+        cleaned, err = queries.clean_parameter_data({'month': 12})
+        self.assertNotEqual(err, None, err)

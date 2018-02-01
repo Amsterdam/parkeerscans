@@ -2,6 +2,7 @@
 
 set -u   # crash on missing env variables
 set -e   # stop on any error
+set -x
 
 echo 'Downloading latest parking scan data'
 python get_os_data.py

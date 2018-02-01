@@ -3,7 +3,7 @@
 # helper script to fill database with related data for (development)
 
 # set -u
-# set -e
+set -e
 set -x
 echo "provde username if using ssh / dev env"
 

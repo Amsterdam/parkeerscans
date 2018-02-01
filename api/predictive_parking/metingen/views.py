@@ -518,7 +518,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             return Response([f"bbox invalid {err}:{bbox_values}"], status=400)
 
         # clean client input
-        cleaned_data, err = queries.clean_parameter_data(request)
+        cleaned_data, err = queries.clean_parameter_data(request.query_params)
 
         if err:
             return Response([f"invalid parameter {err}"], status=400)

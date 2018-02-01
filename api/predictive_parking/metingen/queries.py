@@ -174,6 +174,8 @@ POSSIBLE_INT_PARAMS = [
     #('minute_gte', range(0, 60)),
     #('minute_lte', range(0, 60)),
 
+    ('week', range(1, 53)),
+
     ('day', range(0, 7)),
     ('day_gte', range(0, 7)),
     ('day_lte', range(0, 7)),
@@ -199,6 +201,7 @@ TERM_FIELDS = {
     'bgt_wegdeel': None,
     'year': None,
     'day': None,
+    'week': None,
     'hour': None,
     'month': None,
     # 'minute': None,
@@ -336,21 +339,19 @@ def selection_fields(req_params, clean_values):
     return err
 
 
-def parse_parameter_input(request):
+def parse_parameter_input(query_params):
     """
     Validate client input
     """
     err = None
 
-    req_params = request.query_params
-
     clean_values = {}
 
-    err = check_all_paramaters(req_params, clean_values)
+    err = check_all_paramaters(query_params, clean_values)
     if err:
         return None, err
 
-    err = parse_int_parameters(req_params, clean_values)
+    err = parse_int_parameters(query_params, clean_values)
 
     if err:
         return None, err
@@ -365,7 +366,7 @@ def parse_parameter_input(request):
     # set soort is fiscaal
     clean_values['parkeervak_soort'] = 'FISCAAL'
 
-    err = selection_fields(req_params, clean_values)
+    err = selection_fields(query_params, clean_values)
 
     if err:
         return None, err
@@ -476,16 +477,21 @@ def find_options(low, high, size):
     """
     Given range find which index values we need
 
+    first case
     1, 4 -> 1 2 3 4
+
+    second case
     11, 2 -> 11, 0, 1, 2
     """
 
     if low < high:
+        # normal case
         return list(range(int(low), int(high)+1))
-    else:
-        end_options = list(range(size))[low:]
-        start_options = list(range(size))[:high+1]
-        return end_options + start_options
+
+    # we go past the size
+    end_options = list(range(size))[low:]
+    start_options = list(range(size))[:high+1]
+    return end_options + start_options
 
 
 def make_field_bool_query(
@@ -533,14 +539,14 @@ def make_field_bool_query(
     return field_bool_q
 
 
-def clean_parameter_data(request):
+def clean_parameter_data(query_params):
     """
     clean client input from the evil internets
     """
 
     err = None
 
-    cleaned_data, err = parse_parameter_input(request)
+    cleaned_data, err = parse_parameter_input(query_params)
 
     if err:
         return {}, err
