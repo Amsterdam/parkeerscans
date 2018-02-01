@@ -50,7 +50,7 @@ class Selection(models.Model):
     year2 = models.IntegerField(blank=False, null=True)
 
     # iso weeknumber
-    week = models.IntegerField(blank=False, null=True)
+    # week = models.IntegerField(blank=False, null=True)
 
     status = models.IntegerField(blank=True, null=True)
     # buurt = models.CharField(db_index=True, null=True, max_length=4, )

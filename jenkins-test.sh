@@ -2,18 +2,20 @@
 
 set -u   # crash on missing env variables
 set -e   # stop on any error
+set -x
 
 dc() {
    docker-compose -p test -f docker-compose-test.yml $*;
 }
 
+dc down
 dc build
 dc pull
 
 dc up -d database
 dc up -d elasticsearch
 
-sleep 5  # sometimes DB creation is not ready yet
+sleep 6  # sometimes DB creation is not ready yet
 
 dc run --rm ppapi /app/docker-wait.sh
 
