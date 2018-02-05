@@ -5,6 +5,7 @@ import datetime
 from django.utils.encoding import force_text
 from django.contrib.gis.geos import Polygon
 from django.db.models import Q
+from django.conf import settings
 
 # from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -83,10 +84,26 @@ class BboxFilter(object):
         return "filter using bbbox=4.58565,52.03560,5.31360,52.48769"
 
 
-def fitting_selections():
+def clean_selection_params(params):
+    """
+    year, month, day, hour
+    """
+    cleaned = {}
+    valid_keys = ['year', 'monht', 'day', 'hour']
+    for valid in valid_keys:
+        value = params.get(valid, '')
+        if value.isdigit():
+            cleaned[valid] = int(value)
+
+    return cleaned
+
+
+
+def fitting_selections(params):
     """
     Given the current time give fitting selection option
     """
+    clean_params = clean_selection_params(params)
 
     delta = datetime.timedelta(days=100)
     now = datetime.datetime.now()
@@ -108,30 +125,32 @@ def fitting_selections():
             hour2 = max_hour
             break
 
-    print([year1, hour1, hour2, day1, month1, month2])
+    log.info([year1, hour1, hour2, day1, month1, month2])
 
     x_selections = models.Selection.objects.exclude(
             qualcode='BETAALDP')
 
+    x_selections = x_selections.filter(status=1)
+
     selection = x_selections.filter(
         day1=day1, day2=day1, hour1=hour1, hour2=hour2,
         month1=month1, month2=month2,
-        year1=year1, status=1).first()
+        year1=year1).first()
 
     if not selection:
         selection = x_selections.filter(
             day1=day1, hour1=hour1, hour2=hour2,
-            month1=month1, year1=year1, status=1).first()
+            month1=month1, year1=year1).first()
 
     if not selection:
         selection = x_selections.filter(
             hour1=hour1, hour2=hour2,
-            month1=month1, year1=year1, status=1).first()
+            month1=month1, year1=year1).first()
 
     if not selection:
         selection = x_selections.first()
 
-    print(repr(selection))
+    log.info('Found selection %s', repr(selection))
 
     return selection
 
@@ -142,19 +161,21 @@ def get_wegdelen(occupancy_qs, bbox_values):
     """
     lat1, lon1, lat2, lon2 = bbox_values
 
+    # lon1, lat1, lon1, n2 = bbox_values
+
     poly_bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
 
-    wd_qs = occupancy_qs.filter(
-        Q(**{"wegdeel__geometrie__overlaps": poly_bbox}))
+    log.debug(poly_bbox)
 
-    print(wd_qs.count())
+    wd_qs = WegDeel.objects.filter(
+        geometrie__bboverlaps=(poly_bbox))
 
-    db_wegdelen = wd_qs.filter(wegdeel__vakken__gte=1)
+    bgt_ids = wd_qs.values_list('bgt_id')
 
-    print(db_wegdelen.count())
+    db_wegdelen = occupancy_qs.filter(
+        bgt_id__in=bgt_ids)
 
-    # return db_wegdelen
-    return wd_qs
+    return db_wegdelen
 
 
 class OccupancyInBBOX(viewsets.ViewSet):
@@ -169,6 +190,13 @@ class OccupancyInBBOX(viewsets.ViewSet):
                   4.58565,  52.03560,  5.31360, 52.48769,
         bbox      bottom,       left,      top,    right
 
+        month     [0-11] prefered month
+
+        day       [0-6] prefered day
+
+        hour      [0-23] prefered hour
+
+        We get aggregate information around given parameters.
 
     The results are made possible by the scan measurements of
     the scan-cars.
@@ -194,19 +222,21 @@ class OccupancyInBBOX(viewsets.ViewSet):
         if err:
             return Response([f"bbox invalid {err}:{bbox_values}"], status=400)
 
-        selection = fitting_selections()
+        params = request.query_params
+
+        selection = fitting_selections(params)
 
         if not selection:
             return Response([f"selections are missing.."], status=500)
 
         occupancy_numbers = models.RoadOccupancy.objects.filter(
-            selection=selection.id).select_related('wegdeel')
+            selection=selection.id)
 
-        print(occupancy_numbers.count())
+        log.error('C %s' % occupancy_numbers.count())
 
         wegdelen = get_wegdelen(occupancy_numbers, bbox_values)
 
-        print(wegdelen.count())
+        log.error(wegdelen.count())
 
         occupancy = []
 
@@ -224,13 +254,16 @@ class OccupancyInBBOX(viewsets.ViewSet):
             {
                 'roadparts': wegdelen.count(),
                 'occupancy': avg_occupancy,
-                'bbox': bbox_values
-
+                'bbox': bbox_values,
+                'selection': repr(selection)
             }
         ]
         # show found numbers (debug)
         status = 200
-        result.extend(occupancy)
+
+        if settings.DEBUG:
+            result.extend(occupancy)
+
         if not occupancy:
             result[0]['status'] = 'oops something went wrong'
             status = 404
