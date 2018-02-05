@@ -225,10 +225,17 @@ def create_selection_buckets():
     buckets = occupancy_buckets()
     create_selections(buckets)
 
-    todo_selections = Selection.objects.filter(status__isnull=True).count()
-    done_selections = Selection.objects.filter(status__isnull=False).count()
+    todo_selections = Selection.objects.filter(status__isnull=True)
+    done_selections = Selection.objects.filter(status__isnull=False)
 
-    log.info(f'Selections: TODO: {todo_selections} READY: {done_selections}')
+    log.info(
+        f"""Selections:
+            TODO: {todo_selections.count()}
+            READY: {done_selections.count()}
+        """)
+
+    for selection in todo_selections:
+        log.debug(repr(selection))
 
 
 def get_work_to_do():

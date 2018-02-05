@@ -1,6 +1,6 @@
 
 {
-  "template": "scans-*",
+  "index_patterns": ["scans-*"],
   "order": 1,
   "settings": {
     "index.number_of_shards": 1,

@@ -43,10 +43,5 @@ tablenames='/app/data/tables.txt'
 
 export DB=predictiveparking
 
-# while read tablename; do
-# 	echo $tablename
-# 	TABLE=$tablename logstash -f readdb.conf --pipeline.workers 4
-# done < $tablenames
-
 # run max_workers logstash instances.
 < $tablenames xargs -P $max_workers -n 1 -I tablename env TABLE=tablename logstash -f readdb.conf --pipeline.workers 4 --path.data /tmp/tablename
