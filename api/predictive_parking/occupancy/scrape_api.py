@@ -84,7 +84,7 @@ def make_year_month_range():
     """
     now - 3 months
     """
-    delta = timedelta(days=30)
+    delta = timedelta(days=40)
     today = datetime.today()
 
     before = today - delta
@@ -290,6 +290,7 @@ def do_request(selection: dict) -> dict:
 
     if response.status_code != 200:
         log.error('%s %s', response.status_code, payload)
+        log.error(response.url)
         selection.status = None
         selection.save()
         log.debug('Waiting a bit..')

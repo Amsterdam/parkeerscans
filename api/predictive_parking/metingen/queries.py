@@ -170,11 +170,13 @@ POSSIBLE_INT_PARAMS = [
     ('hour_lte', range(0, 24)),
 
     # Disable minute by minute view
-    #('minute', range(0, 60)),
-    #('minute_gte', range(0, 60)),
-    #('minute_lte', range(0, 60)),
+    # ('minute', range(0, 60)),
+    # ('minute_gte', range(0, 60)),
+    # ('minute_lte', range(0, 60)),
 
     ('week', range(1, 53)),
+    ('week_gte', range(1, 53)),
+    ('week_lte', range(1, 53)),
 
     ('day', range(0, 7)),
     ('day_gte', range(0, 7)),
@@ -214,8 +216,8 @@ TERM_FIELDS = {
 POSSIBLE_PARAMS = [v[0] for v in POSSIBLE_INT_PARAMS]
 
 POSSIBLE_PARAMS.extend([
-    #'date_lte',  # elstic date math
-    #'date_gte',  # elstic date math
+    'date_lte',  # elstic date math
+    'date_gte',  # elstic date math
     'format',    # json / api
     'explain',   # give bigger respnse explaining calculation
     'bbox',      # give map bbox
@@ -242,15 +244,15 @@ def hour_next():
 
 # Elastic date notations.
 DATE_RANGE_FIELDS = [
-    ('year_gte', 2015),
+    ('year_gte', 2017),
     ('year_lte', 2025),
 
     ('hour_gte', hour_previous()),
     ('hour_lte', hour_next()),
 
     ('day', datetime.now().weekday),
-    #('day_gte', datetime.now().weekday),
-    #('day_lte', datetime.now().weekday),
+    # ('day_gte', datetime.now().weekday),
+    # ('day_lte', datetime.now().weekday),
 ]
 
 
@@ -260,6 +262,7 @@ RANGE_FIELDS = [
     ('year_gte', 'year_lte'),
     ('month_gte', 'month_lte'),
     ('day_gte', 'day_lte'),
+    ('week_gte', 'week_lte'),
 ]
 
 
@@ -356,11 +359,6 @@ def parse_parameter_input(query_params):
     if err:
         return None, err
 
-    err = validate_range_fields(clean_values)
-
-    if err:
-        return None, err
-
     # set defaults date filtering if not set by user
     set_date_fields(clean_values)
     # set soort is fiscaal
@@ -372,21 +370,6 @@ def parse_parameter_input(query_params):
         return None, err
 
     return clean_values, None
-
-
-def validate_range_fields(clean_values):
-
-    err = None
-
-    for low, high in RANGE_FIELDS:
-        if low not in clean_values:
-            continue
-        if high in clean_values:
-            low_value = clean_values[low]
-            high_value = clean_values[high]
-            if high_value < low_value:
-                err = f"!! {high_value} < {low_value}"
-    return err
 
 
 def build_term_query(field, value):
