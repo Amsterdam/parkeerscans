@@ -246,7 +246,7 @@ class BrowseDatasetsTestCase(APITestCase):
     def test_day_selection(self):
         test_selections = [
             (0, 0, 200),
-            (2, 0, 400),
+            (2, 0, 200),
             (0, 2, 200),
         ]
         url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
@@ -308,7 +308,7 @@ class BrowseDatasetsTestCase(APITestCase):
         # stadsdeel does not exist
         test_params = '&stadsdeel=X'
         response = self.client.get(url+test_params)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, 'stadsdeel?')
         self.assertNotIn('selection', response.data)
 
     def test_term_filters(self):
