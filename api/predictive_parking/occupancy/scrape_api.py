@@ -44,7 +44,7 @@ HOUR_RANGE = [
     (17, 19),  # spits
     (20, 23),  # avond
     (0, 4),    # nacht
-    (0, 23),   # dag
+    # (0, 23),   # dag
 ]
 
 
