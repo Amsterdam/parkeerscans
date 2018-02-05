@@ -15,7 +15,7 @@ export class ParkeerkansService {
   public static SATURDAY = 'saturday';
   public static SUNDAY = 'sunday';
 
-  private API_ROOT = 'https://api.data.amsterdam.nl';
+  private API_ROOT = 'https://acc.api.data.amsterdam.nl';
   // private API_ROOT = 'https://127.0.0.1:8000';
   private API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/';
 

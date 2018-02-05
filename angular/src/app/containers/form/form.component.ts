@@ -67,8 +67,6 @@ export class FormComponent implements OnInit {
   }
 
   public request() {
-    if (this.value) {
-      this.store.dispatch(new SetSelectionAction(this.value));
-    }
+    this.store.dispatch(new SetSelectionAction(this.value));
   }
 }

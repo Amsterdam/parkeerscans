@@ -52,7 +52,7 @@ export class StatisticsComponent implements OnInit {
       const [mapState, selectedWegdeelState] = state;
 
       if (! selectedWegdeelState.id) {
-        return
+        return;
       }
 
       this.wegdelenService.getBezetting(selectedWegdeelState.id, mapState.selection.day,
