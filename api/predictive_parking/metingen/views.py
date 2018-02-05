@@ -527,7 +527,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         must = queries.build_must_queries(cleaned_data)
 
         # get aggregations from elastic
-        wegdelen_size = cleaned_data.get('wegdelen_size', 150)
+        wegdelen_size = cleaned_data.get('wegdelen_size', 850)
 
         elk_response, err = self.do_wegdelen_search(
             bbox_values, must, wegdelen_size=wegdelen_size)
