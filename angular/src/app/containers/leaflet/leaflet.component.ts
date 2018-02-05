@@ -89,25 +89,25 @@ export class LeafletComponent implements AfterViewInit {
         this.leafletMap.invalidateSize();
       });
 
-      this.leafletMap.on('moveend zoomend', this.updateBoundingBox.bind(this));
+      // this.leafletMap.on('moveend zoomend', this.updateBoundingBox.bind(this));
     });
   }
 
   private updateBoundingBox() {
-    window.clearTimeout(this.debounceHandler);
-    this.debounceHandler = window.setTimeout(function() {
-      const boundingBox = this.leafletMap.getBounds();
-      Observable
-        .zip(
-        this.parkeerkansService.getParkeerkans(
-            boundingBox.toBBoxString(),
-            this.day,
-            this.dayGte,
-            this.dayLte,
-            this.hour, this.year, this.month),
-          this.wegdelenService.getWegdelen(boundingBox.toBBoxString()))
-        .subscribe(this.showWegdelen.bind(this), this.showError);
-    }.bind(this), 500);
+    // window.clearTimeout(this.debounceHandler);
+    // this.debounceHandler = window.setTimeout(function() {
+    const boundingBox = this.leafletMap.getBounds();
+    Observable
+      .zip(
+      this.parkeerkansService.getParkeerkans(
+          boundingBox.toBBoxString(),
+          this.day,
+          this.dayGte,
+          this.dayLte,
+          this.hour, this.year, this.month),
+        this.wegdelenService.getWegdelen(boundingBox.toBBoxString()))
+      .subscribe(this.showWegdelen.bind(this), this.showError);
+    // }.bind(this), 500);
   }
 
   private showWegdelen([parkeerkans, wegdelen]: [Parkeerkans, any]) {
