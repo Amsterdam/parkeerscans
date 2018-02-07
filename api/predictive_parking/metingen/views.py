@@ -716,9 +716,6 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         """
 
         elk_q = queries.build_wegdeel_query(bbox_values, must, wegdelen_size)
-        # Limit the indexes we are using
-        # optional.
-        elk_q.indexes = self.indices
 
         build_q = json.loads(elk_q)
         # log.debug(json.dumps(build_q, indent=4))
