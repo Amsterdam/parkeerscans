@@ -51,7 +51,7 @@ ELK_CLIENT = Elasticsearch(
 
 
 def get_all_indices():
-    indices = ELK_CLIENT.indices.get('scans*')
+    indices = ELK_CLIENT.indices.get('scans-*')
     keys = list(indices.keys())
     keys.sort()
     # log.debug(keys)
@@ -67,9 +67,9 @@ def extract_dates(indices):
     dates = []
 
     for indexname in indices:
-        if not '-' in indexname:
+        if '-' not in indexname:
             continue
-        if not indexname.starswith('scans'):
+        if not indexname.startswith('scans'):
             continue
         datepart = indexname.split('-')[1]
         year, month, day = datepart.split('.')
