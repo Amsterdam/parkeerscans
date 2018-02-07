@@ -210,12 +210,13 @@ def create_single_selection(longstring):
 
     manual_selection = list(map(int, manual_selection))
 
-    if len(manual_selection) == 8:
+    if len(manual_selection) == 10:
         # qualcode is None
         manual_selection.append('')
 
-    assert len(manual_selection) == 9
-    assert min(manual_selection[:8]) >= 0
+    assert len(manual_selection) == 11
+    assert min(manual_selection[:10]) >= 0
+
     b = Bucket(*manual_selection)
     # add the new selection
     create_selections([b])

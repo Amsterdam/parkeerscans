@@ -83,7 +83,7 @@ class OccupancyTestCase(APITestCase):
 
         call_command(
             'scrape_occupancy', '--selections',
-            verbosity=0, interactive=False)
+            verbosity=0)
 
         self.assertTrue(
             Selection.objects.count() > 36)
@@ -96,8 +96,9 @@ class OccupancyTestCase(APITestCase):
         call_command(
             'scrape_occupancy', '--addselection',
             # find all scans in test data..
-            '2016:2020:0:11:0:6:0:23',
-            verbosity=0, interactive=False)
+            # year, months, days, hours, weeks
+            '2016:2020:0:11:0:6:0:23:1:52',
+            verbosity=0)
 
         self.assertEqual(
             Selection.objects.count(), 1)
@@ -105,7 +106,7 @@ class OccupancyTestCase(APITestCase):
         # scrape the selection
         call_command(
             'scrape_occupancy', '--wegdelen',
-            verbosity=0, interactive=False)
+            verbosity=0)
 
         # we schould find 13 roads with an occupancy
         self.assertTrue(RoadOccupancy.objects.count() >= 10)
