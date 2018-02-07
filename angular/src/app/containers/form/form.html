@@ -1,6 +1,6 @@
 <form [formGroup]="selection">
 
-  <select formControlName="dayGte">
+  <select formControlName="dayGte" [ngClass]="{'filtered': selection.value.dayGte != ''}">
     <option value="" selected>Vanaf weekdag</option>
     <option value="0">Maandag</option>
     <option value="1">Dinsdag</option>
@@ -11,7 +11,7 @@
     <option value="6">Zondag</option>
   </select>
 
-  <select formControlName="dayLte">
+  <select formControlName="dayLte" [ngClass]="{'filtered': selection.value.dayLte != ''}">
     <option value="" selected>Tot weekdag</option>
     <option value="0">Maandag</option>
     <option value="1">Dinsdag</option>
@@ -22,12 +22,12 @@
     <option value="6">Zondag</option>
   </select>
 
-  <select formControlName="hour">
+  <select formControlName="hour" [ngClass]="{'filtered': selection.value.hour != ''}">
     <option value="" selected>Alle tijdstippen</option>
     <option *ngFor="let hour of hours" [value]="hour.value">{{hour.label}}</option>
   </select>
 
-  <select formControlName="month">
+  <select formControlName="month" [ngClass]="{'filtered': selection.value.month != ''}">
     <option value="" selected>Alle maanden</option>
     <option value="0">jan</option>
     <option value="1">feb</option>
@@ -43,7 +43,7 @@
     <option value="11">dec</option>
   </select>
 
-  <select formControlName="month_gte">
+  <select formControlName="month_gte" [ngClass]="{'filtered': selection.value.month_gte != ''}">
     <option value="" selected>maand vanaf</option>
     <option value="0">jan</option>
     <option value="1">feb</option>
@@ -59,7 +59,7 @@
     <option value="11">dec</option>
   </select>
 
-  <select formControlName="month_lte">
+  <select formControlName="month_lte" [ngClass]="{'filtered': selection.value.month_lte != ''}">
     <option value="" selected>maand tot</option>
     <option value="0">jan</option>
     <option value="1">feb</option>
@@ -75,7 +75,7 @@
     <option value="11">dec</option>
   </select>
 
-  <select formControlName="year">
+  <select formControlName="year" [ngClass]="{'filtered': selection.value.year != ''}">
     <option value="" selected>Alle jaren</option>
     <option value="2016">2016</option>
     <option value="2017">2017</option>
