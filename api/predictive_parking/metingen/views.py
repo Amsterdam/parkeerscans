@@ -71,8 +71,15 @@ def extract_dates(indices):
             continue
         if not indexname.startswith('scans'):
             continue
+
         datepart = indexname.split('-')[1]
-        year, month, day = datepart.split('.')
+
+        try:
+            year, month, day = datepart.split('.')
+        except ValueError:
+            log.exception('weird index?', indexname)
+            continue
+
         dt = datetime.datetime(
             year=int(year), month=int(month), day=int(day))
 
