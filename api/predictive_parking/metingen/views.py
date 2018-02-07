@@ -617,6 +617,8 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
     filter_backends = [ElasticFilter]
 
+    indices = ['scans*']
+
     def get_queryset(self):
         """
         Not an database view..
@@ -649,6 +651,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         if err:
             return Response([f"Data not present. sorry {err}"], status=404)
+
+        if indexes:
+            self.indices = indexes
 
         # get filter / must queries parts for elasti
         must = queries.build_must_queries(cleaned_data)
@@ -706,7 +711,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         try:
             result = ELK_CLIENT.search(
-                index="scans*", size=0,
+                index=",".join(self.indices), size=0,
                 timeout="4m", body=elk_q)
         except Exception as exeption:   # pylint: disable=broad-except
             log.debug(exeption)
