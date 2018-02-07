@@ -59,13 +59,6 @@ def get_all_indices():
     return keys
 
 
-def filter_indices(patern, indices):
-
-    for index in indices:
-        if patern:
-            pass
-
-
 def extract_dates(indices):
     """
     create list with datetime-index tuples from indices
@@ -128,10 +121,10 @@ def determine_relevant_indices(params: dict) -> (str, dict, list):
     indices = get_all_indices()
     date_tuples = extract_dates(indices)
 
-    year_gte = params['year_gte']
-    week_gte = params['week_gte']
-    year_lte = params['year_lte']
-    week_lte = params['week_lte']
+    year_gte = params.get('year_gte')
+    week_gte = params.get('week_gte')
+    year_lte = params.get('year_lte')
+    week_lte = params.get('week_lte')
 
     if not year_gte or not week_gte:
         # nothing todo.
