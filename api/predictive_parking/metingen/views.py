@@ -722,7 +722,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
         try:
             result = ELK_CLIENT.search(
-                index=",".join(self.indices), size=0,
+                index="scans-*", size=0,
                 timeout="4m", body=elk_q)
         except Exception as exeption:   # pylint: disable=broad-except
             log.debug(exeption)
@@ -809,6 +809,7 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         """
 
         elk_q = queries.aggregation_query(bbox_values)
+        elk_q.indexes = self.indices
 
         search = elk_q.to_elasticsearch_object(ELK_CLIENT)
 
