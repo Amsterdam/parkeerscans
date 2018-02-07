@@ -67,6 +67,10 @@ def extract_dates(indices):
     dates = []
 
     for indexname in indices:
+        if not '-' in indexname:
+            continue
+        if not indexname.starswith('scans'):
+            continue
         datepart = indexname.split('-')[1]
         year, month, day = datepart.split('.')
         dt = datetime.datetime(
