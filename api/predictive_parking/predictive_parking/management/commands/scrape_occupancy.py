@@ -9,6 +9,7 @@ from django.core.management import BaseCommand
 from django.conf import settings
 
 from occupancy import scrape_api
+from occupancy import db_occ_views
 
 log = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ class Command(BaseCommand):
             scrape_api.create_single_selection(options['newselection'])
 
         if options['createtables']:
-            scrape_api.create_selection_tables()
+            db_occ_views.create_selection_tables()
 
         if options['wegdelen']:
             scrape_api.fill_occupancy_roadparts()
@@ -85,4 +86,4 @@ class Command(BaseCommand):
             scrape_api.create_selection_buckets()
 
         if options['dumpcsv']:
-            scrape_api.dump_csv_files()
+            db_occ_views.dump_csv_files()

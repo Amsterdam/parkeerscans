@@ -5,11 +5,12 @@ given a bounding box
 """
 import logging
 import statistics
+import datetime
 # import sys
 import json
 
 from rest_framework import viewsets
-from rest_framework import metadata
+# from rest_framework import metadata
 from rest_framework.response import Response
 
 from django.db.models import Q
@@ -47,6 +48,124 @@ ELK_CLIENT = Elasticsearch(
     raise_on_error=True,
     timeout=100
 )
+
+
+def get_all_indices():
+    indices = ELK_CLIENT.indices.get('scans*')
+    keys = list(indices.keys())
+    keys.sort()
+    # log.debug(keys)
+    # indices.sort()
+    return keys
+
+
+def filter_indices(patern, indices):
+
+    for index in indices:
+        if patern:
+            pass
+
+
+def extract_dates(indices):
+    """
+    create list with datetime-index tuples from indices
+    """
+
+    dates = []
+
+    for indexname in indices:
+        datepart = indexname.split('-')[1]
+        year, month, day = datepart.split('.')
+        dt = datetime.datetime(
+            year=int(year), month=int(month), day=int(day))
+
+        dates.append((dt, indexname))
+
+    return dates
+
+
+def meta_date_range_message(date_tuples: list):
+    """
+    Exctract a meta data information message from available
+    indices
+    """
+
+    if not date_tuples:
+        raise ValueError('no indices?')
+
+    min_date = date_tuples[0][0]
+    max_date = date_tuples[-1][0]
+
+    year_min, month_min, day_min = min_date.year, min_date.month, min_date.day
+    year_max, month_max, day_max = max_date.year, max_date.month, max_date.day
+
+    date_range_information = dict(
+        min=f'{year_min}:{month_min}:{day_min}',
+        max=f'{year_max}:{month_max}:{day_max}'
+    )
+
+    return date_range_information
+
+
+def determine_relevant_indices(params: dict) -> (str, dict, list):
+    """
+    Given year_gte, week_gte
+    and year_lte, week_lte
+
+    filter out irrelevant indices
+
+    makes elastic more efficient.
+    provide user with meta data information.
+
+    Example:
+        scans-2018.01.29
+        scans-2017.12.29
+        scans-2017.11.29
+        scans-2017.10.29
+    """
+    err = None
+    valid_indices = []
+    indices = get_all_indices()
+    date_tuples = extract_dates(indices)
+
+    year_gte = params['year_gte']
+    week_gte = params['week_gte']
+    year_lte = params['year_lte']
+    week_lte = params['week_lte']
+
+    if not year_gte or not week_gte:
+        # nothing todo.
+        return None, params, indices
+
+    if not year_lte or not week_lte:
+        # nothing todo.
+        return None, params, indices
+
+    dt_gte = datetime.datetime(year=year_gte, month=1, day=1)
+    weeks_gte = datetime.timedelta(weeks=week_gte)
+    gte_date = dt_gte + weeks_gte
+
+    dt_lte = datetime.datetime(year=year_gte, month=1, day=1)
+    weeks_lte = datetime.timedelta(weeks=week_lte)
+    lte_date = dt_lte + weeks_lte
+
+    for dt, indexname in date_tuples:
+        if dt >= gte_date and dt <= lte_date:
+            valid_indices.append(indexname)
+
+    date_range_information = meta_date_range_message(date_tuples)
+
+    if not valid_indices:
+        err = f"""
+            No data available for given date range
+            {date_range_information}
+        """
+
+        return err, params, []
+
+    params['available_date_range'] = date_range_information
+
+    return err, params, valid_indices
 
 
 class MetingenFilter(FilterSet):
@@ -214,11 +333,11 @@ def calculate_average_occupancy(wegdeel, day_data):
 
     result_list = []
     _max = 0
-    _min = 800
+    _min = 999
     _sum = 0
     _avg = 0
 
-    # collect all occupancy's for each hour/day
+    # collect all occupancy's for each hour in day
     for _date, hour_measurements in day_data:
         for _hour, percentage in hour_measurements:
             result_list.append(percentage)
@@ -244,10 +363,10 @@ def calculate_average_occupancy(wegdeel, day_data):
 
 def calculate_occupancy(wegdelen, query_params):
     """
-    calculate "bezetting"
+    calculate "bezetting" / occupancy
 
-    wegdelen zijn dict objecten met database
-    elastic data/tellingen
+    wegdelen are dict objects with database rows
+    combined elastic data aggregations
     """
     explain = 'explain' in query_params
 
@@ -291,10 +410,19 @@ class ElasticFilter(object):
     elastic_int_filters = [
         ('hour_gte', '0 .. 23'),
         ('hour_lte', '0 .. 23'),
+
         # ('minute_gte',  '0 .. 60'),
         # ('minute_lte',  '0 .. 60'),
+
         ('year_gte', '2016 .. 2025'),
         ('year_lte', '2016 .. 2040'),
+
+        ('week_gte',  '0 .. 60'),
+        ('week_lte',  '0 .. 60'),
+
+        ('date_gte',  '2020, 2020-11-1'),
+        ('date_lte', '2025, 2025-11-1'),
+
         ('month_gte', '0 .. 11'),
         ('month_lte', '0 .. 11'),
         ('day_gte',  '0 .. 6 Monday = 0'),
@@ -523,6 +651,12 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         if err:
             return Response([f"invalid parameter {err}"], status=400)
 
+        # adjues query parameters to available data!
+        err, cleaned_data, indexes = determine_relevant_indices(cleaned_data)
+
+        if err:
+            return Response([f"Data not present. sorry {err}"], status=404)
+
         # get filter / must queries parts for elasti
         must = queries.build_must_queries(cleaned_data)
 
@@ -580,7 +714,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         try:
             result = ELK_CLIENT.search(
                 index="scans*", size=0,
-                timeout="1m", body=elk_q)
+                timeout="4m", body=elk_q)
         except Exception as exeption:   # pylint: disable=broad-except
             log.debug(exeption)
             build_q = json.loads(elk_q)
@@ -640,7 +774,7 @@ class VakkenAggregationViewSet(viewsets.ViewSet):
         count = elk_response.hits.total
 
         pv_elk = []
-        parkeervakken= []
+        parkeervakken = []
         if count:
             pv_elk = elk_response.aggregations['parkeervakken']
             parkeervakken = [(i['key'], i['doc_count']) for i in pv_elk]

@@ -48,6 +48,8 @@ class RoadOccupancyViewSet(rest.DatapuntViewSet):
         'selection__day2',
         'selection__hour1',
         'selection__hour2',
+        'selection__week1',
+        'selection__week2',
         'occupancy',
     )
 
@@ -96,7 +98,6 @@ def clean_selection_params(params):
             cleaned[valid] = int(value)
 
     return cleaned
-
 
 
 def fitting_selections(params):

@@ -500,6 +500,7 @@ def make_field_bool_query(
         return
 
     involved_terms = []
+
     should = []
 
     for x in find_options(low, high, len(all_options)):
@@ -594,15 +595,19 @@ def build_must_queries(cleaned_data):
 def build_wegdeel_query(bbox, must, wegdelen_size=260):
     """
     Build aggregation determine distinct vakken for
-    each wegdeel per day.
+    each wegdeel per day per hour.
+
+    ~8000 wegdelen is the entire city.
+
+    DO not ask for more then ~7 days at once.
     """
 
     bbox_f = build_bbox_filter(bbox)
 
     query_part = {
         "bool": {
-            "must": [*must],
-            "filter": bbox_f,
+            "must": [],
+            "filter": [bbox_f, *must]
         },
     }
 

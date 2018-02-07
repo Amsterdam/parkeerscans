@@ -48,7 +48,7 @@ services:
       UWSGI_STATIC_MAP: "/static=/static"
       UWSGI_PROCESSES: 4
       UWSGI_VACUUM: 1
-      UWSGI_HARAKIRI: 15
+      UWSGI_HARAKIRI: 45
       UWSGI_DIE_ON_TERM: 1
 
   kibana:

@@ -26,6 +26,7 @@ curl -H "Content-Type: application/json" -s --trace-ascii -f -PUT http://${ELKHO
   "index_patterns": ["scans-*"],
   "settings": {
     "number_of_shards": 1,
+    "refresh_interval" : "-1",
     "number_of_replicas": 0
   },
   "mappings": {
@@ -45,3 +46,17 @@ export DB=predictiveparking
 
 # run max_workers logstash instances.
 < $tablenames xargs -P $max_workers -n 1 -I tablename env TABLE=tablename logstash -f readdb.conf --pipeline.workers 4 --path.data /tmp/tablename
+
+
+curl -H "Content-Type: application/json" -s --trace-ascii -f -PUT http://${ELKHOST:-elasticsearch}:9200/_template/scan -d '
+{
+  "index_patterns": ["scans-*"],
+  "settings": {
+    "number_of_shards": 1,
+    "refresh_interval" : "1s",
+    "number_of_replicas": 2
+  }
+}'
+
+
+curl -H "Content-Type: application/json" -s --trace-ascii -f -POST http://${ELKHOST:-elasticsearch}:9200/_forcemerge?max_num_segments=5

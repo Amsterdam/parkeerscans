@@ -10,13 +10,11 @@ from datetime import timedelta
 from collections import namedtuple
 
 import time
-import psycopg2
 import requests
 
 from django.db.models import F, Count
 
 from django.conf import settings
-from django.db import connection
 from django.test import Client
 
 from occupancy.models import RoadOccupancy
@@ -48,14 +46,6 @@ HOUR_RANGE = [
 ]
 
 
-MONTH_RANGE = [
-    # (0, 3),
-    # (4, 6),
-    (3, 7),
-    # (10, 12),
-]
-
-
 DAY_RANGE = [
     # (0, 6),  # hele week too heavy!
     (0, 4),  # werkdag
@@ -77,14 +67,21 @@ year_range = [
 
 
 Bucket = namedtuple(
-    'bucket', ['y1', 'y2', 'm1', 'm2', 'd1', 'd2', 'h1', 'h2', 'qcode'])
+    'bucket', [
+        'y1', 'y2',
+        'm1', 'm2',
+        'd1', 'd2',
+        'h1', 'h2',
+        'w1', 'w2',
+        'qcode'
+    ])
 
 
-def make_year_month_range():
+def make_time_range():
     """
     now - 3 months
     """
-    delta = timedelta(days=40)
+    delta = timedelta(days=90)
     today = datetime.today()
 
     before = today - delta
@@ -93,26 +90,89 @@ def make_year_month_range():
     year2 = today.year
 
     month1 = before.month - 1   # we start at 0
-    month2 = today.month - 1   # we start at 0
+    month2 = today.month - 1    # we start at 0
 
-    return year1, year2, month1, month2
+    week1 = before.isocalendar()[1]
+    week2 = today.isocalendar()[1]
+
+    return year1, year2, month1, month2, week1, week2
+
+
+def time_range(w1, w2, options):
+
+    if w1 < w2:
+        return options[w1:w2]
+
+    return options[w1:] + options[:w2]
+
+
+def make_week_buckets(
+        buckets: list,
+        y1: int, y2: int,
+        w1: int, w2: int,
+        d1: int, d2: int,
+        h1: int, h2: int,
+        q: str):
+    """
+    Make selection bucket objects for weeks
+    """
+    for w in time_range(w1, w2, list(range(1, 53))):
+
+        if y1 != y2:
+            if w >= w1:
+                # year1
+                b = Bucket(y1, y1, None, None, d1, d2, h1, h2, w, w, q)
+                buckets.append(b)
+            else:
+                # year2
+                b = Bucket(y2, y2, None, None, d1, d2, h1, h2, w, w, q)
+                buckets.append(b)
+        else:
+            # same year
+            b = Bucket(y1, y1, None, None, d1, d2, h1, h2, w, w, q)
+
+
+def make_month_buckets(
+        buckets: list,
+        y1: int, y2: int,
+        m1: int, m2: int,
+        d1: int, d2: int,
+        h1: int, h2: int,
+        q: str):
+    """
+    Make selection bucket objects for months
+    """
+
+    for m in time_range(m1, m2, list(range(0, 12))):
+        if y1 != y2:
+            if m >= m1:
+                # year1
+                b = Bucket(y1, y1, m, m, d1, d2, h1, h2, None, None, q)
+                buckets.append(b)
+            else:
+                # year2
+                b = Bucket(y2, y2, m, m, d1, d2, h1, h2, None, None, q)
+                buckets.append(b)
+        else:
+            # same year
+            b = Bucket(y1, y2, m, m, d1, d2, h1, h2, None, None, q)
+            buckets.append(b)
 
 
 def occupancy_buckets():
     """
-    Determine the occupancy buckets
-    we need
+    Determine the occupancy buckets we need
     """
     buckets = []
 
-    y1, y2, m1, m2 = make_year_month_range()
+    y1, y2, m1, m2, w1, w2 = make_time_range()
 
     for d1, d2 in DAY_RANGE:
         for h1, h2 in HOUR_RANGE:
             # Bezoekers of niet.
             for q in [None, 'BETAALDP']:
-                b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2, q)
-                buckets.append(b)
+                # make_month_buckets(buckets, y1, y2, m1, m2, d1, d2, h1, h2, q)
+                make_week_buckets(buckets, y1, y2, w1, w2, d1, d2, h1, h2, q)
 
     return buckets
 
@@ -123,7 +183,6 @@ def create_selections(buckets):
     """
 
     for b in buckets:
-
         assert validate_selection(b)
 
         Selection.objects.get_or_create(
@@ -133,6 +192,8 @@ def create_selections(buckets):
             hour2=b.h2,
             month1=b.m1,
             month2=b.m2,
+            week1=b.w1,
+            week2=b.w2,
             year1=b.y1,
             year2=b.y2,
             qualcode=b.qcode,
@@ -165,8 +226,19 @@ def validate_selection(bucket):
     # lets do some validation..
     assert b.y1 in range(2016, 2025)
     assert b.y2 in range(2016, 2025)
-    assert b.m1 in range(0, 12)
-    assert b.m2 in range(0, 12)
+
+    if b.m1:
+        assert b.m1 in range(0, 12)
+    if b.m2:
+        assert b.m2 in range(0, 12)
+
+    if b.w1:
+        assert b.w1 in range(1, 53)
+    if b.w2:
+        assert b.w2 in range(1, 53)
+
+    assert (b.m1 is not None or b.w1 is not None)
+
     assert b.d1 in range(0, 7)
     assert b.d2 in range(0, 7)
     assert b.h1 in range(0, 24)
@@ -270,14 +342,23 @@ def do_request(selection: dict) -> dict:
     payload = {
         'year_gte': s.year1,
         'year_lte': s.year2,
-        'month_gte': s.month1,
-        'month_lte': s.month2,
         'day_gte': s.day1,
         'day_lte': s.day2,
         'hour_gte': s.hour1,
         'hour_lte': s.hour2,
         'wegdelen_size': 8000,
     }
+
+    if s.month1 is not None:
+        payload.update({
+            'month_gte': s.month1,
+            'month_lte': s.month2,
+        })
+    else:
+        payload.update({
+            'week_gte': s.week1,
+            'week_lte': s.week2,
+        })
 
     if s.qualcode:
         payload['qualcode'] = s.qualcode
@@ -354,103 +435,3 @@ def fill_occupancy_roadparts(count=0):
         )
 
         store_selection_status(selection)
-
-    #work_count = work_selections.count()
-
-    #if work_count:
-    #    log.debug('not done yet.. lets retry')
-    #    fill_occupancy_roadparts(count=count)
-
-
-def execute_sql(sql):
-    with connection.cursor() as cursor:
-        cursor.execute(sql)
-
-
-def create_selection_tables():
-    """
-    Create tables of selections usable for mapserver / qgis
-
-    We make tables for ease of dumping / restoring tables
-    """
-
-    work_done = Selection.objects.filter(status=1)
-
-    for selection in work_done:
-        view_name = selection.view_name()
-
-        log.info('Created view %s', view_name)
-        # create view for each selection with
-        # geometry data.
-
-        sql = f"""
-DROP TABLE IF EXISTS sv{str(view_name)};
-SELECT * INTO sv{str(view_name)} FROM (
-SELECT
-    row_number() OVER (ORDER BY wd.bgt_id) as id,
-    wd.bgt_id,
-    wd.vakken,
-    wd.fiscale_vakken,
-    occupancy,
-    min_occupancy,
-    max_occupancy,
-    std_occupancy, unique_scans,
-    b.code,
-    wd.geometrie
-FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc,
-     occupancy_selection s, wegdelen_buurt b
-WHERE wd.bgt_id = oc.bgt_id
-AND ST_Contains(b.geometrie, wd.geometrie)
-AND wd.vakken >= 3
-AND s.id = oc.selection_id
-AND s.id = {selection.id}) as tmptable
-        """
-        execute_sql(sql)
-
-
-def dump_csv_files():
-    """
-    For each view create a csv file.
-    """
-
-    work_done = Selection.objects.filter(status=1)
-
-    for selection in work_done:
-        view_name = selection.view_name()
-
-        select = f"""
-        SELECT
-            id, bgt_id, occupancy, vakken, fiscale_vakken,
-            min_occupancy, max_occupancy, std_occupancy, unique_scans,
-            code,
-            ST_AsText(geometrie)
-        FROM sv{str(view_name)}
-        """
-
-        select_no_geo = f"""
-        SELECT
-            id, bgt_id, occupancy, vakken, fiscale_vakken
-            min_occupancy, max_occupancy, std_occupancy, unique_scans,
-            code
-        FROM sv{str(view_name)}
-        """
-
-        outputquery = f"COPY ({select}) TO STDOUT WITH CSV HEADER"
-        outputquery_no_geo = f"COPY ({select_no_geo}) TO STDOUT WITH CSV HEADER"   # noqa
-
-        file_name = f'{settings.CSV_DIR}/{str(view_name)}.csv'
-        file_name_no_geo = f'{settings.CSV_DIR}/{str(view_name)}.nogeo.csv'
-
-        with connection.cursor() as cursor:
-
-            try:
-                with open(file_name, 'w') as csvfile:
-                    log.debug('saving view: %s', file_name)
-                    cursor.copy_expert(outputquery, csvfile)
-
-                with open(file_name_no_geo, 'w') as csvfile:
-                    log.debug('saving view: %s', file_name_no_geo)
-                    cursor.copy_expert(outputquery_no_geo, csvfile)
-
-            except psycopg2.ProgrammingError:
-                log.exception('table missing')

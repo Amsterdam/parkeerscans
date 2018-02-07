@@ -3,8 +3,6 @@ MAINTAINER datapunt@amsterdam.nl
 
 ENV PYTHONUNBUFFERED 1
 
-EXPOSE 8000
-
 RUN apt-get install -y \
 	unrar \
 	&& apt-get clean

@@ -1,9 +1,12 @@
 """
 OIS model parkeerkans uitkomsten
 """
+import logging
 
 from django.contrib.gis.db import models
 from wegdelen.models import WegDeel
+
+log = logging.getLogger(__name__)
 
 
 MONTHS = (
@@ -32,6 +35,40 @@ DAYS = (
 )
 
 
+def _range_repr(r1: int, r2: int, timestr=None) -> str:
+    """
+    Make reresentation of time range.
+
+    month1-month2
+
+    if r1, r2 are equal just return month1 / r1
+
+    timestr are string representations of time.
+    days, months, weeks if present return string 'jan' , 'feb'
+    """
+
+    if r1 is None:
+        return
+
+    if r2 is not None:
+        if r1 == r2:
+
+            if timestr:
+                return f'{timestr[r1][1]}'
+
+            return f'{r1}'
+
+        if timestr:
+            return f'{timestr[r1][1]}-{timestr[r2][1]}'
+
+        return f'{r1}-{r2}'
+
+    if timestr:
+        return f'{timestr[r1][1]}'
+
+    return '{r1}'
+
+
 class Selection(models.Model):
     """
     Selections..
@@ -43,14 +80,16 @@ class Selection(models.Model):
     hour1 = models.IntegerField(blank=False, null=False, db_index=True)
     hour2 = models.IntegerField(blank=False, null=True, db_index=True)
 
-    month1 = models.IntegerField(blank=False, null=False, db_index=True)
+    month1 = models.IntegerField(blank=False, null=True, db_index=True)
     month2 = models.IntegerField(blank=False, null=True, db_index=True)
 
     year1 = models.IntegerField(blank=False, null=False)
     year2 = models.IntegerField(blank=False, null=True)
 
-    # iso weeknumber
+    # iso weeknumber 0-52
     # week = models.IntegerField(blank=False, null=True)
+    week1 = models.IntegerField(blank=False, null=True)
+    week2 = models.IntegerField(blank=False, null=True)
 
     status = models.IntegerField(blank=True, null=True)
     # buurt = models.CharField(db_index=True, null=True, max_length=4, )
@@ -59,24 +98,37 @@ class Selection(models.Model):
 
     def _name(self):
 
-        month2 = self.month2
-        if month2 is None:
-            month2 = self.month1
+        month = _range_repr(self.month1, self.month2, MONTHS)
+        day = _range_repr(self.day1, self.day2, DAYS)
 
-        year2 = self.year2 or self.year1
-        day2 = self.day2 or self.day1
-
-        s = self
-
-        m = MONTHS
-        d = DAYS
+        week = _range_repr(self.week1, self.week2)
+        year = _range_repr(self.year1, self.year2)
 
         code = self.qualcode or ''
+        s = self
+
+        block = None
+
+        if month is not None:
+            block = month
+
+        if week is not None:
+            block = week
+
+        if not block:
+            log.error(
+                '%s %s %s %s %s %s',
+                self.year1, self.year2,
+                self.month1, self.month2,
+                self.week1, self.week2)
+            log.error(self)
+
+        # assert block
 
         return \
-            f'{s.year1}:{year2}:{m[s.month1][1]}:{m[month2][1]}:' + \
-            f'{d[s.day1][1]}:{d[day2][1]}:{s.hour1:02}:{s.hour2:02}' + \
-            f'{code}'
+            f'{year}:{block}:' + \
+            f'{day}:{s.hour1:02}:{s.hour2:02}' + \
+            f'-{code}'
 
     def __repr__(self):
         return 'Selection: ' + self._name()
