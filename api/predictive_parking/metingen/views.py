@@ -138,6 +138,9 @@ def determine_relevant_indices(params: dict) -> (str, dict, list, list):
     year_lte = params.get('year_lte')
     week_lte = params.get('week_lte')
 
+    day_gte = params.get('day_gte')
+    day_lte = params.get('day_lte')
+
     if not year_gte or not week_gte:
         # nothing todo.
         return None, params, indices, []
@@ -156,13 +159,21 @@ def determine_relevant_indices(params: dict) -> (str, dict, list, list):
     lte_date = dt_lte + weeks_lte
 
     for dt, indexname in date_tuples:
-        if dt >= gte_date and dt < lte_date:
-            valid_indices.append(indexname)
-            valid_dates.append(dt)
-            # log.debug(' ok  %s  %s  %s', gte_date, indexname, lte_date)
-        else:
-            pass
-            # log.debug('out  %s  %s  %s', gte_date, indexname, lte_date)
+        if dt <= gte_date or dt > lte_date:
+            continue
+
+        if (dt.weekday()) < day_gte:
+            # log.debug(' fail  %s < %s', dt.weekday(), day_gte)
+            continue
+
+        if (dt.weekday()) > day_lte:
+            # log.debug(' fail  %s > %s', dt.weekday(), day_lte)
+            continue
+
+        valid_indices.append(indexname)
+        valid_dates.append(dt)
+        log.debug(' ok   %s > %s < %s', day_gte, dt.weekday(), day_lte)
+        log.debug(' ok  %s  %s  %s', gte_date, indexname, lte_date)
 
     date_range_information = meta_date_range_message(date_tuples)
 
@@ -653,9 +664,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         for index in self.indices:
 
             log.debug(f'elk asking {index}')
-            log.debug(f'Wegdelen Count {len(wegdelen)}')
 
-            #
             elk_response, err = self.do_wegdelen_search(
                 bbox_values, must,
                 index=index,
@@ -679,6 +688,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
                 log.error('%s %s', index, err)
                 continue
 
+            log.debug(f'Wegdelen Count {len(wegdelen)}')
             responses.append(elk_response)
 
         return responses, wegdelen
