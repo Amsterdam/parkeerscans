@@ -59,9 +59,9 @@ def _range_repr(r1: int, r2: int, timestr=None) -> str:
             return f'{r1:02d}'
 
         if timestr:
-            return f'{timestr[r1][1]}-{timestr[r2][1]}'
+            return f'{timestr[r1][1]}_{timestr[r2][1]}'
 
-        return f'{r1:02d}-{r2:02d}'
+        return f'{r1:02d}_{r2:02d}'
 
     if timestr:
         return f'{timestr[r1][1]}'
@@ -129,7 +129,7 @@ class Selection(models.Model):
         return \
             f'{year}:{block}:' + \
             f'{day}:{s.hour1:02}:{s.hour2:02}' + \
-            f'-{code}'
+            f'_{code}'
 
     def __repr__(self):
         return 'Selection: ' + self._name()
@@ -137,6 +137,7 @@ class Selection(models.Model):
     def view_name(self):
         view_name = self._name()
         view_name = view_name.replace(':', '_')
+        view_name = view_name.replace('-', '_')
         return view_name
 
 
