@@ -156,12 +156,13 @@ def determine_relevant_indices(params: dict) -> (str, dict, list, list):
     lte_date = dt_lte + weeks_lte
 
     for dt, indexname in date_tuples:
-        if dt >= gte_date and dt <= lte_date:
+        if dt >= gte_date and dt < lte_date:
             valid_indices.append(indexname)
             valid_dates.append(dt)
-            log.debug(' ok  %s  %s  %s', gte_date, indexname, lte_date)
+            # log.debug(' ok  %s  %s  %s', gte_date, indexname, lte_date)
         else:
-            log.debug('out  %s  %s  %s', gte_date, indexname, lte_date)
+            pass
+            # log.debug('out  %s  %s  %s', gte_date, indexname, lte_date)
 
     date_range_information = meta_date_range_message(date_tuples)
 
