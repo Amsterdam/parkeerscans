@@ -538,8 +538,6 @@ def clean_parameter_data(query_params):
     if err:
         return {}, err
 
-    # log.debug(cleaned_data)
-
     return cleaned_data, None
 
 

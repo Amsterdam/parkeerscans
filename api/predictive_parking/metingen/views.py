@@ -111,7 +111,7 @@ def meta_date_range_message(date_tuples: list):
     return date_range_information
 
 
-def determine_relevant_indices(params: dict) -> (str, dict, list):
+def determine_relevant_indices(params: dict) -> (str, dict, list, list):
     """
     Given year_gte, week_gte
     and year_lte, week_lte
@@ -129,6 +129,7 @@ def determine_relevant_indices(params: dict) -> (str, dict, list):
     """
     err = None
     valid_indices = []
+    valid_dates = []
     indices = get_all_indices()
     date_tuples = extract_dates(indices)
 
@@ -139,24 +140,25 @@ def determine_relevant_indices(params: dict) -> (str, dict, list):
 
     if not year_gte or not week_gte:
         # nothing todo.
-        return None, params, indices
+        return None, params, indices, []
 
     if not year_lte or not week_lte:
         # nothing todo.
-        return None, params, indices
+        return None, params, indices, []
 
     dt_gte = datetime.datetime(year=year_gte, month=1, day=1)
     weeks_gte = datetime.timedelta(weeks=week_gte)
-    gte_date = dt_gte + weeks_gte
+    week = datetime.timedelta(days=7)
+    gte_date = dt_gte + weeks_gte - week
 
     dt_lte = datetime.datetime(year=year_lte, month=1, day=1)
     weeks_lte = datetime.timedelta(weeks=week_lte)
-    week = datetime.timedelta(days=7)
-    lte_date = dt_lte + weeks_lte + week
+    lte_date = dt_lte + weeks_lte
 
     for dt, indexname in date_tuples:
-        if dt >= gte_date and dt < lte_date:
+        if dt >= gte_date and dt <= lte_date:
             valid_indices.append(indexname)
+            valid_dates.append(dt)
             log.debug(' ok  %s  %s  %s', gte_date, indexname, lte_date)
         else:
             log.debug('out  %s  %s  %s', gte_date, indexname, lte_date)
@@ -169,11 +171,11 @@ def determine_relevant_indices(params: dict) -> (str, dict, list):
             {date_range_information}
         """
 
-        return err, params, []
+        return err, params, [], []
 
     params['available_date_range'] = date_range_information
 
-    return err, params, valid_indices
+    return err, params, valid_indices, valid_dates
 
 
 class MetingenFilter(FilterSet):
@@ -703,13 +705,16 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             return Response([f"invalid parameter {err}"], status=400)
 
         # adjues query parameters to available data!
-        err, cleaned_data, indexes = determine_relevant_indices(cleaned_data)
+        err, cleaned_data, indexes, valid_dates = \
+            determine_relevant_indices(cleaned_data)
 
         if err:
             return Response([f"Data not present. sorry {err}"], status=404)
 
-        if indexes:
-            log.debug(indexes)
+        if indexes and valid_dates:
+            for d, i in zip(valid_dates, indexes):
+                log.debug('%s %s', d.weekday(), i)
+
             self.indices = indexes
 
         # get filter / must queries parts for elasti
@@ -751,7 +756,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         elk_q = queries.build_wegdeel_query(bbox_values, must, wegdelen_size)
 
         build_q = json.loads(elk_q)
-        log.debug(json.dumps(build_q, indent=4))
+        # log.debug(json.dumps(build_q, indent=4))
 
         try:
             result = ELK_CLIENT.search(
