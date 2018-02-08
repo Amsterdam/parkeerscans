@@ -56,17 +56,17 @@ def _range_repr(r1: int, r2: int, timestr=None) -> str:
             if timestr:
                 return f'{timestr[r1][1]}'
 
-            return f'{r1}'
+            return f'{r1:02d}'
 
         if timestr:
             return f'{timestr[r1][1]}-{timestr[r2][1]}'
 
-        return f'{r1}-{r2}'
+        return f'{r1:02d}-{r2:02d}'
 
     if timestr:
         return f'{timestr[r1][1]}'
 
-    return '{r1}'
+    return '{r1:02d0}'
 
 
 class Selection(models.Model):
@@ -113,7 +113,8 @@ class Selection(models.Model):
             block = month
 
         if week is not None:
-            block = week
+
+            block = f'w{week}'
 
         if not block:
             log.error(

@@ -58,6 +58,9 @@ class MetingenTestCase(APITestCase):
             [1, 4,  [1, 2, 3, 4]],  # feb-may
             [11, 2, [11, 0, 1, 2]],  # dec-march
             [8, 0, [8, 9, 10, 11, 0]],  # sept-jan
+            [0, 0, [0]],
+            [1, 1, [1]],
+            [11, 11, [11]],
         ]
 
         for start, end, expected in tests:

@@ -471,6 +471,9 @@ def find_options(low, high, size):
         # normal case
         return list(range(int(low), int(high)+1))
 
+    if low == high:
+        return [low]
+
     # we go past the size
     end_options = list(range(size))[low:]
     start_options = list(range(size))[:high+1]
@@ -630,7 +633,7 @@ def build_wegdeel_query(bbox, must, wegdelen_size=260):
                             "hour": {
                                 "terms": {
                                     "field": "hour",
-                                    "size": 20,
+                                    "size": 24,
                                 },
                                 "aggs": {
                                     "vakken": {

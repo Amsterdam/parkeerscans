@@ -2,6 +2,7 @@
 Load occupancy from our own elastic API
 in the database for easy to consume datasets
 """
+import sys
 import logging
 
 from datetime import datetime
@@ -301,15 +302,14 @@ def create_selection_buckets():
     todo_selections = Selection.objects.filter(status__isnull=True)
     done_selections = Selection.objects.filter(status__isnull=False)
 
-    log.info(
-        f"""Selections:
-            TODO: {todo_selections.count()}
-            READY: {done_selections.count()}
-        """)
-
     for selection in todo_selections:
         log.debug(repr(selection))
 
+    log.info(
+        f"""Selections:
+            TODO:  {todo_selections.count()}
+            READY: {done_selections.count()}
+        """)
 
 def get_work_to_do():
     """
@@ -370,7 +370,22 @@ def do_request(selection: dict) -> dict:
     else:
         response = requests.get(API_URL, payload)
 
-    if response.status_code != 200:
+    if response.status_code == 500:
+        # server error.
+        log.error('%s %s', response.status_code, payload)
+        log.error(response.url)
+        selection.status = None
+        selection.save()
+        raise ValueError('API Server gives 500')
+
+    elif response.status_code == 404:
+        # nothing found.
+        selection.delete()
+        log.debug('No data available')
+        return
+
+    elif response.status_code == 504:
+        # timeout.
         log.error('%s %s', response.status_code, payload)
         log.error(response.url)
         selection.status = None
@@ -378,7 +393,6 @@ def do_request(selection: dict) -> dict:
         log.debug('Waiting a bit..')
         time.sleep(30)
         return
-        # raise ValueError
 
     return response.json()
 
@@ -434,5 +448,8 @@ def fill_occupancy_roadparts(count=0):
             i, work_count, selection._name(),
             wd_count
         )
+        if wd_count < 10:
+            log.info(f'No results for {selection}. remove')
+            selection.delete()
 
         store_selection_status(selection)

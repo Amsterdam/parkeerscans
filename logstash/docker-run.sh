@@ -59,4 +59,4 @@ curl -H "Content-Type: application/json" -s --trace-ascii -f -PUT http://${ELKHO
 }'
 
 
-curl -H "Content-Type: application/json" -s --trace-ascii -f -POST http://${ELKHOST:-elasticsearch}:9200/_forcemerge?max_num_segments=5
+curl -s --trace-ascii -f POST http://${ELKHOST:-elasticsearch}:9200/_forcemerge?max_num_segments=5

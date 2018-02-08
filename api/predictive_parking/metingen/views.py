@@ -46,7 +46,7 @@ log = logging.getLogger(__name__)
 ELK_CLIENT = Elasticsearch(
     settings.ELASTIC_SEARCH_HOSTS,
     raise_on_error=True,
-    timeout=100
+    timeout=400
 )
 
 
@@ -149,13 +149,17 @@ def determine_relevant_indices(params: dict) -> (str, dict, list):
     weeks_gte = datetime.timedelta(weeks=week_gte)
     gte_date = dt_gte + weeks_gte
 
-    dt_lte = datetime.datetime(year=year_gte, month=1, day=1)
+    dt_lte = datetime.datetime(year=year_lte, month=1, day=1)
     weeks_lte = datetime.timedelta(weeks=week_lte)
-    lte_date = dt_lte + weeks_lte
+    week = datetime.timedelta(days=7)
+    lte_date = dt_lte + weeks_lte + week
 
     for dt, indexname in date_tuples:
-        if dt >= gte_date and dt <= lte_date:
+        if dt >= gte_date and dt < lte_date:
             valid_indices.append(indexname)
+            log.debug(' ok  %s  %s  %s', gte_date, indexname, lte_date)
+        else:
+            log.debug('out  %s  %s  %s', gte_date, indexname, lte_date)
 
     date_range_information = meta_date_range_message(date_tuples)
 
@@ -247,11 +251,10 @@ class MetingenViewSet(rest.DatapuntViewSet):
     ordering = ('scan_id')
 
 
-def collect_wegdelen(elk_response):
+def collect_wegdelen(wegdelen: dict, elk_response: dict):
     """
     collect all wegdelen ids
     """
-    wegdelen = {}
 
     aggs = elk_response.get('aggregations')
 
@@ -263,8 +266,6 @@ def collect_wegdelen(elk_response):
     for data in day_buckets.values():
         for wegdeel in data["wegdeel"]["buckets"]:
             wegdelen[wegdeel['key']] = {}
-
-    return wegdelen, None
 
 
 def proces_single_day(date: str, data: dict, wegdelen: dict):
@@ -315,16 +316,17 @@ def _calculate_occupancy_by_hour(bucket_wegdeel: dict, capacity: int) -> list:
         return date_data
 
 
-def build_wegdelen_data(elk_response: dict, wegdelen: dict):
+def build_wegdelen_data(all_responses: list, wegdelen: dict):
     """
     Enrich wegdelen data with aggregated counts
     from elasticsearch.
     """
-    # for each date we get some statistics
-    date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
+    for elk_response in all_responses:
+        # for each date we get some statistics
+        date_buckets = elk_response['aggregations']['scan_by_date']['buckets']
 
-    for date, data in date_buckets.items():
-        proces_single_day(date, data, wegdelen)
+        for date, data in date_buckets.items():
+            proces_single_day(date, data, wegdelen)
 
     return wegdelen
 
@@ -636,12 +638,55 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         """
         pass
 
+    def collect_elastic_data(
+            self, bbox_values, must, wegdelen_size) -> (list, dict):
+        """
+        Do elastic query per index
+        """
+
+        wegdelen = {}
+        responses = []
+
+        for index in self.indices:
+
+            log.debug(f'elk asking {index}')
+            log.debug(f'Wegdelen Count {len(wegdelen)}')
+
+            #
+            elk_response, err = self.do_wegdelen_search(
+                bbox_values, must,
+                index=index,
+                wegdelen_size=wegdelen_size)
+
+            if settings.DEBUG:
+                # Print elk response to console
+                # print(json.dumps(elk_response, indent=4))
+                # return Response(elk_response)
+                pass
+
+            if err:
+                log.error(err)
+                continue
+                # return Response([err], status=500)
+
+            # collect all wegdelen id's in elastic response
+            err = collect_wegdelen(wegdelen, elk_response)
+
+            if err:
+                log.error('%s %s', index, err)
+                continue
+
+            responses.append(elk_response)
+
+        return responses, wegdelen
+
     def list(self, request):
         """
         List dates with wegdeelen and distinct vakken count
         combined with meta road information
         """
 
+        self.indices = ['scans-*']
         must = []
 
         err = None
@@ -664,6 +709,7 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             return Response([f"Data not present. sorry {err}"], status=404)
 
         if indexes:
+            log.debug(indexes)
             self.indices = indexes
 
         # get filter / must queries parts for elasti
@@ -672,33 +718,17 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         # get aggregations from elastic
         wegdelen_size = cleaned_data.get('wegdelen_size', 450)
 
-        #
-        elk_response, err = self.do_wegdelen_search(
-            bbox_values, must, wegdelen_size=wegdelen_size)
-
-        if settings.DEBUG:
-            # Print elk response to console
-            # print(json.dumps(elk_response, indent=4))
-            # return Response(elk_response)
-            pass
-
-        if err:
-            log.error(err)
-            return Response([err], status=500)
-
-        # collect all wegdelen id's in elastic response
-        wegdelen, err = collect_wegdelen(elk_response)
-
-        if err:
-            log.error(err)
-            return Response([err], status=400)
+        # request data for each relevant index/day
+        elk_responses, wegdelen = self.collect_elastic_data(
+            bbox_values, must, wegdelen_size)
 
         # find and collect wegdelen meta data from DB.
         load_db_wegdelen(bbox_values, wegdelen)
 
         # now we have elastic data and database date to
         # calculate bezetting
-        wegdelen_data = build_wegdelen_data(elk_response, wegdelen)
+        # for elk_response in responses:
+        wegdelen_data = build_wegdelen_data(elk_responses, wegdelen)
 
         wegdelen_data = calculate_occupancy(
             wegdelen_data, request.query_params)
@@ -708,7 +738,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             'wegdelen': wegdelen_data
         })
 
-    def do_wegdelen_search(self, bbox_values, must=(), wegdelen_size=90):
+    def do_wegdelen_search(
+            self, bbox_values, must=(),
+            index="scans-*", wegdelen_size=90):
         """
         Given bbox find
 
@@ -719,12 +751,11 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
         elk_q = queries.build_wegdeel_query(bbox_values, must, wegdelen_size)
 
         build_q = json.loads(elk_q)
-        # log.debug(json.dumps(build_q, indent=4))
+        log.debug(json.dumps(build_q, indent=4))
 
         try:
             result = ELK_CLIENT.search(
-                index="scans-*", size=0,
-                timeout="4m", body=elk_q)
+                index=index, size=0, body=elk_q)
         except Exception as exeption:   # pylint: disable=broad-except
             log.debug(exeption)
             build_q = json.loads(elk_q)
