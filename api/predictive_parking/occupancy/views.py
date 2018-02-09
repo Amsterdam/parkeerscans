@@ -125,8 +125,17 @@ def fitting_selections(params) -> list:
 
     hour = now.hour
 
+    # user hour parameter override
+    if 'hour' in clean_params:
+        hour = clean_params['hour']
+
     week1 = before.isocalendar()[1]
     week2 = now.isocalendar()[1]
+
+    # user week parameter override
+    if 'week' in clean_params:
+        week1 = clean_params['week']
+        week2 = clean_params['week']
 
     day1 = now.weekday()
 
@@ -139,6 +148,10 @@ def fitting_selections(params) -> list:
             hour1 = min_hour
             hour2 = max_hour
             break
+
+    # user parameter overrides
+    if 'day' in clean_params:
+        day1 = clean_params['day']
 
     log.debug([hour1, hour2, day1, week1, week2])
 
@@ -206,20 +219,27 @@ class OccupancyInBBOX(viewsets.ViewSet):
     Get an occupancy number for a location in the city of Amsterdam.
 
     Given bounding box  `bbox` return average occupation
-    of roadparts withing the given `bounding box`.
+    of roadparts within the given `bounding box`.
 
-        max-boundaties bounding-box. (groot Amsterdam)
+        max-boundaties bounding-box. (groot/big Amsterdam)
 
                   4.58565,  52.03560,  5.31360, 52.48769,
         bbox      bottom,       left,      top,    right
 
-        month     [0-11] prefered month
+        week     [1-52] prefered week of year
 
-        day       [0-6] prefered day
+        day       [0-6] prefered day [ monday = 0]
 
         hour      [0-23] prefered hour
 
         We get aggregate information around given parameters.
+        which match close as possible to the given parameters
+
+        Occupancy values should be interpreted
+
+        Good occupancy <70.
+        Busy 70 < occupance < 85
+        Bad  85 < occupancy
 
     The results are made possible by the scan measurements of
     the scan-cars.
