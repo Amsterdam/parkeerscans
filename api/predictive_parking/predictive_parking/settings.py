@@ -271,9 +271,20 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'ERROR',
         },
+
+        'django.template': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+
         'django': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'ERROR',
+        },
+
+        'occupancy': {
+            'handlers': ['console'],
+            'level': 'ERROR',
         },
 
         # Debug all batch jobs
@@ -290,7 +301,7 @@ LOGGING = {
 
         'search': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': False,
         },
 
