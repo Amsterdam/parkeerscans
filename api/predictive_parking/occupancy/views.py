@@ -24,6 +24,7 @@ from . import models
 
 from .scrape_api import hour_range
 
+
 log = logging.getLogger(__name__)
 
 
@@ -83,57 +84,71 @@ class BboxFilter(object):
         return "filter using bbbox=4.58565,52.03560,5.31360,52.48769"
 
 
-def fitting_selections():
+def fitting_selections() -> list:
     """
-    Given the current time give fitting selection option
+    Given the current time return fitting selection option
+
+    from specific to less specific
+    we will always find a somehwat fitting selection
     """
 
     delta = datetime.timedelta(days=100)
     now = datetime.datetime.now()
     before = now - delta
 
-    year1 = before.year
     hour = now.hour
-    month2 = now.month - 1
-    month1 = now.month - 4
+
+    week1 = before.isocalendar()[1]
+    week2 = now.isocalendar()[1]
 
     day1 = now.weekday()
 
-    hour1 = 0
-    hour2 = 23
+    hour1 = now.hour
+    hour2 = now.hour + 2
 
+    # match hour with selection hour ranges
     for min_hour, max_hour in hour_range:
         if min_hour <= hour <= max_hour:
             hour1 = min_hour
             hour2 = max_hour
             break
 
-    print([year1, hour1, hour2, day1, month1, month2])
+    log.debug([hour1, hour2, day1, week1, week2])
 
     x_selections = models.Selection.objects.exclude(
             qualcode='BETAALDP')
 
-    selection = x_selections.filter(
-        day1=day1, day2=day1, hour1=hour1, hour2=hour2,
-        month1=month1, month2=month2,
-        year1=year1, status=1).first()
+    x_selections = x_selections.filter(status=1)
 
-    if not selection:
-        selection = x_selections.filter(
-            day1=day1, hour1=hour1, hour2=hour2,
-            month1=month1, year1=year1, status=1).first()
-
-    if not selection:
-        selection = x_selections.filter(
+    options = [
+        # find exact day
+        x_selections.filter(
+            day1,
             hour1=hour1, hour2=hour2,
-            month1=month1, year1=year1, status=1).first()
+        ),
 
-    if not selection:
-        selection = x_selections.first()
+        # find  day range
+        x_selections.filter(
+            day1_gte=day1, day2_lte=day1,
+            hour1_gte=hour1, hour2_lte=hour2,
+        ),
 
-    print(repr(selection))
+        # find hour range in week
+        x_selections.filter(
+            day1=0, day2=6,
+            hour1=hour1, hour2=hour2,
+        ),
 
-    return selection
+        # find a week
+        x_selections.filter(
+            day1=0, day2=6,
+        ),
+    ]
+
+    for option in options:
+        log.debug(option.count())
+
+    return options
 
 
 def get_wegdelen(occupancy_qs, bbox_values):
@@ -194,24 +209,26 @@ class OccupancyInBBOX(viewsets.ViewSet):
         if err:
             return Response([f"bbox invalid {err}:{bbox_values}"], status=400)
 
-        selection = fitting_selections()
+        selections = fitting_selections()
 
-        if not selection:
-            return Response([f"selections are missing.."], status=500)
+        for option in selections:
 
-        occupancy_numbers = models.RoadOccupancy.objects.filter(
-            selection=selection.id).select_related('wegdeel')
+            occupancy_numbers = models.RoadOccupancy.objects.filter(
+                selection=option.id).select_related('wegdeel')
 
-        print(occupancy_numbers.count())
+            if occupancy_numbers.count():
+                # we find some roadparts matching
+                log.debug(occupancy_numbers.count())
+                break
 
         wegdelen = get_wegdelen(occupancy_numbers, bbox_values)
 
-        print(wegdelen.count())
+        log.debug('Roadparts found %d', wegdelen.count())
 
         occupancy = []
 
-        for wd in wegdelen[:100]:
-            occupancy.append(wd.occupancy)
+        for one_road in wegdelen[:100]:
+            occupancy.append(one_road.occupancy)
 
         avg_occupancy = 1
 

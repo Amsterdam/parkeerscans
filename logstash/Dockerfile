@@ -23,6 +23,7 @@ COPY docker-run.sh /app/
 COPY load-test-data.sh /app/
 
 # UNCOMMENT For development / testing local
+# run-docker scan stats to get a tables.txt file
 # COPY /app/data/tables.txt /app/data/tables.txt
 
 CMD ["/app/docker-run.sh"]
