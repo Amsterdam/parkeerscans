@@ -17,12 +17,14 @@ Django
 djangorestframework-gis
 djangorestframework
 django-rest-swagger
+django_debug_toolbar
 docker-pycreds
 docopt
 elasticsearch
 elasticsearch-dsl
 first
 flake8
+graypy
 iso8601
 isort
 jsonschema

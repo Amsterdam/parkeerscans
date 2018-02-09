@@ -1,9 +1,7 @@
-FROM amsterdam/docker_python:latest
+FROM amsterdam/python
 MAINTAINER datapunt@amsterdam.nl
 
 ENV PYTHONUNBUFFERED 1
-
-EXPOSE 8000
 
 RUN apt-get install -y \
 	unrar \

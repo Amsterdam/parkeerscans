@@ -78,12 +78,12 @@ dc exec -T database update-table.sh basiskaart BGT_WGL_voetpad bgt predictivepar
 dc exec -T database update-table.sh basiskaart BGT_WGL_parkeervlak bgt predictiveparking
 dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_lokale_weg bgt predictiveparking
 dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_regionale_weg bgt predictiveparking
-#
+
 #echo "Load buurt / buurtcombinatie"
 dc exec -T database update-table.sh bag bag_buurt public predictiveparking
-#
-#
-#echo "create wegdelen / buurten and complete the scans data"
+
+
+# echo "create wegdelen / buurten and complete the scans data"
 dc run --rm importer ./docker-wegdelen.sh
 #
 echo "loading the unzipped scans into database, add wegdelen / pv to scans"
@@ -102,7 +102,7 @@ if [ $RUNELASTIC != "yes" ]
 then
 	echo "create scan db dump"
 	# run the DB backup shizzle
-	dc exec database ./backup-db-scans.sh
+	dc exec -T database ./backup-db-scans.sh
 fi
 
 echo "DONE! with scan data import. You are awesome! <3"
@@ -113,5 +113,3 @@ if [ $RUNELASTIC == "yes" ]
 then
 	source ${DIR}/import-es.sh
 fi
-
-#dc down --remove-orphans

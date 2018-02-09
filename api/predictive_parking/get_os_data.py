@@ -148,7 +148,7 @@ def get_latest_rarfiles():
         rarname = full_name.split('/')[-1]
 
         if 'oud' in full_name:
-            log.debug('oud %s', rarname)
+            log.debug('too old %s', rarname)
             continue
 
         # no selection given. do everything.

@@ -3,7 +3,7 @@
 # helper script to fill database with related data for (development)
 
 # set -u
-# set -e
+set -e
 set -x
 echo "provde username if using ssh / dev env"
 
@@ -14,7 +14,7 @@ dc() {
 }
 
 gettable(){
-	dc exec database update-table.sh $*  $username
+	dc exec -T database update-table.sh $*  $username
 }
 
 gettable parkeervakken parkeervakken bv predictiveparking

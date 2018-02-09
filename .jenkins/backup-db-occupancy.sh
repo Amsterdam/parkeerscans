@@ -10,9 +10,11 @@ chmod 600 ~/.pgpass
 
 # dump occupation data
 pg_dump  -t occupancy* \
+	 -Fc \
 	 -t sv*\
 	 -U predictiveparking \
-	 -h database -p 5432 \
-	 predictiveparking > /tmp/backups/occupancy.dump"
+	 -h 0.0.0.0 -p 5432 \
+	 -f /backups/occupancy.dump \
+	 predictiveparking
 
 

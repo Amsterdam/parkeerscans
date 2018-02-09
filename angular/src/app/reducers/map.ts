@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import * as mapActions from '../actions/map';
 
 export interface State {

@@ -1,8 +1,11 @@
+#!/usr/bin/env bash
+
 # load database into elastic search.
 # for local test environment
 
 set -e
 set -u
+set -x
 
 DB=$1
 
@@ -19,16 +22,15 @@ dc() {
 
 dc up -d elasticsearch
 
-
 while ! nc -z elasticsearch 9200
 do
  	echo "Waiting for elastic..."
  	sleep 1.5
 done
 
-curl -s -v -f -XPUT http://elasticsearch:9200/_template/scan -d '
+curl -H "Content-Type: application/json" -s  --trace-ascii -f -PUT http://elasticsearch:9200/_template/scan -d '
 {
-  "template": "scans-*",
+  "index_patterns": ["scans-*"],
   "settings": {
     "number_of_shards": 1,
     "number_of_replicas": 0

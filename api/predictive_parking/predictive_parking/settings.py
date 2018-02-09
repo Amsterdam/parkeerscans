@@ -23,6 +23,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', insecure_key)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = SECRET_KEY == insecure_key
+DEBUG = False
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
@@ -131,7 +132,8 @@ def in_docker():
     """
 
     try:
-        return ':/docker/' in open('/proc/1/cgroup', 'r').read()
+        cgroup = open('/proc/1/cgroup', 'r').read()
+        return ':/docker/' in cgroup or ':/docker-ce/' in cgroup
     except:
         return False
 

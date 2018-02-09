@@ -10,7 +10,7 @@ echo $0
 #
 
 dc() {
-	docker-compose -p occ -f ${DIR}/docker-compose-occ.yml $*;
+	docker-compose -p occ -f ${DIR}/docker-compose.yml $*;
 }
 
 # so we can delete named volumes
@@ -31,6 +31,17 @@ echo "Load latest parkeervakken.."
 dc exec -T database update-table.sh parkeervakken parkeervakken bv predictiveparking
 echo "Load latest wegdelen.."
 
+# foutparkeerders / scans niet in vakken
+dc exec -T database update-table.sh basiskaart BGT_OWGL_verkeerseiland bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_OWGL_berm bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_OTRN_open_verharding bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_OTRN_transitie bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_fietspad bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_voetgangersgebied bgt predictiveparking
+dc exec -T database update-table.sh basiskaart BGT_WGL_voetpad bgt predictiveparking
+
+
+
 # interessante wegdelen: wegen en vakken
 dc exec -T database update-table.sh basiskaart BGT_WGL_parkeervlak bgt predictiveparking
 dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_lokale_weg bgt predictiveparking
@@ -50,7 +61,7 @@ dc run --rm importer ./docker-occupancy-bakker.sh
 
 
 # run the DB backup shizzle
-dc exec database ./backup-db-occupancy.sh
+dc exec -T database ./backup-db-occupancy.sh
 
 
 dc down

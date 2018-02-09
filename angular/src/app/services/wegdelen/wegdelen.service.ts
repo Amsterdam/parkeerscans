@@ -23,8 +23,8 @@ export class WegdelenService {
   ): any {
 
     return this.http.get('https://acc.api.data.amsterdam.nl/predictiveparking' +
-        '/metingen/aggregations/wegdelen/?' +
-        `bgt_wegdeel=${wegdeelId}` +
+        '/metingen/aggregations/wegdelen/' +
+        `?bgt_wegdeel=${wegdeelId}` +
         (day ? `&day=${day}` : '') +
         (dayGte ? `&day_gte=${dayGte}` : '&day_gte=0') +
         (dayLte ? `&day_lte=${dayLte}` : '&day_lte=6') +

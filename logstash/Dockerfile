@@ -1,21 +1,16 @@
-FROM logstash
+FROM docker.elastic.co/logstash/logstash-oss:6.1.1
 MAINTAINER datapunt.ois@amsterdam.nl
 
 RUN logstash-plugin install logstash-input-jdbc
 
+USER root
 RUN mkdir /app/
 
 WORKDIR /app/
 
-RUN wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
+RUN yum install nmap-ncat -y
 
-RUN apt-get update \
-	&& apt-get install -y \
-		netcat \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-
+RUN curl -O https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
 
 COPY readdb.conf /app/
 COPY geomapping.json /app/
@@ -26,4 +21,5 @@ COPY load-test-data.sh /app/
 # run-docker scan stats to get a tables.txt file
 # COPY /app/data/tables.txt /app/data/tables.txt
 
+USER logstash
 CMD ["/app/docker-run.sh"]

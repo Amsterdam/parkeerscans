@@ -25,6 +25,8 @@ export class FormComponent implements OnInit {
   public selection: FormGroup;
   public days = config.days;
   public hours = config.hours;
+  public value = null;
+  public weekDay = 0;
 
   constructor(
     @Inject(FormBuilder)
@@ -32,10 +34,11 @@ export class FormComponent implements OnInit {
     private store: Store<MapState>) {}
 
   public ngOnInit() {
+    this.weekDay = (new Date().getDay() + 6) % 7;
     this.selection = this.fb.group({
       day: [''],
-      dayLte: [''],
-      dayGte: [''],
+      dayLte: [`${this.weekDay}`],
+      dayGte: [`${this.weekDay}`],
       hour: [''],
       hour_gte: [''],
       hour_lte: [''],
@@ -45,15 +48,15 @@ export class FormComponent implements OnInit {
       year: ['']
     });
     this.selection.valueChanges.subscribe((value) => {
-      this.store.dispatch(new SetSelectionAction(value));
+      this.value = value;
     });
   }
 
   public reset() {
     this.selection.reset({
       day: '',
-      dayLte: '',
-      dayGte: '',
+      dayLte: `${this.weekDay}`,
+      dayGte: `${this.weekDay}`,
       hour: '',
       hour_gte: '',
       hour_lte: '',
@@ -62,5 +65,10 @@ export class FormComponent implements OnInit {
       month_lte: '',
       year: ''
     });
+    this.value = null;
+  }
+
+  public request() {
+    this.store.dispatch(new SetSelectionAction(this.value));
   }
 }

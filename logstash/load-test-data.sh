@@ -2,17 +2,18 @@
 
 set -e
 set -u
+set -x
 
-
-while ! nc -z elasticsearch 9200
+while ! ncat --send-only elasticsearch 9200 < /dev/null
 do
  	echo "Waiting for elastic..."
  	sleep 1.5
 done
 
-curl -s -v -f -XPUT http://elasticsearch:9200/_template/scan -d '
+
+curl -H "Content-Type: application/json" -s --trace-ascii -s -v -f -XPUT http://elasticsearch:9200/_template/scan -d '
 {
-  "template": "scans-*",
+  "index_patterns": ["scans-*"],
   "settings": {
     "number_of_shards": 1,
     "number_of_replicas": 0

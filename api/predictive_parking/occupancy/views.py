@@ -5,9 +5,11 @@ import datetime
 from django.utils.encoding import force_text
 from django.contrib.gis.geos import Polygon
 from django.db.models import Q
+from django.conf import settings
 
 # from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 # from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework import viewsets
 
@@ -22,7 +24,7 @@ from wegdelen.models import WegDeel
 from . import serializers
 from . import models
 
-from .scrape_api import hour_range
+from .scrape_api import HOUR_RANGE
 
 
 log = logging.getLogger(__name__)
@@ -48,6 +50,8 @@ class RoadOccupancyViewSet(rest.DatapuntViewSet):
         'selection__day2',
         'selection__hour1',
         'selection__hour2',
+        'selection__week1',
+        'selection__week2',
         'occupancy',
     )
 
@@ -84,13 +88,36 @@ class BboxFilter(object):
         return "filter using bbbox=4.58565,52.03560,5.31360,52.48769"
 
 
-def fitting_selections() -> list:
+def clean_selection_params(params):
+    """
+    year, week, day, hour
+    """
+    cleaned = {}
+
+    valid_keys = ['year', 'month', 'week', 'day', 'hour']
+
+    # convert to int
+    for valid in valid_keys:
+        value = params.get(valid, '')
+        if value.isdigit():
+            try:
+                cleaned[valid] = int(value)
+            except ValueError:
+                raise serializers.ValidationError(
+                    'This field must be an integer value.')
+
+    return cleaned
+
+
+def fitting_selections(params) -> list:
     """
     Given the current time return fitting selection option
 
     from specific to less specific
     we will always find a somehwat fitting selection
     """
+    clean_params = clean_selection_params(params)
+    # TODO create options with selection
 
     delta = datetime.timedelta(days=100)
     now = datetime.datetime.now()
@@ -103,11 +130,11 @@ def fitting_selections() -> list:
 
     day1 = now.weekday()
 
-    hour1 = now.hour
+    hour1 = now.hour - 1
     hour2 = now.hour + 2
 
     # match hour with selection hour ranges
-    for min_hour, max_hour in hour_range:
+    for min_hour, max_hour in HOUR_RANGE:
         if min_hour <= hour <= max_hour:
             hour1 = min_hour
             hour2 = max_hour
@@ -123,14 +150,14 @@ def fitting_selections() -> list:
     options = [
         # find exact day
         x_selections.filter(
-            day1,
+            day1=day1,
             hour1=hour1, hour2=hour2,
         ),
 
         # find  day range
         x_selections.filter(
-            day1_gte=day1, day2_lte=day1,
-            hour1_gte=hour1, hour2_lte=hour2,
+            day1__gte=day1, day2__lte=day1,
+            hour1__gte=hour1, hour2__lte=hour2,
         ),
 
         # find hour range in week
@@ -157,19 +184,21 @@ def get_wegdelen(occupancy_qs, bbox_values):
     """
     lat1, lon1, lat2, lon2 = bbox_values
 
+    # lon1, lat1, lon1, n2 = bbox_values
+
     poly_bbox = Polygon.from_bbox((lon1, lat1, lon2, lat2))
 
-    wd_qs = occupancy_qs.filter(
-        Q(**{"wegdeel__geometrie__overlaps": poly_bbox}))
+    log.debug(poly_bbox)
 
-    print(wd_qs.count())
+    wd_qs = WegDeel.objects.filter(
+        geometrie__bboverlaps=(poly_bbox))
 
-    db_wegdelen = wd_qs.filter(wegdeel__vakken__gte=1)
+    bgt_ids = wd_qs.values_list('bgt_id')
 
-    print(db_wegdelen.count())
+    db_wegdelen = occupancy_qs.filter(
+        bgt_id__in=bgt_ids)
 
-    # return db_wegdelen
-    return wd_qs
+    return db_wegdelen
 
 
 class OccupancyInBBOX(viewsets.ViewSet):
@@ -184,6 +213,13 @@ class OccupancyInBBOX(viewsets.ViewSet):
                   4.58565,  52.03560,  5.31360, 52.48769,
         bbox      bottom,       left,      top,    right
 
+        month     [0-11] prefered month
+
+        day       [0-6] prefered day
+
+        hour      [0-23] prefered hour
+
+        We get aggregate information around given parameters.
 
     The results are made possible by the scan measurements of
     the scan-cars.
@@ -209,21 +245,28 @@ class OccupancyInBBOX(viewsets.ViewSet):
         if err:
             return Response([f"bbox invalid {err}:{bbox_values}"], status=400)
 
-        selections = fitting_selections()
+        params = request.query_params
+        selections = fitting_selections(params)
 
         for option in selections:
+            selection = option.first()
 
             occupancy_numbers = models.RoadOccupancy.objects.filter(
-                selection=option.id).select_related('wegdeel')
+                selection=selection.id).select_related('wegdeel')
 
-            if occupancy_numbers.count():
-                # we find some roadparts matching
-                log.debug(occupancy_numbers.count())
+            if not occupancy_numbers.count():
+                continue
+
+            # we found some roadparts matching
+            log.debug(occupancy_numbers.count())
+
+            wegdelen = get_wegdelen(occupancy_numbers, bbox_values)
+
+            log.debug(wegdelen.count())
+
+            # we found some road parts to give back a  number
+            if wegdelen.count():
                 break
-
-        wegdelen = get_wegdelen(occupancy_numbers, bbox_values)
-
-        log.debug('Roadparts found %d', wegdelen.count())
 
         occupancy = []
 
@@ -241,13 +284,16 @@ class OccupancyInBBOX(viewsets.ViewSet):
             {
                 'roadparts': wegdelen.count(),
                 'occupancy': avg_occupancy,
-                'bbox': bbox_values
-
+                'bbox': bbox_values,
+                'selection': repr(selection)
             }
         ]
         # show found numbers (debug)
         status = 200
-        result.extend(occupancy)
+
+        if settings.DEBUG:
+            result.extend(occupancy)
+
         if not occupancy:
             result[0]['status'] = 'oops something went wrong'
             status = 404

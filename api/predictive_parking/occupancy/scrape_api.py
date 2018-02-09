@@ -2,32 +2,31 @@
 Load occupancy from our own elastic API
 in the database for easy to consume datasets
 """
+import sys
 import logging
-import requests
-import psycopg2
 
 from datetime import datetime
 from datetime import timedelta
 
 from collections import namedtuple
+
+import time
+import requests
+
 from django.db.models import F, Count
 
 from django.conf import settings
-from django.db import connection
 from django.test import Client
 
-from wegdelen.models import WegDeel
-from wegdelen.models import Buurt
 from occupancy.models import RoadOccupancy
 from occupancy.models import Selection
 
-import time
 
-
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)   # noqa
 
 
 API_ROOT = 'https://acc.api.data.amsterdam.nl'
+# API_ROOT = 'http://127.0.0.1:8000'
 API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/'
 
 API_URL = f'{API_ROOT}{API_PATH}'
@@ -37,24 +36,19 @@ TEST_CLIENT = None
 if settings.TESTING:
     TEST_CLIENT = Client()
 
-hour_range = [
+
+HOUR_RANGE = [
     (9, 12),   # ochtend
     (13, 16),  # middag
     (17, 19),  # spits
     (20, 23),  # avond
     (0, 4),    # nacht
-    (0, 23),   # dag
+    # (0, 23),   # dag
 ]
 
-month_range = [
-    # (0, 3),
-    # (4, 6),
-    (3, 7),
-    # (10, 12),
-]
 
-day_range = [
-    #(0, 6),  # hele week too heavy!
+DAY_RANGE = [
+    # (0, 6),  # hele week too heavy!
     (0, 4),  # werkdag
     (5, 6),  # weekend
 
@@ -67,48 +61,119 @@ day_range = [
     (6, 6),  # zondag
 ]
 
+
 year_range = [
     (2017, 2017),
 ]
 
+
 Bucket = namedtuple(
-    'bucket', ['y1', 'y2', 'm1', 'm2', 'd1', 'd2', 'h1', 'h2', 'qcode'])
+    'bucket', [
+        'y1', 'y2',
+        'm1', 'm2',
+        'd1', 'd2',
+        'h1', 'h2',
+        'w1', 'w2',
+        'qcode'
+    ])
 
 
-def make_year_month_range():
+def make_time_range():
     """
     now - 3 months
     """
-    delta = timedelta(days=100)
+    delta = timedelta(days=90)
     today = datetime.today()
+
     before = today - delta
 
     year1 = before.year
     year2 = today.year
 
     month1 = before.month - 1   # we start at 0
-    # This month we have no data.
-    # so we should take month before
-    month2 = today.month - 1
+    month2 = today.month - 1    # we start at 0
 
-    return year1, year2, month1, month2
+    week1 = before.isocalendar()[1]
+    week2 = today.isocalendar()[1]
+
+    return year1, year2, month1, month2, week1, week2
+
+
+def time_range(w1, w2, options):
+
+    if w1 < w2:
+        return options[w1:w2]
+
+    return options[w1:] + options[:w2]
+
+
+def make_week_buckets(
+        buckets: list,
+        y1: int, y2: int,
+        w1: int, w2: int,
+        d1: int, d2: int,
+        h1: int, h2: int,
+        q: str):
+    """
+    Make selection bucket objects for weeks
+    """
+    for w in time_range(w1, w2, list(range(1, 53))):
+
+        if y1 != y2:
+            if w >= w1:
+                # year1
+                b = Bucket(y1, y1, None, None, d1, d2, h1, h2, w, w, q)
+                buckets.append(b)
+            else:
+                # year2
+                b = Bucket(y2, y2, None, None, d1, d2, h1, h2, w, w, q)
+                buckets.append(b)
+        else:
+            # same year
+            b = Bucket(y1, y1, None, None, d1, d2, h1, h2, w, w, q)
+
+
+def make_month_buckets(
+        buckets: list,
+        y1: int, y2: int,
+        m1: int, m2: int,
+        d1: int, d2: int,
+        h1: int, h2: int,
+        q: str):
+    """
+    Make selection bucket objects for months
+    """
+
+    for m in time_range(m1, m2, list(range(0, 12))):
+        if y1 != y2:
+            if m >= m1:
+                # year1
+                b = Bucket(y1, y1, m, m, d1, d2, h1, h2, None, None, q)
+                buckets.append(b)
+            else:
+                # year2
+                b = Bucket(y2, y2, m, m, d1, d2, h1, h2, None, None, q)
+                buckets.append(b)
+        else:
+            # same year
+            b = Bucket(y1, y2, m, m, d1, d2, h1, h2, None, None, q)
+            buckets.append(b)
 
 
 def occupancy_buckets():
     """
-    Determine the occupancy buckets
-    we need
+    Determine the occupancy buckets we need
     """
     buckets = []
 
-    y1, y2, m1, m2 = make_year_month_range()
+    y1, y2, m1, m2, w1, w2 = make_time_range()
 
-    for d1, d2 in day_range:
-        for h1, h2 in hour_range:
+    for d1, d2 in DAY_RANGE:
+        for h1, h2 in HOUR_RANGE:
             # Bezoekers of niet.
             for q in [None, 'BETAALDP']:
-                b = Bucket(y1, y2, m1, m2, d1, d2, h1, h2, q)
-                buckets.append(b)
+                # make_month_buckets(buckets, y1, y2, m1, m2, d1, d2, h1, h2, q)
+                make_week_buckets(buckets, y1, y2, w1, w2, d1, d2, h1, h2, q)
 
     return buckets
 
@@ -119,7 +184,6 @@ def create_selections(buckets):
     """
 
     for b in buckets:
-
         assert validate_selection(b)
 
         Selection.objects.get_or_create(
@@ -129,6 +193,8 @@ def create_selections(buckets):
             hour2=b.h2,
             month1=b.m1,
             month2=b.m2,
+            week1=b.w1,
+            week2=b.w2,
             year1=b.y1,
             year2=b.y2,
             qualcode=b.qcode,
@@ -145,12 +211,13 @@ def create_single_selection(longstring):
 
     manual_selection = list(map(int, manual_selection))
 
-    if len(manual_selection) == 8:
+    if len(manual_selection) == 10:
         # qualcode is None
         manual_selection.append('')
 
-    assert len(manual_selection) == 9
-    assert min(manual_selection[:8]) >= 0
+    assert len(manual_selection) == 11
+    assert min(manual_selection[:10]) >= 0
+
     b = Bucket(*manual_selection)
     # add the new selection
     create_selections([b])
@@ -161,14 +228,24 @@ def validate_selection(bucket):
     # lets do some validation..
     assert b.y1 in range(2016, 2025)
     assert b.y2 in range(2016, 2025)
-    assert b.m1 in range(0, 12)
-    assert b.m2 in range(0, 12)
+
+    if b.m1:
+        assert b.m1 in range(0, 12)
+    if b.m2:
+        assert b.m2 in range(0, 12)
+
+    if b.w1:
+        assert b.w1 in range(1, 53)
+    if b.w2:
+        assert b.w2 in range(1, 53)
+
+    assert (b.m1 is not None or b.w1 is not None)
+
     assert b.d1 in range(0, 7)
     assert b.d2 in range(0, 7)
     assert b.h1 in range(0, 24)
     assert b.h2 in range(0, 24)
     assert b.y1 <= b.y2
-    assert b.m1 <= b.m2
     assert b.d1 <= b.d2
     assert b.h1 <= b.h2
 
@@ -187,8 +264,8 @@ def store_occupancy_data(json: dict, selection: dict):
     for wd_id, wd_data in json['wegdelen'].items():
 
         avg_occupancy = wd_data.get('avg_occupancy')
-        min_occupancy = wd_data.get('max_occupancy')
-        max_occupancy = wd_data.get('min_occupancy')
+        min_occupancy = wd_data.get('min_occupancy')
+        max_occupancy = wd_data.get('max_occupancy')
         std_occupancy = wd_data.get('std_occupancy')
 
         if not avg_occupancy:
@@ -222,11 +299,17 @@ def create_selection_buckets():
     buckets = occupancy_buckets()
     create_selections(buckets)
 
-    todo_selections = Selection.objects.filter(status__isnull=True).count()
-    done_selections = Selection.objects.filter(status__isnull=1).count()
+    todo_selections = Selection.objects.filter(status__isnull=True)
+    done_selections = Selection.objects.filter(status__isnull=False)
 
-    log.info(f'Selections: TODO: {todo_selections} READY: {done_selections}')
+    for selection in todo_selections:
+        log.debug(repr(selection))
 
+    log.info(
+        f"""Selections:
+            TODO:  {todo_selections.count()}
+            READY: {done_selections.count()}
+        """)
 
 def get_work_to_do():
     """
@@ -260,14 +343,24 @@ def do_request(selection: dict) -> dict:
     payload = {
         'year_gte': s.year1,
         'year_lte': s.year2,
-        'month_gte': s.month1,
-        'month_lte': s.month2 or s.month1,
         'day_gte': s.day1,
         'day_lte': s.day2,
         'hour_gte': s.hour1,
         'hour_lte': s.hour2,
         'wegdelen_size': 8000,
     }
+
+    if s.month1 is not None:
+        payload.update({
+            'month_gte': s.month1,
+            'month_lte': s.month2,
+        })
+    else:
+        payload.update({
+            'week_gte': s.week1,
+            'week_lte': s.week2,
+        })
+
     if s.qualcode:
         payload['qualcode'] = s.qualcode
 
@@ -277,14 +370,29 @@ def do_request(selection: dict) -> dict:
     else:
         response = requests.get(API_URL, payload)
 
-    if response.status_code != 200:
+    if response.status_code == 500:
+        # server error.
         log.error('%s %s', response.status_code, payload)
+        log.error(response.url)
+        selection.status = None
+        selection.save()
+        raise ValueError('API Server gives 500')
+
+    elif response.status_code == 404:
+        # nothing found.
+        selection.delete()
+        log.debug('No data available')
+        return
+
+    elif response.status_code == 504:
+        # timeout.
+        log.error('%s %s', response.status_code, payload)
+        log.error(response.url)
         selection.status = None
         selection.save()
         log.debug('Waiting a bit..')
         time.sleep(30)
         return
-        # raise ValueError
 
     return response.json()
 
@@ -308,11 +416,16 @@ def store_selection_status(selection):
         log.info(f'Roadparts {wd_count[0][1]} for {selection}')
 
 
-def fill_occupancy_roadparts():
+def fill_occupancy_roadparts(count=0):
     """
     Fill occupancy table with occupancy
     cijfers
     """
+    if count > 10:
+        # stop retrying
+        return
+
+    count += 1
 
     work_selections = get_work_to_do()
 
@@ -335,99 +448,8 @@ def fill_occupancy_roadparts():
             i, work_count, selection._name(),
             wd_count
         )
+        if wd_count < 10:
+            log.info(f'No results for {selection}. remove')
+            selection.delete()
 
         store_selection_status(selection)
-
-    work_count = work_selections.count()
-    if work_count:
-        log.debug('not done yet..')
-        fill_occupancy_roadparts()
-
-
-def execute_sql(sql):
-    with connection.cursor() as cursor:
-        cursor.execute(sql)
-
-
-def create_selection_tables():
-    """
-    Create tables of selections usable for mapserver / qgis
-
-    We make tables for ease of dumping / restoring tables
-    """
-
-    work_done = Selection.objects.filter(status=1)
-
-    for selection in work_done:
-        view_name = selection.view_name()
-
-        log.info('Created view %s', view_name)
-        # create view for each selection with
-        # geometry data.
-
-        sql = f"""
-DROP TABLE IF EXISTS sv{str(view_name)};
-SELECT * INTO sv{str(view_name)} FROM (
-SELECT
-    row_number() OVER (ORDER BY wd.bgt_id) as id,
-    wd.bgt_id,
-    wd.vakken,
-    wd.fiscale_vakken,
-    occupancy,
-    min_occupancy,
-    max_occupancy,
-    std_occupancy, unique_scans,
-    geometrie
-FROM wegdelen_wegdeel wd, occupancy_roadoccupancy oc, occupancy_selection s
-WHERE wd.bgt_id = oc.bgt_id
-AND wd.vakken >= 3
-AND s.id = oc.selection_id
-AND s.id = {selection.id}) as tmptable
-        """
-        execute_sql(sql)
-
-
-
-def dump_csv_files():
-    """
-    For each view create a csv file.
-    """
-
-    work_done = Selection.objects.filter(status=1)
-
-    for selection in work_done:
-        view_name = selection.view_name()
-
-        select = f"""
-        SELECT
-            id, bgt_id, occupancy, vakken, fiscale_vakken,
-            min_occupancy, max_occupancy, std_occupancy, unique_scans,
-            ST_AsText(geometrie)
-        FROM sv{str(view_name)}
-        """
-
-        select_no_geo = f"""
-        SELECT
-            id, bgt_id, occupancy, vakken, fiscale_vakken
-            min_occupancy, max_occupancy, std_occupancy, unique_scans
-        FROM sv{str(view_name)}
-        """
-
-        outputquery = f"COPY ({select}) TO STDOUT WITH CSV HEADER"
-        outputquery_no_geo = f"COPY ({select_no_geo}) TO STDOUT WITH CSV HEADER"   # noqa
-
-        file_name = f'{settings.CSV_DIR}/{str(view_name)}.csv'
-        file_name_no_geo = f'{settings.CSV_DIR}/{str(view_name)}.nogeo.csv'
-
-        with connection.cursor() as cursor:
-
-            try:
-                with open(file_name, 'w') as f:
-                    log.debug('saving view: %s', file_name)
-                    cursor.copy_expert(outputquery, f)
-
-                with open(file_name_no_geo, 'w') as f:
-                    log.debug('saving view: %s', file_name_no_geo)
-                    cursor.copy_expert(outputquery_no_geo, f)
-            except psycopg2.ProgrammingError:
-                log.exception('table missing')

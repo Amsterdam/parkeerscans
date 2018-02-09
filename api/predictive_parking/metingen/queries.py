@@ -170,9 +170,13 @@ POSSIBLE_INT_PARAMS = [
     ('hour_lte', range(0, 24)),
 
     # Disable minute by minute view
-    #('minute', range(0, 60)),
-    #('minute_gte', range(0, 60)),
-    #('minute_lte', range(0, 60)),
+    # ('minute', range(0, 60)),
+    # ('minute_gte', range(0, 60)),
+    # ('minute_lte', range(0, 60)),
+
+    ('week', range(1, 53)),
+    ('week_gte', range(1, 53)),
+    ('week_lte', range(1, 53)),
 
     ('day', range(0, 7)),
     ('day_gte', range(0, 7)),
@@ -199,6 +203,7 @@ TERM_FIELDS = {
     'bgt_wegdeel': None,
     'year': None,
     'day': None,
+    'week': None,
     'hour': None,
     'month': None,
     # 'minute': None,
@@ -211,8 +216,8 @@ TERM_FIELDS = {
 POSSIBLE_PARAMS = [v[0] for v in POSSIBLE_INT_PARAMS]
 
 POSSIBLE_PARAMS.extend([
-    #'date_lte',  # elstic date math
-    #'date_gte',  # elstic date math
+    'date_lte',  # elstic date math
+    'date_gte',  # elstic date math
     'format',    # json / api
     'explain',   # give bigger respnse explaining calculation
     'bbox',      # give map bbox
@@ -239,15 +244,15 @@ def hour_next():
 
 # Elastic date notations.
 DATE_RANGE_FIELDS = [
-    ('year_gte', 2015),
+    ('year_gte', 2017),
     ('year_lte', 2025),
 
     ('hour_gte', hour_previous()),
     ('hour_lte', hour_next()),
 
     ('day', datetime.now().weekday),
-    #('day_gte', datetime.now().weekday),
-    #('day_lte', datetime.now().weekday),
+    # ('day_gte', datetime.now().weekday),
+    # ('day_lte', datetime.now().weekday),
 ]
 
 
@@ -257,6 +262,7 @@ RANGE_FIELDS = [
     ('year_gte', 'year_lte'),
     ('month_gte', 'month_lte'),
     ('day_gte', 'day_lte'),
+    ('week_gte', 'week_lte'),
 ]
 
 
@@ -336,26 +342,19 @@ def selection_fields(req_params, clean_values):
     return err
 
 
-def parse_parameter_input(request):
+def parse_parameter_input(query_params):
     """
     Validate client input
     """
     err = None
 
-    req_params = request.query_params
-
     clean_values = {}
 
-    err = check_all_paramaters(req_params, clean_values)
+    err = check_all_paramaters(query_params, clean_values)
     if err:
         return None, err
 
-    err = parse_int_parameters(req_params, clean_values)
-
-    if err:
-        return None, err
-
-    err = validate_range_fields(clean_values)
+    err = parse_int_parameters(query_params, clean_values)
 
     if err:
         return None, err
@@ -365,27 +364,12 @@ def parse_parameter_input(request):
     # set soort is fiscaal
     clean_values['parkeervak_soort'] = 'FISCAAL'
 
-    err = selection_fields(req_params, clean_values)
+    err = selection_fields(query_params, clean_values)
 
     if err:
         return None, err
 
     return clean_values, None
-
-
-def validate_range_fields(clean_values):
-
-    err = None
-
-    for low, high in RANGE_FIELDS:
-        if low not in clean_values:
-            continue
-        if high in clean_values:
-            low_value = clean_values[low]
-            high_value = clean_values[high]
-            if high_value < low_value:
-                err = f"!! {high_value} < {low_value}"
-    return err
 
 
 def build_term_query(field, value):
@@ -472,6 +456,30 @@ def make_range_q(field, gte_field, lte_field, cleaned_data):
     return range_q
 
 
+def find_options(low, high, size):
+    """
+    Given range find which index values we need
+
+    first case
+    1, 4 -> 1 2 3 4
+
+    second case
+    11, 2 -> 11, 0, 1, 2
+    """
+
+    if low < high:
+        # normal case
+        return list(range(int(low), int(high)+1))
+
+    if low == high:
+        return [low]
+
+    # we go past the size
+    end_options = list(range(size))[low:]
+    start_options = list(range(size))[:high+1]
+    return end_options + start_options
+
+
 def make_field_bool_query(
         field, field_gte, field_lte,
         cleaned_data, all_options):
@@ -496,10 +504,10 @@ def make_field_bool_query(
 
     involved_terms = []
 
-    for x in range(int(low), int(high)+1):
-        involved_terms.append(all_options[int(x)])
-
     should = []
+
+    for x in find_options(low, high, len(all_options)):
+        involved_terms.append(all_options[int(x)])
 
     for stringfield in involved_terms:
         should.append(
@@ -518,19 +526,17 @@ def make_field_bool_query(
     return field_bool_q
 
 
-def clean_parameter_data(request):
+def clean_parameter_data(query_params):
     """
     clean client input from the evil internets
     """
 
     err = None
 
-    cleaned_data, err = parse_parameter_input(request)
+    cleaned_data, err = parse_parameter_input(query_params)
 
     if err:
         return {}, err
-
-    # log.debug(cleaned_data)
 
     return cleaned_data, None
 
@@ -590,15 +596,19 @@ def build_must_queries(cleaned_data):
 def build_wegdeel_query(bbox, must, wegdelen_size=260):
     """
     Build aggregation determine distinct vakken for
-    each wegdeel per day.
+    each wegdeel per day per hour.
+
+    ~8000 wegdelen is the entire city.
+
+    DO not ask for more then ~7 days at once.
     """
 
     bbox_f = build_bbox_filter(bbox)
 
     query_part = {
         "bool": {
-            "must": [*must],
-            "filter": bbox_f,
+            "must": [],
+            "filter": [bbox_f, *must]
         },
     }
 
@@ -621,7 +631,7 @@ def build_wegdeel_query(bbox, must, wegdelen_size=260):
                             "hour": {
                                 "terms": {
                                     "field": "hour",
-                                    "size": 20,
+                                    "size": 24,
                                 },
                                 "aggs": {
                                     "vakken": {

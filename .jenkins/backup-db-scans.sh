@@ -16,6 +16,6 @@ pg_dump   --clean \
 	  -t scans* \
 	  -t django_migrations  \
 	  -U predictiveparking \
-	  -h database -p 5432 \
-	  predictiveparking > /tmp/backups/database.dump
-
+	  -h 0.0.0.0 -p 5432 \
+	  -f /backups/database.dump \
+	  predictiveparking
