@@ -64,5 +64,5 @@ dc run --rm importer ./docker-occupancy-bakker.sh
 dc exec -T database ./backup-db-occupancy.sh
 
 
-dc down
+dc down --remove-orphans
 echo "DONE! with OCCUPATION data import. You are awesome! <3"
