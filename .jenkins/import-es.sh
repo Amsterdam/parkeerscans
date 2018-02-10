@@ -27,7 +27,8 @@ dces up -d elasticsearch
 
 dces run --rm logstash
 
-#dces run --rm esbackup chmod -R 777 /tmp/backups
+# make sure elastic has premissions to write the files
+dces run --rm elasticsearch chmod -R 777 /tmp/backups
 
 dces run --rm elasticsearch rm -rf /tmp/backups/*
 
