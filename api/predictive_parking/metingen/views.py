@@ -363,7 +363,7 @@ def calculate_average_occupancy(wegdeel, day_data):
             result_list.append(percentage)
             if percentage > _max:
                 _max = percentage
-            elif percentage < _min:
+            if percentage < _min:
                 _min = percentage
             _sum += percentage
 

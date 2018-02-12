@@ -223,27 +223,29 @@ class OccupancyInBBOX(viewsets.ViewSet):
     Get an occupancy number for a location in the city of Amsterdam.
 
     Given bounding box  `bbox` return average occupation
-    of roadparts within the given `bounding box`.
+    of roadparts within the given `bounding box` and time parameters
 
         max-boundaties bounding-box. (groot/big Amsterdam)
 
                   4.58565,  52.03560,  5.31360, 52.48769,
         bbox      bottom,       left,      top,    right
 
-        week     [1-52] prefered week of year
+        week      [1-52] preferred week of year
 
-        day       [0-6] prefered day [ monday = 0]
+        day       [0-6]  preferred day [ monday = 0]
 
-        hour      [0-23] prefered hour
+        hour      [0-23] preferred hour
 
-        We get aggregate information around given parameters.
-        which match close as possible to the given parameters
+    We get aggregate information around given parameters,
+    which match close as possible to the given parameters
 
-        Occupancy values should be interpreted
+    Occupancy values should be interpreted  ~
 
-        Good occupancy <70.
-        Busy 70 < occupance < 85
-        Bad  85 < occupancy
+    Good occupancy < 70 < Busy < 85 BAD.
+
+        occupancy values are somewhat LOWER than reality because not
+        all car's are can be counted, faults in the parkings map,
+        changes in time and temporarily blockades.
 
     The results are made possible by the scan measurements of
     the scan-cars.
