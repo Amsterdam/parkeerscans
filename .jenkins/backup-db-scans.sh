@@ -12,7 +12,7 @@ pg_dump   --clean \
 	  -Fc \
 	  -t wegdelen* \
 	  -t metingen* \
-	  -t occupancy* \
+	  # -t occupancy* \
 	  -t scans* \
 	  -t django_migrations  \
 	  -U predictiveparking \

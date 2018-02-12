@@ -271,6 +271,7 @@ class OccupancyInBBOX(viewsets.ViewSet):
 
         params = request.query_params
         selections = fitting_selections(params)
+        wegdelen = None
 
         for option in selections:
 
@@ -295,8 +296,9 @@ class OccupancyInBBOX(viewsets.ViewSet):
 
         occupancy = []
 
-        for one_road in wegdelen[:100]:
-            occupancy.append(one_road.occupancy)
+        if wegdelen:
+            for one_road in wegdelen[:9000]:
+                occupancy.append(one_road.occupancy)
 
         avg_occupancy = 1
 
@@ -313,6 +315,7 @@ class OccupancyInBBOX(viewsets.ViewSet):
                 'selection': repr(selection)
             }
         ]
+
         # show found numbers (debug)
         status = 200
 
