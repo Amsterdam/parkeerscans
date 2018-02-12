@@ -288,15 +288,15 @@ class OccupancyInBBOX(viewsets.ViewSet):
 
             wegdelen = get_wegdelen(occupancy_numbers, bbox_values)
 
-            log.debug(wegdelen.count())
-
             # we found some road parts to give back a  number
             if wegdelen.count():
                 break
 
         occupancy = []
+        wegdelen_count = 0
 
         if wegdelen:
+            wegdelen_count = wegdelen.count()
             for one_road in wegdelen[:9000]:
                 occupancy.append(one_road.occupancy)
 
@@ -309,7 +309,7 @@ class OccupancyInBBOX(viewsets.ViewSet):
 
         result = [
             {
-                'roadparts': wegdelen.count(),
+                'roadparts': wegdelen_count,
                 'occupancy': avg_occupancy,
                 'bbox': bbox_values,
                 'selection': repr(selection)
