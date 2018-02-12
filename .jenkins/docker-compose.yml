@@ -35,6 +35,7 @@ services:
       STARTDATE:
       ENDDATE:
       TESTING:
+      ENVIRONMENT:
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
     user: root
     networks:

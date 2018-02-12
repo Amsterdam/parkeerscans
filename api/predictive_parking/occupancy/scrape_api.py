@@ -2,6 +2,7 @@
 Load occupancy from our own elastic API
 in the database for easy to consume datasets
 """
+import os
 import sys
 import logging
 
@@ -24,8 +25,11 @@ from occupancy.models import Selection
 
 log = logging.getLogger(__name__)   # noqa
 
-
 API_ROOT = 'https://acc.api.data.amsterdam.nl'
+
+if os.getenv('ENVIRONMENT', '') == 'production':
+    API_ROOT = 'https://api.data.amsterdam.nl'
+
 # API_ROOT = 'http://127.0.0.1:8000'
 API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/'
 
