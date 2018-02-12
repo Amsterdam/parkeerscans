@@ -185,10 +185,14 @@ def fitting_selections(params) -> list:
         ),
     ]
 
+    valid_options = []
+
     for option in options:
         log.debug(option.count())
+        if option.count() > 0:
+            valid_options.append(option)
 
-    return options
+    return valid_options
 
 
 def get_wegdelen(occupancy_qs, bbox_values):
@@ -269,6 +273,7 @@ class OccupancyInBBOX(viewsets.ViewSet):
         selections = fitting_selections(params)
 
         for option in selections:
+
             selection = option.first()
 
             occupancy_numbers = models.RoadOccupancy.objects.filter(
