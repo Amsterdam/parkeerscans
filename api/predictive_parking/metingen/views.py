@@ -292,7 +292,7 @@ def proces_single_day(date: str, data: dict, wegdelen: dict):
     for bucket_wegdeel in data['wegdeel']['buckets']:
 
         scans = bucket_wegdeel['doc_count']
-        # update how many scans have been totally for this wegdeel
+        # update how many scans have been totally seen for this wegdeel
 
         key = bucket_wegdeel['key']
         db_wegdeel = wegdelen[key]
@@ -311,23 +311,23 @@ def proces_single_day(date: str, data: dict, wegdelen: dict):
 
 def _calculate_occupancy_by_hour(bucket_wegdeel: dict, capacity: int) -> list:
 
-        date_data = []
-        # calculate occupancy by hour
-        for hour_d in bucket_wegdeel['hour']['buckets']:
-            hour = hour_d['key']
-            # h_scans = hour_d['doc_count']
-            cardinal_vakken = hour_d['vakken']['value']
+    date_data = []
+    # calculate occupancy by hour
+    for hour_d in bucket_wegdeel['hour']['buckets']:
+        hour = hour_d['key']
+        # h_scans = hour_d['doc_count']
+        cardinal_vakken = hour_d['vakken']['value']
 
-            if capacity:
-                occupancy = int(cardinal_vakken / capacity * 100)
-            else:
-                occupancy = 0
+        if capacity:
+            occupancy = int(cardinal_vakken / capacity * 100)
+        else:
+            occupancy = 0
 
-            date_data.append([hour, occupancy])
+        date_data.append([hour, occupancy])
 
-        date_data.sort()
+    date_data.sort()
 
-        return date_data
+    return date_data
 
 
 def build_wegdelen_data(all_responses: list, wegdelen: dict):
@@ -783,7 +783,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
 
 def load_db_wegdelen(bbox_values, wegdelen):
     """
-    Given aggregation counts, determine "bezetting"
+    Load database information of wegdelen / roadparts.
+
+    The most important value is the capacity - fiscal roadparts
     """
     lat1, lon1, lat2, lon2 = bbox_values
 

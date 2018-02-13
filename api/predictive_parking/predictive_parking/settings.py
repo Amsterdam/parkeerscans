@@ -275,6 +275,7 @@ LOGGING = {
         'django.template': {
             'handlers': ['console'],
             'level': 'ERROR',
+            'propagate': False,
         },
 
         'django': {
@@ -284,7 +285,8 @@ LOGGING = {
 
         'occupancy': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
+            'propagate': False,
         },
 
         # Debug all batch jobs
