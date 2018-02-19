@@ -9,10 +9,10 @@
        |BGT kaart gegevens +--+           Large Scale Topography: Official City of Amsterdam Map
        +-------------------+  |
                               |      +------------+
-                              +------+parkeerkaart|
+                              +------+parkeerkaart|  Map of parking spaces
                               |      +------------+
            +------+           |
-           | BAG  +-----------+
+           | BAG  +-----------+           API of addresses and buildings
            +------+           |
                               |
                               |
@@ -26,7 +26,7 @@
     +--^------+                v
        |               +-------+---------+
        |               |                 |
-       +---------------+  Elsticsearch   |
+       +---------------+  Elasticsearch  |
                        |                 |
                        +-----------------+
 
