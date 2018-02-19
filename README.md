@@ -1,12 +1,12 @@
 # Overview
 
                        +-------------+
-                       |parkeer scans|    4.000.000 A month
+                       |parking scans|    4.000.000 A month
                        +------+------+
                               |
                               |
        +-------------------+  |
-       |BGT kaart gegevens +--+
+       |BGT kaart gegevens +--+           Large Scale Topography: Official City of Amsterdam Map
        +-------------------+  |
                               |      +------------+
                               +------+parkeerkaart|
@@ -17,16 +17,16 @@
                               |
                               |
                        +-------v---------+
-                       |                 |  in blocks of 500.000
-    +------------------+  Database       |
-    |                  |                 |
-    |                  +-------+---------+
+                       |                 |
+       +---------------+  Database       |   in blocks of 500.000
+       |               |                 |
+       |               +-------+---------+
     +--v------+                |
     |   API   |                |
-    +---+-----+                v
-    ^                  +-------+---------+
-    |                  |                 |
-    +------------------+  Elsticsearch   |
+    +--^------+                v
+       |               +-------+---------+
+       |               |                 |
+       +---------------+  Elsticsearch   |
                        |                 |
                        +-----------------+
 
@@ -54,7 +54,6 @@ The project is devided in a few docker-containers with their own functions.
   - .jenkins
     - import environment to build new dataset
 
-
 There are the implemented stages
 
  - 1. Prepare, combine, cleanup the data.
@@ -62,7 +61,7 @@ There are the implemented stages
  - 3. Visualize the occupancy special viewer.
  - 4. Create occupancy maps from the entire city.
 
-https://dokuwiki.datapunt.amsterdam.nl/doku.php?id=start:pparking:architectuur
+Architecture docs (only available on the City of Amsterdam network): https://dokuwiki.datapunt.amsterdam.nl/doku.php?id=start:pparking:architectuur
 
 
  Step 1. Preparing the data
@@ -72,7 +71,7 @@ We take data from a few sources and create a dataset usable for predictive parki
 
 Source data:
  - all known parking spots.
- - all known roads. (wegdelen) / partial roads. (weddelen) from BGT.
+ - all known roads. (wegdelen) / partial roads. (weddelen) from the Official City of Amsterdam Map (BGT).
  - all known neigborhoods. (buurten)
  - all 50+ milion cars scans of 2016/2017.
 
@@ -114,13 +113,12 @@ this is a work in progres.
 Development
 ===========
 
-
- Step1, Data preparation:
+Step1, Data preparation:
 ----------------------------
 
 
   - set environment variables TESTING=no/yes (when yes will load small subset of all data),
-    ENVIRONMENT=acceptance, and PARKEERVAKKEN_OBJECTSTORE password.
+    ENVIRONMENT=acceptance, and PARKEERVAKKEN_OBJECTSTORE (parking spaces) password.
 
   - RUN .jenkins/import.sh
 
@@ -145,6 +143,6 @@ Tips.
 Step2, Visualization
 ----------------------------
 
-   There is an `angular` project to visualize the data.
-   See the readme / Dockerfile in the `angular` directory.
+There is an `angular` project to visualize the data.
+See the readme / Dockerfile in the `angular` directory.
 
