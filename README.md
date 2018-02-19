@@ -98,8 +98,7 @@ To get quick results and vast visualizations we choose kibana on top of elastic 
 We use a dockerized logstash instance to load the postgres database `scans_scan` into
 elastic index.
 
-The visuallizations are done with 2 different kibana instances. We use 2 because the plugins
-`enhanced_tilemap` does not play well together with other custom map plugins. `kibana-plugin-parkeren`
+The visuallizations are done with a kibana instance.
 
 
 Step 3. Customized agular 4 / leaflet viewer.
@@ -107,7 +106,10 @@ Step 3. Customized agular 4 / leaflet viewer.
 
 After experimenting with kibana we decided to make a specialized viewer using angular4 and leaflet.
 We show parking pressure for year, month, week, day by hour summaries for the parking/road map of Amsterdam.
-this is a work in progres.
+
+deployed here!
+
+https://parkeren.data.amsterdam.nl/#/
 
 
 Development
