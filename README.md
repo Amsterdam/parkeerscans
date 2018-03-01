@@ -128,7 +128,7 @@ Development
 
   - to run API test locally.
 
-    - docker-compose up -p test database elasticsearch
+    - docker-compose up -d test database elasticsearch
 
     - 'cd' in the api/predictive_parking folder and run
     - bash testdata/loadtestdata.sh predictiveparking

@@ -20,6 +20,7 @@ sleep 15
 # create normal database
 python manage.py migrate
 
+echo "installed postgres client? psql?"
 # load test data into database
 bash testdata/loadtestdata.sh predictiveparking || true
 

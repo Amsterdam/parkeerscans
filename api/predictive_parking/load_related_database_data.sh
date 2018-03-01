@@ -5,7 +5,8 @@
 # set -u
 set -e
 set -x
-echo "provde username if using ssh / dev env"
+
+echo "Provde username if using ssh / dev env"
 
 username=$1
 
