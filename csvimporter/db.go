@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	//"github.com/cheggaaa/pb"
 	"io"
 	"log"
@@ -117,7 +118,13 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 	//var bar *pb.ProgressBar
 	// load file
 	csvfile, err := os.Open(filename)
-	defer csvfile.Close()
+
+	defer func() {
+		err = csvfile.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	//bar = NewProgressBar(csvfile)
 
@@ -130,7 +137,11 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 	reader := csv.NewReader(csvfile)
 	//bar.Start()
 	//stream contents of csv into postgres
-	err = importCSV(pgTable, reader)
+	importCSV(pgTable, reader, filename)
+
+	if err != nil {
+		log.Println(filename)
+	}
 	//bar.Finish()
 	//update DateMap
 	//DateMap[filename] = startEnd
@@ -176,10 +187,11 @@ func makeTable(db *sql.DB, tableName string, inherit bool) {
 	}
 }
 
-func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
+func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 
 	reader.FieldsPerRecord = 0
 	reader.Comma = ';'
+	fileErrors := 0
 
 	for {
 		record, err := reader.Read()
@@ -190,26 +202,35 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 			}
 			csvError.Printf("%s: %s \n", err, record)
 			failed++
+			fileErrors++
 			continue
 		}
 
-		cols, err := NormalizeRow(&record)
+		cols, countedErrors, err := NormalizeRow(&record)
+		fileErrors += countedErrors
 
 		if err != nil {
 			log.Println(err)
 			csvError.Printf("%s: %s \n", err, record)
 			failed++
+			fileErrors++
 			continue
 		}
 
 		if err := pgTable.AddRow(cols...); err != nil {
 			printRecord(&record)
 			printCols(cols)
-			return err
+			log.Println(filename)
+			fileErrors++
+			s := []string{filename, "_FATAL_"}
+			FileErrors[strings.Join(s, " ")] = 1
+			return
 		}
 
 		success++
 	}
 
-	return nil
+	FileErrors[filename] = fileErrors
+
+	return
 }

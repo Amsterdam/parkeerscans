@@ -28,6 +28,8 @@ type DatePair struct {
 	end   string
 }
 
+type FileErrorMap map[string]int
+
 var (
 	csvError *log.Logger
 	columns  []string
@@ -41,7 +43,9 @@ var (
 	Db *sql.DB
 
 	//idxMap columnname index mapping
-	idxMap       map[string]int
+	idxMap map[string]int
+	//track errors
+	FileErrors   FileErrorMap
 	targetCSVdir string
 	wg           sync.WaitGroup
 	start        time.Time
@@ -141,6 +145,7 @@ func init() {
 
 	idxMap = make(map[string]int)
 	DateMap = make(map[string]DatePair)
+	FileErrors = make(FileErrorMap)
 	success = 1
 	indb = 0
 
@@ -159,6 +164,15 @@ func init() {
 
 	checkErr(err)
 
+}
+
+func (d FileErrorMap) SetDefault(key string, val int) (result int) {
+	if v, ok := d[key]; ok {
+		return v
+	} else {
+		d[key] = val
+		return val
+	}
 }
 
 //setLatLon create wgs84 point for postgres
@@ -251,9 +265,10 @@ func cleanBuurtCode(buurt string, cols []interface{}) {
 }
 
 //NormalizeRow cleanup fields in csv we recieve a single row
-func NormalizeRow(record *[]string) ([]interface{}, error) {
+func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 
 	cols := make([]interface{}, len(columns))
+	countErrors := 0
 
 	cleanedField := ""
 
@@ -272,7 +287,10 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 		}
 
 		if i == idxMap["reliability_gps"] {
-			parseReliabilityGPS(field, cols)
+			err := parseReliabilityGPS(field, cols)
+			if err != nil {
+				countErrors += 1
+			}
 			continue
 		}
 
@@ -281,8 +299,8 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 			parsedFloat, err := strconv.ParseFloat(field, 64)
 			if err != nil {
 				cols[i] = ""
+				countErrors += 1
 			} else {
-
 				cols[i] = parsedFloat
 			}
 		}
@@ -293,18 +311,22 @@ func NormalizeRow(record *[]string) ([]interface{}, error) {
 	if err != nil {
 		printRecord(record)
 		printCols(cols)
-		return nil, errors.New("lat long field failure")
+		countErrors += 1
+		return nil, countErrors, errors.New("lat long field failure")
 	}
 
 	if str, ok := cols[idxMap["scan_id"]].(string); ok {
 		if str == "" {
-			return nil, errors.New("scan_id field missing")
+
+			countErrors += 1
+			return nil, countErrors, errors.New("scan_id field missing")
 		}
 	} else {
-		return nil, errors.New("scan_id field missing")
+		countErrors += 1
+		return nil, countErrors, errors.New("scan_id field missing")
 	}
 
-	return cols, nil
+	return cols, countErrors, nil
 }
 
 func printRecord(record *[]string) {
@@ -339,7 +361,10 @@ func csvloader(id int, jobs <-chan string) {
 
 		LoadSingleCSV(csvfile, pgTable)
 
-		pgTable.Commit()
+		err = pgTable.Commit()
+		if err != nil {
+			//panic(err)
+		}
 		// within 0.1 meter from parkeervak
 		count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
 		// within 1.5 meters from parkeervak
@@ -430,6 +455,9 @@ func main() {
 
 	log.Printf("COUNTS: rows:%-10ds inDB: %-10d failed %-10d", success, indb, failed)
 
+	for k, v := range FileErrors {
+		log.Println("%30s: %d:", k, v)
+	}
 }
 
 //checkErr default crash hard error handling

@@ -22,6 +22,8 @@ fi
 echo "split files in 500.000 chunks"
 
 #ls /app/unzipped/*stad*.csv | xargs -I csvsource -x tail -n +2 csvsource |  split -l 500000 - /app/unzipped/split_csvsource_
+rm /app/unzipped/split*
+
 for file in /app/unzipped/*stad*.csv
 do
 	echo $file
