@@ -13,6 +13,7 @@ pg_dump --clean \
 	-t wegdelen* \
 	-t metingen* \
 	-t scans* \
+	-t occupancy* \
 	-t django_migrations  \
 	-U predictiveparking \
 	-h 0.0.0.0 -p 5432 \
