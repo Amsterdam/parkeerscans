@@ -193,6 +193,8 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 	reader.Comma = ';'
 	fileErrors := 0
 
+	// Determine mapping of csv columns to db columns
+
 	for {
 		record, err := reader.Read()
 
@@ -217,12 +219,14 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 			continue
 		}
 
+		// printCols(cols, dbColumns)
+
 		if err := pgTable.AddRow(cols...); err != nil {
-			printRecord(&record)
-			printCols(cols)
+			printRecord(&record, cols)
+			printCols(cols, dbColumns)
 			log.Println(filename)
 			fileErrors++
-			s := []string{filename, "_FATAL_"}
+			s := []string{filename, "FATAL"}
 			FileErrors[strings.Join(s, " ")] = 1
 			return
 		}
