@@ -291,7 +291,7 @@ func floatToString(inputNum float64) string {
 	return strconv.FormatFloat(inputNum, 'f', 0, 64)
 }
 
-//NormalizeRow cleanup fields in csv we return a single db ready row
+//NormalizeRow cleanup fields in csv we return a single database ready row
 func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 
 	countErrors := 0
@@ -342,6 +342,14 @@ func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 		log.Println(len(fieldMap))
 		panic(str)
 		//return nil, countErrors, errors.New("scan_id not valid")
+	}
+
+	stadsdeel := row[fieldMap["stadsdeel"]]
+	if str, ok := stadsdeel.(string); ok {
+		if len(str) > 1 {
+			printCols(row, fieldnames)
+			panic("stadsdeel wrong")
+		}
 	}
 
 	row[fieldMap["scan_id"]] = scanID
