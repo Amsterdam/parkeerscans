@@ -1,7 +1,7 @@
 version: '3.0'
 services:
   database:
-    image: amsterdam/postgres:latest
+    image: amsterdam/postgres
     # build: ../postgres
     #ports:
     #  - "5434:5432"
