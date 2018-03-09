@@ -33,6 +33,29 @@ var dbColumns = []string{
 
 }
 
+var columns2016 = []string{
+	"scan_id",         //  ScanId;
+	"scan_moment",     //  scnMoment;
+	"device_id",       //  device id
+	"scan_source",     //  scan_source;
+	"longitude",       //  scnLongitude;
+	"latitude",        //  scnLatitude;
+	"buurtcode",       //  buurtcode;
+	"afstandX",        //  afstand to pvak?
+	"sperscode",       //  spersCode;
+	"qualcode",        //  qualCode;
+	"ff_df",           //  FF_DF;
+	"nha_nr",          //  NHA_nr;
+	"nha_hoogte",      //  NHA_hoogte;
+	"uitval_nachtrun", //  uitval_nachtrun;
+
+	// extra fields
+	"stadsdeel",       //  stadsdeel;
+	"buurtcombinatie", //  buurtcombinatie;
+	"geometrie",       //  geometrie
+
+}
+
 var columns22 = []string{
 	"scan_id",         //  ScanId;
 	"scan_moment",     //  scnMoment;
@@ -63,7 +86,6 @@ var columns22 = []string{
 	"stadsdeel",       //  stadsdeel;
 	"buurtcombinatie", //  buurtcombinatie;
 	"geometrie",       //  geometrie
-
 }
 
 var columns23 = []string{
