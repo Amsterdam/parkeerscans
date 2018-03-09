@@ -259,8 +259,6 @@ func cleanupRow(
 
 		if val, ok := fieldMap["reliability_gps"]; ok {
 			if i == val {
-				log.Println(fieldMap["reliability_gps"])
-				log.Println(fieldMap["reliability_gps"])
 				err := parseReliabilityGPS(field, row, fieldMap)
 				if err != nil {
 					countErrors++
@@ -449,8 +447,6 @@ func importScans() {
 	start := time.Now()
 
 	files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", targetCSVdir))
-
-	//fmt.Println(files)
 
 	checkErr(err)
 
