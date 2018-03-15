@@ -29,7 +29,7 @@ type DatePair struct {
 	end   string
 }
 
-type FileErrorMap map[string]int
+type fileErrorMap map[string]int
 
 var (
 	csvError *log.Logger
@@ -45,14 +45,15 @@ var (
 
 	//idxMap columnname index mapping
 	// idxMap     map[string]int
-	fieldMap22 map[string]int
-	fieldMap23 map[string]int
-	dbFieldMap map[string]int
+	fieldMap2016 map[string]int
+	fieldMap22   map[string]int
+	fieldMap23   map[string]int
+	dbFieldMap   map[string]int
 	//track errors
-	FileErrors   FileErrorMap
-	targetCSVdir string
-	wg           sync.WaitGroup
-	start        time.Time
+	fileErrorsMap fileErrorMap
+	targetCSVdir  string
+	wg            sync.WaitGroup
+	start         time.Time
 
 	//DateMap store per filename the start and end date
 	DateMap map[string]DatePair
@@ -118,10 +119,11 @@ func init() {
 
 	fieldMap22 = makeIndexMapping(columns22)
 	fieldMap23 = makeIndexMapping(columns23)
+	fieldMap2016 = makeIndexMapping(columns2016)
 	dbFieldMap = makeIndexMapping(dbColumns)
 
 	DateMap = make(map[string]DatePair)
-	FileErrors = make(FileErrorMap)
+	fileErrorsMap = make(fileErrorMap)
 	success = 1
 	indb = 0
 
@@ -137,13 +139,12 @@ func init() {
 
 }
 
-func (d FileErrorMap) SetDefault(key string, val int) (result int) {
+func (d fileErrorMap) SetDefault(key string, val int) (result int) {
 	if v, ok := d[key]; ok {
 		return v
-	} else {
-		d[key] = val
-		return val
 	}
+	d[key] = val
+	return val
 }
 
 //setLatLon create wgs84 point for postgres
@@ -199,10 +200,9 @@ func parseReliabilityGPS(gpsfield string, cols []interface{}, fieldMap map[strin
 
 	//lat           long
 	//52.356895123N.4.849403218E
-	split_val := strings.Split(gpsfield, ",")
-	split_n := strings.Split(split_val[0], "N")
-	splitN := split_n[0]
-	splitE := split_val[1]
+	splitVal := strings.Split(gpsfield, ",")
+	splitN := strings.Split(splitVal[0], "N")[0]
+	splitE := splitVal[1]
 	splitE = strings.Split(splitE, "E")[0]
 
 	long, err = strconv.ParseFloat(splitN, 64)
@@ -257,22 +257,26 @@ func cleanupRow(
 			continue
 		}
 
-		if i == fieldMap["reliability_gps"] {
-			err := parseReliabilityGPS(field, row, fieldMap)
-			if err != nil {
-				countErrors += 1
+		if val, ok := fieldMap["reliability_gps"]; ok {
+			if i == val {
+				err := parseReliabilityGPS(field, row, fieldMap)
+				if err != nil {
+					countErrors++
+				}
+				continue
 			}
-			continue
 		}
 
 		// parse afstand
-		if i == fieldMap["afstand"] {
-			parsedFloat, err := strconv.ParseFloat(field, 64)
-			if err != nil {
-				row[i] = ""
-				countErrors += 1
-			} else {
-				row[i] = parsedFloat
+		if val, ok := fieldMap["reliability_gps"]; ok {
+			if i == val {
+				parsedFloat, err := strconv.ParseFloat(field, 64)
+				if err != nil {
+					row[i] = ""
+					countErrors++
+				} else {
+					row[i] = parsedFloat
+				}
 			}
 		}
 
@@ -280,12 +284,12 @@ func cleanupRow(
 	return countErrors
 }
 
-func FloatToString(input_num float64) string {
+func floatToString(inputNum float64) string {
 	// to convert a float number to a string
-	return strconv.FormatFloat(input_num, 'f', 0, 64)
+	return strconv.FormatFloat(inputNum, 'f', 0, 64)
 }
 
-//NormalizeRow cleanup fields in csv we return a single db ready row
+//NormalizeRow cleanup fields in csv we return a single database ready row
 func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 
 	countErrors := 0
@@ -299,10 +303,12 @@ func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 	// figure out which mapping we need to use for cvs record
 	if len(*record) == 22 {
 		fieldMap = fieldMap22
-	}
-	if len(*record) == 23 {
+	} else if len(*record) == 23 {
 		fieldnames = columns23
 		fieldMap = fieldMap23
+	} else if len(*record) == 14 {
+		fieldnames = columns2016
+		fieldMap = fieldMap2016
 	}
 
 	countErrors = cleanupRow(record, row, fieldMap, countErrors)
@@ -311,31 +317,40 @@ func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 
 	//validate record
 	if err != nil {
-		printRecord(record, row)
-		printCols(row, fieldnames)
-		countErrors += 1
+		//printRecord(record, row)
+		//printCols(row, fieldnames)
+		countErrors++
+
 		return nil, countErrors, errors.New("lat long field failure")
 	}
 
-	scan_id := row[fieldMap["scan_id"]]
+	scanID := row[fieldMap["scan_id"]]
 
-	if str, ok := scan_id.(string); ok {
+	if str, ok := scanID.(string); ok {
 		if str == "" {
-			countErrors += 1
+			countErrors++
 			return nil, countErrors, errors.New("scan_id field empty")
 		}
-	} else if flt, ok := scan_id.(float64); ok {
-		scan_id = FloatToString(flt)
+	} else if flt, ok := scanID.(float64); ok {
+		scanID = floatToString(flt)
 	} else {
 		log.Println(row[fieldMap["scan_id"]])
-		countErrors += 1
+		countErrors++
 		printCols(row, fieldnames)
 		log.Println(len(fieldMap))
 		panic(str)
 		//return nil, countErrors, errors.New("scan_id not valid")
 	}
 
-	row[fieldMap["scan_id"]] = scan_id
+	stadsdeel := row[fieldMap["stadsdeel"]]
+	if str, ok := stadsdeel.(string); ok {
+		if len(str) > 1 {
+			printCols(row, fieldnames)
+			panic("stadsdeel wrong")
+		}
+	}
+
+	row[fieldMap["scan_id"]] = scanID
 
 	// copy fields to database columns ready row
 	for i, field := range fieldnames {
@@ -433,8 +448,6 @@ func importScans() {
 
 	files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", targetCSVdir))
 
-	//fmt.Println(files)
-
 	checkErr(err)
 
 	if len(files) == 0 {
@@ -474,7 +487,7 @@ func main() {
 	log.Printf("COUNTS: rows:%-10ds inDB: %-10d failed %-10d", success, indb, failed)
 
 	var keys []string
-	for k := range FileErrors {
+	for k := range fileErrorsMap {
 		keys = append(keys, k)
 	}
 
@@ -483,7 +496,7 @@ func main() {
 	v := 0
 
 	for _, k := range keys {
-		v = FileErrors[k]
+		v = fileErrorsMap[k]
 		parts := strings.Split(k, "/")
 		filename := parts[len(parts)-1]
 		log.Println(filename, v)
