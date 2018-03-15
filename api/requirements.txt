@@ -36,6 +36,7 @@ grequests==0.3.0
 idna==2.6
 iso8601==0.1.12
 isort==4.2.15
+isoweek
 itypes==1.1.0
 Jinja2==2.10
 jsonschema==2.6.0
