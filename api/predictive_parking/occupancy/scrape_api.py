@@ -135,6 +135,7 @@ def make_week_buckets(
         else:
             # same year
             b = Bucket(y1, y1, None, None, d1, d2, h1, h2, w, w, q)
+            buckets.append(b)
 
 
 def make_month_buckets(
