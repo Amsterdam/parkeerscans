@@ -3,6 +3,7 @@ We use the objectstore to get the latest and greatest of the mks dump
 """
 
 import re
+import isoweek
 import os
 import logging
 from pathlib import Path
@@ -17,6 +18,8 @@ log = logging.getLogger(__file__)
 assert os.getenv('PARKEERVAKKEN_OBJECTSTORE_PASSWORD')
 
 DATE_RE = re.compile('\d\d\d\d\d\d')
+YEAR_RE = re.compile('\d\d\d\d')
+WEEK_RE = re.compile('.*(week)([0-9]+).*')
 
 OBJECTSTORE = dict(
     VERSION='2.0',
@@ -104,12 +107,26 @@ def should_we_download_this(rarname: str, start_month: int, end_month: int) -> b
 
     we do checks on age
     """
+    file_month = None
+    # 2018 names
+    year = YEAR_RE.findall(rarname)
+    week = WEEK_RE.match(rarname)
 
-    m = DATE_RE.findall(rarname)
-    if not m:
+    if year and week:
+        weeknr = int(week.groups()[1])
+        w = isoweek.Week(int(year[0]), weeknr)
+        d = w.monday()
+        file_month = int('%d%02d' % (d.year, d.month))
+
+    else:
+        # 2017 names
+        m = DATE_RE.findall(rarname)
+        if m:
+            file_month = int(m[0])
+
+    if not file_month:
+        log.debug('date not parsed from file name')
         return False
-
-    file_month = int(m[0])
 
     if start_month:
         if file_month < start_month:
