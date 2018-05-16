@@ -217,6 +217,10 @@ func scanStatus(db *sql.DB, targetTable string) int {
 	checkErr(err)
 	count := checkCount(rows)
 
+	if count == 0 {
+		log.Printf("Scans in %s:  %d", targetTable, count)
+		//panic("Count ZERO")
+	}
 	log.Printf("Scans in %s:  %d", targetTable, count)
 
 	return count

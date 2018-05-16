@@ -26,6 +26,8 @@ var dbColumns = []string{
 	"reliability_gps",      //  Reliability_GPS
 	"reliability_ANPR",     //  Reliability_ANPR
 
+	// new since 3-2018
+	"parkeerrecht_id", //  ParkeerrechtId
 	// extra fields
 	"stadsdeel",       //  stadsdeel;
 	"buurtcombinatie", //  buurtcombinatie;
@@ -136,7 +138,43 @@ var columns23 = []string{
 	"parkingbay_angle",     //  ParkingBay_angle;
 	"reliability_gps",      //  Reliability_GPS
 	"reliability_ANPR",     //  Reliability_ANPR
-	"DevCode",              //  Devicecode
+	"device_code",          //  Devicecode
+
+	// extra fields
+	"stadsdeel",       //  stadsdeel;
+	"buurtcombinatie", //  buurtcombinatie;
+	"geometrie",       //  geometrie
+}
+
+var columns24 = []string{
+	"scan_id",         //  ScanId;
+	"scan_moment",     //  scnMoment;
+	"device_id",       //  device id
+	"scan_source",     //  scan_source;
+	"longitude",       //  scnLongitude;
+	"latitude",        //  scnLatitude;
+	"buurtcode",       //  buurtcode;
+	"scan_message",    //  'scan_message'
+	"sperscode",       //  spersCode;
+	"qualcode",        //  qualCode;
+	"ff_df",           //  FF_DF;
+	"nha_nr",          //  NHA_nr;
+	"nha_hoogte",      //  NHA_hoogte;
+	"uitval_nachtrun", //  uitval_nachtrun;
+
+	// new since 10-2017
+	"parkingbay_distance",  //  DistanceToParkingBay;
+	"gps_vehicle",          //  GPS_Vehicle;
+	"gps_plate",            //  GPS_PLate;
+	"gps_scandevice",       //  GPS_ScanDevice;
+	"location_parking_bay", //  location_ParkingBay;
+	"parkingbay_angle",     //  ParkingBay_angle;
+	"reliability_gps",      //  Reliability_GPS
+	"reliability_ANPR",     //  Reliability_ANPR
+	"device_code",          //  Devicecode
+
+	// new since 10-2018
+	"parkeerrecht_id", //  ParkeerrechtId
 
 	// extra fields
 	"stadsdeel",       //  stadsdeel;

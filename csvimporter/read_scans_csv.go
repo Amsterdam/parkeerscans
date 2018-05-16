@@ -25,8 +25,8 @@ import (
 
 //DatePair start and end data string values
 type DatePair struct {
-	start string
-	end   string
+	//start string
+	//end   string
 }
 
 type fileErrorMap map[string]int
@@ -36,7 +36,7 @@ var (
 	// columns  []string
 	success int
 	indb    int
-	last    int
+	//last    int
 	workers int
 	failed  int
 
@@ -48,12 +48,13 @@ var (
 	fieldMap2016 map[string]int
 	fieldMap22   map[string]int
 	fieldMap23   map[string]int
+	fieldMap24   map[string]int
 	dbFieldMap   map[string]int
 	//track errors
 	fileErrorsMap fileErrorMap
 	targetCSVdir  string
 	wg            sync.WaitGroup
-	start         time.Time
+	//start         time.Time
 
 	//DateMap store per filename the start and end date
 	DateMap map[string]DatePair
@@ -64,7 +65,7 @@ func setLogging() {
 	logfile, err := os.Create("csverrors.log")
 
 	if err != nil {
-		log.Fatalln("error opening file: %v", err)
+		log.Printf("error opening file: %v", err)
 	}
 
 	//defer logfile.close()
@@ -108,10 +109,15 @@ ScanId     scnMoment            device_id  scan_source  scnLongitude  scnLatitud
 
 /*
 
-Example csv row (NEW)
+Example csv row (2018)
 
 ScanId     scnMoment            device_id  scan_source  scnLongitude        scnLatitude         buurtcode  afstand        spersCode  qualCode  FF_DF  NHA_nr  NHA_hoogte  uitval_nachtrun  DistanceToParkingBay  GPS_Vehicle  GPS_PLate  GPS_ScanDevice  location_ParkingBay  ParkingBay_angle  Reliability_GPS  Reliability_ANPR
 202075788  2017-10-30 00:00:01  299        SCANCAR      4.9025221859999997  52.371931009999997  A04E       PermittedPRDB  BEWONERP   0
+
+Example csv row (2018-2)
+
+ScanId	scnMoment	device_id	scan_source	scnLongitude	scnLatitude	buurtcode	scan_message	spersCode	qualCode	FF_DF	NHA_nr	NHA_hoogte	uitval_nachtrun	DistanceToParkingBay	GPS_Vehicle	GPS_PLate	GPS_ScanDevice	location_ParkingBay	ParkingBay_angle	Reliability_GPS	Reliability_ANPR	DevCode	ParkeerrechtId
+33758499	2018-04-01 00:03:46.877000000		SCANCAR	4.9050197601318359	52.374156951904297	a04b		PermittedPRDB	BEWONERP
 
 */
 
@@ -119,6 +125,7 @@ func init() {
 
 	fieldMap22 = makeIndexMapping(columns22)
 	fieldMap23 = makeIndexMapping(columns23)
+	fieldMap24 = makeIndexMapping(columns24)
 	fieldMap2016 = makeIndexMapping(columns2016)
 	dbFieldMap = makeIndexMapping(dbColumns)
 
@@ -169,6 +176,11 @@ func setLatLong(cols []interface{}, fieldMap map[string]int) error {
 		return errors.New("longitude field value wrong")
 	}
 
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+
 	if str, ok := cols[fieldMap["latitude"]].(string); ok {
 		lat, err = strconv.ParseFloat(str, 64)
 	} else {
@@ -179,6 +191,7 @@ func setLatLong(cols []interface{}, fieldMap map[string]int) error {
 	//precision
 
 	if err != nil {
+		log.Print(err)
 		return err
 	}
 
@@ -294,10 +307,13 @@ func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 
 	countErrors := 0
 
-	fieldMap := make(map[string]int)
+	//fieldMap := make(map[string]int)
+
+	fieldMap := fieldMap22
+	_ = fieldMap
 	dbCols := make([]interface{}, len(dbColumns))
 	// we take the longest array
-	row := make([]interface{}, len(columns23))
+	row := make([]interface{}, len(columns24))
 	fieldnames := columns22
 
 	// figure out which mapping we need to use for cvs record
@@ -306,9 +322,15 @@ func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 	} else if len(*record) == 23 {
 		fieldnames = columns23
 		fieldMap = fieldMap23
+	} else if len(*record) == 24 {
+		fieldnames = columns24
+		fieldMap = fieldMap24
 	} else if len(*record) == 14 {
 		fieldnames = columns2016
 		fieldMap = fieldMap2016
+	} else {
+		msg := fmt.Sprintf("New CSV length encountered %d", len(*record))
+		panic(msg)
 	}
 
 	countErrors = cleanupRow(record, row, fieldMap, countErrors)
@@ -377,7 +399,7 @@ func printCols(cols []interface{}, target []string) {
 	}
 }
 
-//csvloader streams one csv and commit into database
+// csvloader streams one csv and commit into database
 func csvloader(id int, jobs <-chan string) {
 
 	log.Print("worker", id)
@@ -396,7 +418,7 @@ func csvloader(id int, jobs <-chan string) {
 
 		err = pgTable.Commit()
 		if err != nil {
-			//panic(err)
+			panic(err)
 		}
 		// within 0.1 meter from parkeervak
 		count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
@@ -451,7 +473,7 @@ func importScans() {
 	checkErr(err)
 
 	if len(files) == 0 {
-		log.Printf(targetCSVdir)
+		log.Print(targetCSVdir)
 		panic(errors.New("Missing csv files"))
 	}
 
@@ -473,7 +495,7 @@ func importScans() {
 
 	wg.Wait()
 
-	log.Print("\n Duration:", time.Now().Sub(start))
+	log.Print("\n Duration:", time.Since(start))
 
 }
 
@@ -499,7 +521,7 @@ func main() {
 		v = fileErrorsMap[k]
 		parts := strings.Split(k, "/")
 		filename := parts[len(parts)-1]
-		log.Println(filename, v)
+		log.Println(filename, "ERRORS", v)
 	}
 }
 

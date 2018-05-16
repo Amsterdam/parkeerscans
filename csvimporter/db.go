@@ -91,11 +91,8 @@ func dbConnect(connStr string) (*sql.DB, error) {
 	}
 
 	err = db.Ping()
-	if err != nil {
-		return db, err
-	}
 
-	return db, nil
+	return db, err
 }
 
 // NewProgressBar initializes new progress bar based on size of file
@@ -236,6 +233,4 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 	}
 
 	fileErrorsMap[filename] = fileErrors
-
-	return
 }

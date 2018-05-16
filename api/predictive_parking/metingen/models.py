@@ -46,7 +46,7 @@ class Scan(models.Model):
     - parking_bay_angle
     - reliability_gps
     - reliability_ANPR
-
+    - parkeerrechtid
     """
 
     # parkeervak id ( rd coordinaten xy)
@@ -77,7 +77,7 @@ class Scan(models.Model):
     buurtcombinatie = models.CharField(null=True, max_length=3)
     buurtcode = models.CharField(null=True, max_length=4)
 
-    sperscode = models.CharField(max_length=15)
+    sperscode = models.CharField(max_length=15, null=True)
 
     qualcode = models.CharField(null=True, max_length=35)
 
@@ -106,6 +106,8 @@ class Scan(models.Model):
 
     # reliability_ANPR
     reliability_ANPR = models.FloatField(null=True)
+
+    parkeerrecht_id = models.BigIntegerField(null=True)
 
     geometrie = geo.PointField(null=True, srid=4326)
     objects = GeoManager()
@@ -176,6 +178,8 @@ class ScanRaw(models.Model):
     reliability_gps = geo.PointField(null=True, srid=4326)
     # reliability_ANPR
     reliability_ANPR = models.FloatField(null=True)
+
+    parkeerrecht_id = models.BigIntegerField(null=True)
 
     geometrie = geo.PointField(null=True, srid=4326)
     objects = GeoManager()
