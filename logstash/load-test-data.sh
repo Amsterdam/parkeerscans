@@ -10,6 +10,7 @@ do
  	sleep 1.5
 done
 
+curl -s -v -f -XDELETE http://elasticsearch:9200/_template/scan || echo 'OK'
 
 curl -H "Content-Type: application/json" -s --trace-ascii -s -v -f -XPUT http://elasticsearch:9200/_template/scan -d '
 {
