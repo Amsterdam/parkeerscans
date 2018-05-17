@@ -1,7 +1,7 @@
 # Overview
 
                        +-------------+
-                       |parking scans|    4.000.000 A month
+                       |parking scans|    ~4.000.000 A month
                        +------+------+
                               |
                               |
@@ -40,15 +40,17 @@ The project is devided in a few docker-containers with their own functions.
 
   - API
      - provide web api on scan data
+     - uses postgres database for assets and messurements
+     - uses elasticsearch to create aggregations of all kinds
      - contains database building / migrations and loading of related databases
   - angluar
-     - occupancy viewer build on top of API.
+     - occupancy viewer build on top of API. (Will be replaced)
   - csvimporter
     - golang code which crunches and cleans up the raw csv scan data into postgres database
   - kibana
     - default kibana to analyse scan - data. deployed at: https://kibana.parkeren.data.amsterdam.nl
   - logstash
-    - import data from database into elasticsearch
+    - import data from database into elasticsearch (should be replaced..)
   - postgres
     - database docker with custom settings
   - .jenkins
@@ -140,7 +142,7 @@ Tips.
   - Downloads are cached in named volumes. Database downloads, zips and csv's are saved.
     forcefull remove the named volume (pp_unzip-volume) if it contains the wrong data.
     When TESTING = no the `unziped` will be deleted
-
+  - to follow the import flow check the the steps .jenkins/import.sh
 
 Step2, Visualization
 ----------------------------

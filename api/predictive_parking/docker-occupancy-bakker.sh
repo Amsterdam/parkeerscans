@@ -11,6 +11,7 @@ echo "download new selections"
 
 python manage.py scrape_occupancy --wegdelen
 
+python manage.py scrape_occupancy --validate
 #python manage.py scrape_occupancy --wegdelen --part 1 &
 #python manage.py scrape_occupancy --wegdelen --part 2 &
 #python manage.py scrape_occupancy --wegdelen --part 3 &

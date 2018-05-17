@@ -159,7 +159,7 @@ def determine_relevant_indices(params: dict) -> (str, dict, list, list):
     lte_date = dt_lte + weeks_lte
 
     for dt, indexname in date_tuples:
-        if dt <= gte_date or dt > lte_date:
+        if dt <= gte_date or dt >= lte_date:
             continue
 
         if (dt.weekday()) < day_gte:
@@ -171,6 +171,7 @@ def determine_relevant_indices(params: dict) -> (str, dict, list, list):
             continue
 
         valid_indices.append(indexname)
+
         valid_dates.append(dt)
         log.debug(' ok   %s > %s < %s', day_gte, dt.weekday(), day_lte)
         log.debug(' ok  %s  %s  %s', gte_date, indexname, lte_date)

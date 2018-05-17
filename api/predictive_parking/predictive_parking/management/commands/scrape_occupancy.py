@@ -57,6 +57,14 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
+            '--validate',
+            action='store_true',
+            dest='validate',
+            default=False,
+            help='validate if we scraped any data..',
+        )
+
+        parser.add_argument(
             '--dumpcsv',
             action='store_true',
             dest='dumpcsv',
@@ -87,3 +95,5 @@ class Command(BaseCommand):
 
         if options['dumpcsv']:
             db_occ_views.dump_csv_files()
+        if options['validate']:
+            scrape_api.validate_scraping()

@@ -421,6 +421,32 @@ def store_selection_status(selection):
         log.info(f'Roadparts {wd_count[0][1]} for {selection}')
 
 
+def validate_scraping():
+    """Make sure we have occupancy data.
+    """
+    summary = (
+        RoadOccupancy.objects.values('selection_id')
+        .annotate(wdcount=Count('selection_id'))
+        .order_by('-wdcount')[:20]
+    )
+
+    for item in summary:
+        s_id = item['selection_id']
+        count = item['wdcount']
+        s = Selection.objects.get(pk=s_id)
+        log.info("%s wegdelen: %s", repr(s), count)
+
+    count = (
+        RoadOccupancy.objects.values('selection_id')
+        .annotate(wdcount=Count('selection_id'))
+        .order_by('-wdcount').first()['wdcount'])
+
+    if count == 0:
+        raise ValueError('No occupancy data present..')
+
+    log.info('seems ok')
+
+
 def fill_occupancy_roadparts(count=0):
     """
     Fill occupancy table with occupancy
