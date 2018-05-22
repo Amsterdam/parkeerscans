@@ -460,7 +460,7 @@ func printStatus() {
 	}
 }
 
-//importScans find all csv file with scans to import
+// ImportScans find all csv file with scans to import
 func importScans() {
 
 	//Gives docker time to print output

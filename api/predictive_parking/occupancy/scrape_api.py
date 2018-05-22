@@ -26,6 +26,7 @@ from occupancy.models import Selection
 log = logging.getLogger(__name__)   # noqa
 
 API_ROOT = 'https://acc.api.data.amsterdam.nl'
+# API_ROOT = 'http://127.0.0.1:8000'
 
 if os.getenv('ENVIRONMENT', '') == 'production':
     API_ROOT = 'https://api.data.amsterdam.nl'
@@ -315,6 +316,7 @@ def create_selection_buckets():
             TODO:  {todo_selections.count()}
             READY: {done_selections.count()}
         """)
+
 
 def get_work_to_do():
     """
