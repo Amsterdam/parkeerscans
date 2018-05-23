@@ -152,14 +152,14 @@ def determine_relevant_indices(params: dict) -> (str, dict, list, list):
     dt_gte = datetime.datetime(year=year_gte, month=1, day=1)
     weeks_gte = datetime.timedelta(weeks=week_gte)
     week = datetime.timedelta(days=7)
-    gte_date = dt_gte + weeks_gte - week
+    gte_date = dt_gte + weeks_gte  # - week
 
     dt_lte = datetime.datetime(year=year_lte, month=1, day=1)
     weeks_lte = datetime.timedelta(weeks=week_lte)
-    lte_date = dt_lte + weeks_lte
+    lte_date = dt_lte + weeks_lte + week
 
     for dt, indexname in date_tuples:
-        if dt <= gte_date or dt >= lte_date:
+        if dt < gte_date or dt > lte_date:
             continue
 
         if (dt.weekday()) < day_gte:

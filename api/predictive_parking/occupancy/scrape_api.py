@@ -401,6 +401,14 @@ def do_request(selection: dict) -> dict:
         time.sleep(30)
         return
 
+    elif response.status_code != 200:
+        # server error.
+        log.error('%s %s', response.status_code, payload)
+        log.error(response.url)
+        selection.status = None
+        selection.save()
+        raise ValueError(f'API Server gives {response.status}')
+
     return response.json()
 
 
