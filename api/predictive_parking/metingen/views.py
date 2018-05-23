@@ -163,11 +163,11 @@ def determine_relevant_indices(params: dict) -> (str, dict, list, list):
             continue
 
         if (dt.weekday()) < day_gte:
-            # log.debug(' fail  %s < %s', dt.weekday(), day_gte)
+            log.debug(' fail  %s < %s', dt.weekday(), day_gte)
             continue
 
         if (dt.weekday()) > day_lte:
-            # log.debug(' fail  %s > %s', dt.weekday(), day_lte)
+            log.debug(' fail  %s > %s', dt.weekday(), day_lte)
             continue
 
         valid_indices.append(indexname)

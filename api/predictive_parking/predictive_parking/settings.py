@@ -23,7 +23,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', insecure_key)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = SECRET_KEY == insecure_key
-DEBUG = False
+DEBUG = True
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
@@ -280,7 +280,7 @@ LOGGING = {
 
         'django': {
             'handlers': ['console'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
         },
 
         'occupancy': {
