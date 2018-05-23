@@ -261,7 +261,7 @@ LOGGING = {
     },
 
     'root': {
-        'level': 'DEBUG',
+        'level': 'ERROR',
         'handlers': ['console', 'graypy'],
     },
 
@@ -280,7 +280,7 @@ LOGGING = {
 
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
         },
 
         'occupancy': {

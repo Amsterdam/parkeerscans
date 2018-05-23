@@ -774,9 +774,9 @@ class WegdelenAggregationViewSet(viewsets.ViewSet):
             result = ELK_CLIENT.search(
                 index=index, size=0, body=elk_q)
         except Exception as exeption:   # pylint: disable=broad-except
-            log.debug(exeption)
+            log.error(exeption)
             build_q = json.loads(elk_q)
-            log.debug(json.dumps(build_q, indent=4))
+            log.error(json.dumps(build_q, indent=4))
             return [], 'elasticsearch query failed'
 
         return result, None
