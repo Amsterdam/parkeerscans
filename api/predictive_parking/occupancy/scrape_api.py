@@ -377,6 +377,8 @@ def do_request(selection: dict) -> dict:
     else:
         response = requests.get(API_URL, payload)
 
+    log.debug(response.url)
+
     if response.status_code == 500:
         # server error.
         log.error('%s %s', response.status_code, payload)
