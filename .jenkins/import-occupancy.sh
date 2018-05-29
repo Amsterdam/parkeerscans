@@ -18,6 +18,7 @@ dc stop
 dc rm -f -v
 
 dc build
+dc pull
 
 dc up -d database
 
