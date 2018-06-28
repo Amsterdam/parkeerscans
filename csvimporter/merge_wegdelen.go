@@ -40,10 +40,10 @@ func mergeScansParkeervakWegdelen(
 	s.geometrie,
 
 	/* stadsdeel */
-	substring(pv.buurt from 1 for 1),
-	pv.buurt,
+	LOWER(substring(pv.buurt from 1 for 1)),
+	LOWER(pv.buurt),
 	/* buurtcombinatie */
-	substring(pv.buurt from 1 for 3),
+	LOWER(substring(pv.buurt from 1 for 3)),
 
 	s.sperscode,
 	s.qualcode,
@@ -143,9 +143,9 @@ func mergeScansWegdelen(
 	s.latitude,
 	s.geometrie,
 
-	s.stadsdeel,
-	s.buurtcode,
-	s.buurtcombinatie,
+	LOWER(s.stadsdeel),
+	LOWER(s.buurtcode),
+	LOWER(s.buurtcombinatie),
 
 	s.sperscode,
 	s.qualcode,

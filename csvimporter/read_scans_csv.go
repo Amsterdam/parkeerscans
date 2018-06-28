@@ -243,7 +243,6 @@ func cleanBuurtCode(buurt string, cols []interface{}, fieldMap map[string]int) {
 		cols[fieldMap["stadsdeel"]] = string(buurt[0])
 		cols[fieldMap["buurtcombinatie"]] = buurt[:3]
 	} else {
-
 		cols[fieldMap["buurtcode"]] = ""
 	}
 }

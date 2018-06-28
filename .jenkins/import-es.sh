@@ -7,6 +7,7 @@
 
 set -e
 set -u
+set -x
 
 DIR="$(dirname $0)"
 
@@ -16,11 +17,12 @@ dces() {
 	docker-compose -p pp -f ${DIR}/docker-compose-es.yml $*;
 }
 
-
 # remove dockers from elastic import on exit
 # remove dockers from database run on exit
-# trap 'dcdb kill ; dc rm -f -v' EXIT
+trap 'dcdb kill ; dc rm -f -v' EXIT
 dces rm elasticsearch
+dces rm logstash
+
 dces pull
 
 dces up -d elasticsearch
