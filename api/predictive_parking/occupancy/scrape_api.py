@@ -448,10 +448,15 @@ def validate_scraping():
         s = Selection.objects.get(pk=s_id)
         log.info("%s wegdelen: %s", repr(s), count)
 
-    count = (
+    selections = (
         RoadOccupancy.objects.values('selection_id')
         .annotate(wdcount=Count('selection_id'))
-        .order_by('-wdcount').first()['wdcount'])
+        .order_by('-wdcount'))
+
+    if not selections:
+        raise ValueError('No occupancy data present.')
+
+    count = selections.first()['wdcount']
 
     if count == 0:
         raise ValueError('No occupancy data present..')
