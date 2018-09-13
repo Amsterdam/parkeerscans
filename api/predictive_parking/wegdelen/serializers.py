@@ -1,5 +1,6 @@
 from rest_framework_gis.fields import GeometryField
 from rest_framework import serializers
+from datapunt_api.serializers import MultipleGeometryField
 
 from datapunt_api import rest
 
@@ -35,7 +36,7 @@ class WegDeel(rest.HALSerializer):
 
     _display = rest.DisplayField()
 
-    geometrie = rest.MultipleGeometryField()
+    geometrie = MultipleGeometryField()
 
     class Meta(object):
         model = models.WegDeel
@@ -68,7 +69,7 @@ class ParkeerVakList(rest.HALSerializer):
 
 class ParkeerVak(rest.HALSerializer):
 
-    geometrie = rest.MultipleGeometryField()
+    geometrie = MultipleGeometryField()
 
     class Meta(object):
         model = models.Parkeervak
