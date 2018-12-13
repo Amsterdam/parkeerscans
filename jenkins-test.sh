@@ -10,7 +10,7 @@ dc() {
 
 trap 'dc down; dc kill ; dc rm -f' EXIT
 
-dc down
+dc down || true
 dc build
 dc pull
 
