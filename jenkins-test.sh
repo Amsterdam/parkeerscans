@@ -8,6 +8,8 @@ dc() {
    docker-compose -p test -f docker-compose-test.yml $*;
 }
 
+trap 'dc down; dc kill ; dc rm -f' EXIT
+
 dc down
 dc build
 dc pull
@@ -34,5 +36,5 @@ dc run --rm logstash /app/load-test-data.sh
 # now we are ready to run some tests
 dc run --rm ppapi python manage.py test
 
-dc stop
+dc down
 dc rm -f
