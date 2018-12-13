@@ -3,6 +3,7 @@ MAINTAINER datapunt@amsterdam.nl
 
 ENV PYTHONUNBUFFERED 1
 
+RUN apt-get update
 RUN apt-get install -y \
 	unrar \
 	&& apt-get clean
