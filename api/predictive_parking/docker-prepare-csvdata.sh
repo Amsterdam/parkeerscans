@@ -9,7 +9,7 @@ python get_os_data.py
 
 echo 'start extracting..'
 
-ls /app/data/*.rar | xargs -I rarfile unrar x -v -o- rarfile /app/unzipped/ || true
+ls /app/data/*.rar | xargs -I rarfile unar -s rarfile -o /app/unzipped/ || true
 
 ls -alh /app/unzipped
 
