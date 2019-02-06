@@ -11,7 +11,7 @@ services:
       POSTGRES_DB: predictiveparking
       LOCAL: 'yes'
     volumes:
-      - /home/stephan/.ssh/datapunt.key:/root/.ssh/datapunt.key
+      - ~/.ssh/datapunt.key:/root/.ssh/datapunt.key
 
   elasticsearch:
     image: amsterdam/elasticsearch6
@@ -20,7 +20,7 @@ services:
       - "9200:9200"
       - "9300:9300"
     #volumes:
-    #  - /home/stephan/elk_okt:/tmp/backup
+    #  - ~/elk_okt:/tmp/backup
     #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
 
   logstash:
