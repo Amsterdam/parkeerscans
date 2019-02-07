@@ -19,6 +19,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+        "flag"
 
 	"github.com/paulmach/go.geo"
 )
@@ -135,9 +136,10 @@ func init() {
 	indb = 0
 
 	workers = 3
-
-	//TODO make environment variable
 	targetCSVdir = "/app/unzipped"
+        flag.IntVar(&workers, "w", 3, "amount of workers")
+        flag.StringVar(&targetCSVdir, "target", "/app/unzipped", "path to unzipped csv files")
+        flag.Parse()
 
 	db, err := dbConnect(ConnectStr())
 	Db = db
