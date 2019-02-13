@@ -32,7 +32,16 @@ type DatePair struct {
 
 type fileErrorMap map[string]int
 
+type settings struct {
+	dbhost string
+	targetCSVdir string
+	workers int
+}
+
 var (
+	// databse host
+	dbhost string
+
 	csvError *log.Logger
 	// columns  []string
 	success int
@@ -59,6 +68,9 @@ var (
 
 	//DateMap store per filename the start and end date
 	DateMap map[string]DatePair
+
+	setting = settings{}
+
 )
 
 //set up logging..
@@ -94,7 +106,7 @@ func ConnectStr() string {
 		"predictiveparking",
 		"predictiveparking",
 		"insecure",
-		"database",
+		setting.dbhost,
 		"5432",
 		otherParams,
 	)
@@ -135,11 +147,24 @@ func init() {
 	success = 1
 	indb = 0
 
-	workers = 3
-	targetCSVdir = "/app/unzipped"
-        flag.IntVar(&workers, "w", 3, "amount of workers")
-        flag.StringVar(&targetCSVdir, "target", "/app/unzipped", "path to unzipped csv files")
-        flag.Parse()
+	// available flags
+	envNameWorkers := "w"
+	envNameDbhost := "dbhost"
+	envNametargetCSVdir := "target"
+
+	// default parameters
+	defaultWorkers := 3
+	defaultTargetCSVdir := "/app/unzipped"
+	defaultDbhost := "database"
+
+	flag.IntVar(&workers, envNameWorkers, -1, "amount of workers")
+	flag.StringVar(&targetCSVdir, envNametargetCSVdir, "", "path to unzipped csv files")
+	flag.StringVar(&dbhost, envNameDbhost, "", "database host")
+	flag.Parse()
+
+	setting.workers = handleInputInt(workers, defaultWorkers, envNameWorkers)
+	setting.targetCSVdir = handleInputString(targetCSVdir, defaultTargetCSVdir, envNametargetCSVdir)
+	setting.dbhost = handleInputString(dbhost, defaultDbhost, envNameDbhost)
 
 	db, err := dbConnect(ConnectStr())
 	Db = db
@@ -469,12 +494,11 @@ func importScans() {
 	//find all csv files
 	start := time.Now()
 
-	files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", targetCSVdir))
-
+	files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", setting.targetCSVdir))
 	checkErr(err)
 
 	if len(files) == 0 {
-		log.Print(targetCSVdir)
+		log.Print(setting.targetCSVdir)
 		panic(errors.New("Missing csv files"))
 	}
 
@@ -489,7 +513,7 @@ func importScans() {
 
 	go printStatus()
 
-	for w := 1; w <= workers; w++ {
+	for w := 1; w <= setting.workers; w++ {
 		wg.Add(1)
 		go csvloader(w, jobs)
 	}
