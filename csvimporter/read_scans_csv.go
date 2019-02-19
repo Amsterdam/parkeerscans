@@ -516,8 +516,7 @@ func importScans() {
 	if len(setting.csvfiles) > 0 {
 		files = setting.csvfiles
 	} else {
-		// files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", setting.targetCSVdir))
-		files, err = filepath.Glob(fmt.Sprintf("%s/2016/*.csv", targetCSVdir))
+		files, err = filepath.Glob(fmt.Sprintf("%s/*.csv", setting.targetCSVdir))
 		checkErr(err)
 	}
 
