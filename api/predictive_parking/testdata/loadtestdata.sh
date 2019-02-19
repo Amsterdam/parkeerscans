@@ -30,7 +30,6 @@ if [[ $USE_DOCKER = "true" ]]
     docker_loaddata $DB_NAME metingen_scan < testdata/scans.csv
     docker_loaddata $DB_NAME wegdelen_buurt < testdata/buurt.csv
 else
-    echo $DB_NAME
     loaddata $DB_NAME wegdelen_wegdeel < testdata/wegdeel.csv
     loaddata $DB_NAME wegdelen_parkeervak < testdata/vakken.csv
     # loaddata $DB metingen_scan < testdata/scans.csv
