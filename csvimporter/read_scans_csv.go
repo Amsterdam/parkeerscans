@@ -14,14 +14,15 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+
 	//"net"
+	"flag"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-        "flag"
 
-	"github.com/paulmach/go.geo"
+	geo "github.com/paulmach/go.geo"
 )
 
 //DatePair start and end data string values
@@ -33,14 +34,17 @@ type DatePair struct {
 type fileErrorMap map[string]int
 
 type settings struct {
-	dbhost string
+	dbhost       string
 	targetCSVdir string
-	workers int
+	workers      int
+	csvfiles     []string
 }
 
 var (
 	// databse host
-	dbhost string
+	dbhost  string
+	csvfile string
+	files   []string
 
 	csvError *log.Logger
 	// columns  []string
@@ -70,7 +74,6 @@ var (
 	DateMap map[string]DatePair
 
 	setting = settings{}
-
 )
 
 //set up logging..
@@ -160,11 +163,17 @@ func init() {
 	flag.IntVar(&workers, envNameWorkers, -1, "amount of workers")
 	flag.StringVar(&targetCSVdir, envNametargetCSVdir, "", "path to unzipped csv files")
 	flag.StringVar(&dbhost, envNameDbhost, "", "database host")
+	flag.StringVar(&csvfile, "csv", "", "specific csv file")
 	flag.Parse()
 
 	setting.workers = handleInputInt(workers, defaultWorkers, envNameWorkers)
 	setting.targetCSVdir = handleInputString(targetCSVdir, defaultTargetCSVdir, envNametargetCSVdir)
 	setting.dbhost = handleInputString(dbhost, defaultDbhost, envNameDbhost)
+
+	if len(csvfile) > 0 {
+		csvfiles := []string{csvfile}
+		setting.csvfiles = csvfiles
+	}
 
 	db, err := dbConnect(ConnectStr())
 	Db = db
@@ -241,6 +250,13 @@ func parseReliabilityGPS(gpsfield string, cols []interface{}, fieldMap map[strin
 	//lat           long
 	//52.356895123N.4.849403218E
 	splitVal := strings.Split(gpsfield, ",")
+	size := len(splitVal)
+
+	if size != 2 {
+		log.Println(splitVal)
+		return errors.New("gps reliability value weird")
+	}
+
 	splitN := strings.Split(splitVal[0], "N")[0]
 	splitE := splitVal[1]
 	splitE = strings.Split(splitE, "E")[0]
@@ -469,7 +485,7 @@ func csvloader(id int, jobs <-chan string) {
 
 func printStatus() {
 	i := 1
-	delta := 10
+	delta := 30
 	duration := 0
 	speed := 0
 
@@ -494,8 +510,18 @@ func importScans() {
 	//find all csv files
 	start := time.Now()
 
-	files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", setting.targetCSVdir))
-	checkErr(err)
+	var err error
+	var files []string
+
+	if len(setting.csvfiles) > 0 {
+		files = setting.csvfiles
+	} else {
+		// files, err := filepath.Glob(fmt.Sprintf("%s/split*.csv", setting.targetCSVdir))
+		files, err = filepath.Glob(fmt.Sprintf("%s/2016/*.csv", targetCSVdir))
+		checkErr(err)
+	}
+
+	log.Println(files)
 
 	if len(files) == 0 {
 		log.Print(setting.targetCSVdir)

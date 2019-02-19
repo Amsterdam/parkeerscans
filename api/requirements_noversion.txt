@@ -44,7 +44,7 @@ packaging
 pbr
 pip-tools
 positional
-psycopg2
+psycopg2-binary
 pycodestyle
 pyflakes
 pylint

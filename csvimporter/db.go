@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
 	//"github.com/cheggaaa/pb"
 	"io"
 	"log"
@@ -148,13 +149,17 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 //CreateTables  table to put csv data in
 func CreateTables(db *sql.DB, csvfile string) (string, string) {
 
-	validTableName := regexp.MustCompile("201([a-z_0-9]*)")
+	validTableName := regexp.MustCompile("_\\d\\d\\d\\d([-_a-z_0-9]*)")
+	//validTableName := regexp.MustCompile("_2017([-_a-z_0-9]*)")
 
 	tableName := validTableName.FindString(csvfile)
 
 	if tableName == "" {
 		panic(errors.New("filename no regexmatch"))
 	}
+
+	tableName = tableName[1:]
+	tableName = strings.Replace(tableName, "-", "_", -1)
 
 	targetTable := fmt.Sprintf("scans_%s", tableName)
 	importTable := fmt.Sprintf("import_%s", tableName)
@@ -189,11 +194,17 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 	reader.FieldsPerRecord = 0
 	reader.Comma = ';'
 	fileErrors := 0
+	rows := 0
 
 	// Determine mapping of csv columns to db columns
 
 	for {
 		record, err := reader.Read()
+		rows += 1
+		if rows == 1 {
+			// skip header
+			continue
+		}
 
 		if err != nil {
 			if err == io.EOF {
@@ -215,7 +226,6 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 			fileErrors++
 			continue
 		}
-
 		// printCols(cols, dbColumns)
 
 		if err := pgTable.AddRow(cols...); err != nil {
