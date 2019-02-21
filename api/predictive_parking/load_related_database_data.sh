@@ -15,7 +15,7 @@ dc() {
 }
 
 gettable(){
-	dc exec -T database update-table.sh $*  $username
+	dc exec -T database update-table.sh $*  $username || true
 }
 
 gettable parkeervakken parkeervakken bv predictiveparking

@@ -227,13 +227,14 @@ func scanStatus(db *sql.DB, targetTable string) int {
 }
 
 func totalProcessedScans(db *sql.DB) int {
-	countScans := fmt.Sprintf("SELECT count(*) from metingen_scan;")
+	countScans := fmt.Sprintf("SELECT max(id) from metingen_scan;")
 
 	rows, err := db.Query(countScans)
 	checkErr(err)
 	count := checkCount(rows)
+	count = count / 2
 
-	log.Printf("Scans in metingen_scan:  %d", count)
+	log.Printf("Scans in metingen_scan: ~ %d", count)
 
 	return count
 }

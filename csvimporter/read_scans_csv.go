@@ -485,7 +485,7 @@ func csvloader(id int, jobs <-chan string) {
 
 func printStatus() {
 	i := 1
-	delta := 30
+	delta := 60
 	duration := 0
 	speed := 0
 
