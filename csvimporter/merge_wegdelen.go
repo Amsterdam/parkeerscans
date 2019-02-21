@@ -31,7 +31,7 @@ func mergeScansParkeervakWegdelen(
     WHERE ST_DWithin(s.geometrie, pv.geometrie, %f)
     RETURNING
 	s.scan_id,
-	s.scan_moment,
+	s.scan_moment::timestamp AT TIME ZONE 'Europe/Amsterdam',
 	s.device_id,
 	s.scan_source,
 
@@ -134,7 +134,7 @@ func mergeScansWegdelen(
     WHERE ST_DWithin(s.geometrie, wd.geometrie, %f)
     RETURNING
 	s.scan_id,
-	s.scan_moment,
+	s.scan_moment::timestamp AT TIME ZONE 'Europe/Amsterdam',
 
 	s.device_id,
 	s.scan_source,
