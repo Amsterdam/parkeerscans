@@ -25,8 +25,8 @@ from occupancy.models import Selection
 
 log = logging.getLogger(__name__)   # noqa
 
-API_ROOT = 'https://acc.api.data.amsterdam.nl'
-# API_ROOT = 'http://127.0.0.1:8000'
+# API_ROOT = 'https://acc.api.data.amsterdam.nl'
+API_ROOT = 'http://127.0.0.1:8000'
 
 if os.getenv('ENVIRONMENT', '') == 'production':
     API_ROOT = 'https://api.data.amsterdam.nl'
@@ -232,8 +232,8 @@ def create_single_selection(longstring):
 def validate_selection(bucket):
     b = bucket
     # lets do some validation..
-    assert b.y1 in range(2016, 2025)
-    assert b.y2 in range(2016, 2025)
+    assert b.y1 in range(2016, 2035)
+    assert b.y2 in range(2016, 2035)
 
     if b.m1:
         assert b.m1 in range(0, 12)
@@ -276,7 +276,7 @@ def store_occupancy_data(json: dict, selection: dict):
 
         if not avg_occupancy:
             # no occupancy ?
-            # parking sport dissapeared?
+            # parking spot dissapeared?
             continue
 
         r, created = RoadOccupancy.objects.get_or_create(

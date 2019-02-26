@@ -166,9 +166,10 @@ func CreateTables(db *sql.DB, csvfile string) (string, string) {
 
 	log.Println("Tablename", targetTable)
 
-	makeTable(db, targetTable, true)
+	// makeTable(db, targetTable, true)
 	makeTable(db, importTable, false)
-
+	// we have partitioned table now.
+	targetTable = "metingen_scan"
 	return importTable, targetTable
 
 }
@@ -216,7 +217,7 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 			continue
 		}
 
-		cols, countedErrors, err := NormalizeRow(&record)
+		cols, countedErrors, err := NormalizeRow(&record, rows)
 		fileErrors += countedErrors
 
 		if err != nil {

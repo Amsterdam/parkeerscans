@@ -1,6 +1,7 @@
 package main
 
 var dbColumns = []string{
+	"id",              //  Constant ID we create
 	"scan_id",         //  ScanId;
 	"scan_moment",     //  scnMoment;
 	"device_id",       //  device id
@@ -32,7 +33,6 @@ var dbColumns = []string{
 	"stadsdeel",       //  stadsdeel;
 	"buurtcombinatie", //  buurtcombinatie;
 	"geometrie",       //  geometrie
-
 }
 
 var columns2016 = []string{

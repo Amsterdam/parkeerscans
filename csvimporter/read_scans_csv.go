@@ -49,7 +49,7 @@ var (
 	csvError *log.Logger
 	// columns  []string
 	success int
-	indb    int
+	indb    int64
 	//last    int
 	workers int
 	failed  int
@@ -290,6 +290,15 @@ func cleanBuurtCode(buurt string, cols []interface{}, fieldMap map[string]int) {
 	}
 }
 
+// addTimeZone add CET (central europe timezone information to scans
+func addTimeZone(scan_moment string, cols []interface{}, fieldMap map[string]int) {
+	scan_moment = scan_moment + " CET"
+	const longForm = "2006-01-02 15:04:05 MST"
+	t, err := time.Parse(longForm, scan_moment)
+	checkErr(err)
+	cols[fieldMap["scan_moment"]] = t.UTC()
+}
+
 func cleanupRow(
 	record *[]string,
 	row []interface{},
@@ -309,6 +318,11 @@ func cleanupRow(
 
 		if i == fieldMap["buurtcode"] {
 			cleanBuurtCode(field, row, fieldMap)
+			continue
+		}
+
+		if i == fieldMap["scan_moment"] {
+			addTimeZone(field, row, fieldMap)
 			continue
 		}
 
@@ -345,7 +359,7 @@ func floatToString(inputNum float64) string {
 }
 
 //NormalizeRow cleanup fields in csv we return a single database ready row
-func NormalizeRow(record *[]string) ([]interface{}, int, error) {
+func NormalizeRow(record *[]string, rowcount int) ([]interface{}, int, error) {
 
 	countErrors := 0
 
@@ -378,7 +392,6 @@ func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 	countErrors = cleanupRow(record, row, fieldMap, countErrors)
 
 	err := setLatLong(row, fieldMap)
-
 	//validate record
 	if err != nil {
 		//printRecord(record, row)
@@ -417,11 +430,16 @@ func NormalizeRow(record *[]string) ([]interface{}, int, error) {
 	row[fieldMap["scan_id"]] = scanID
 
 	// copy fields to database columns ready row
+	// we look at the dbColumns list to check which
+	// idx we need.
 	for i, field := range fieldnames {
 		if idx, ok := dbFieldMap[field]; ok {
 			dbCols[idx] = row[i]
 		}
 	}
+
+	// set out custom ID field. position 0
+	dbCols[0] = fmt.Sprintf("%d-%s", rowcount, scanID)
 
 	return dbCols, countErrors, nil
 }
@@ -450,7 +468,7 @@ func csvloader(id int, jobs <-chan string) {
 
 		source, target := CreateTables(Db, csvfile)
 
-		cleanTable(Db, target)
+		//cleanTable(Db, target)
 		cleanTable(Db, source)
 
 		pgTable, err := NewImport(Db, "public", source, dbColumns)
@@ -469,7 +487,7 @@ func csvloader(id int, jobs <-chan string) {
 		// scans op bgt wegdeel
 		countW := mergeScansWegdelen(Db, source, target, 0.000001)
 
-		indb += countW
+		indb += countW + count15 + count1
 
 		log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d \n\n",
 			target,
@@ -485,14 +503,16 @@ func csvloader(id int, jobs <-chan string) {
 
 func printStatus() {
 	i := 1
-	delta := 60
+	delta := 10
 	duration := 0
 	speed := 0
 
 	for {
-		time.Sleep(time.Duration(delta) * time.Second)
 
-		countT := totalProcessedScans(Db)
+		//countT := totalProcessedScans(Db)
+		countT := indb
+
+		time.Sleep(time.Duration(delta) * time.Second)
 
 		log.Printf("STATUS: rows:%-10ds inDB: %-10d failed %-10d  - %10d rows/s  %10d Total",
 			success, indb, failed, speed, countT)

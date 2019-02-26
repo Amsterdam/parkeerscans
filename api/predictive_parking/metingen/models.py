@@ -48,7 +48,7 @@ class Scan(models.Model):
     - reliability_ANPR
     - parkeerrechtid
     """
-
+    id = models.CharField(primary_key=True, max_length=38)
     # parkeervak id ( rd coordinaten xy)
     parkeervak_id = models.CharField(db_index=True, null=True, max_length=15)
     # mulder / fiscaal / vrij
@@ -120,7 +120,7 @@ class ScanRaw(models.Model):
     """
     Een scan punt (WITHOUT INDEXES) for fast loading of csv.
     """
-
+    id = models.CharField(primary_key=True, max_length=38)
     # parkeervak id ( no index )
     parkeervak_id = models.CharField(null=True, max_length=15)
 
