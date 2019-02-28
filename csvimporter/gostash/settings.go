@@ -7,7 +7,7 @@ import (
 )
 
 type Settings struct {
-	msg	  map[string]string
+	msg       map[string]string
 	VarString map[string]string
 	VarInt    map[string]int
 }
@@ -35,12 +35,12 @@ func (s Settings) GetInt(flagName string) int {
 }
 
 func (s *Settings) HandleCMDLineInput() {
-	parsedString := make(map[string] *string)
+	parsedString := make(map[string]*string)
 	for key, val := range s.VarString {
 		var newV = flag.String(key, val, s.msg[key])
 		parsedString[key] = newV
 	}
-	parsedInt := make(map[string] *int)
+	parsedInt := make(map[string]*int)
 	for key, val := range s.VarInt {
 		var newV = flag.Int(key, val, s.msg[key])
 		parsedInt[key] = newV
@@ -78,7 +78,7 @@ func (s *Settings) Parse() {
 }
 
 var SETTINGS = Settings{
-	msg:		make(map[string]string),
-	VarString:	make(map[string]string),
-	VarInt:		make(map[string]int),
+	msg:       make(map[string]string),
+	VarString: make(map[string]string),
+	VarInt:    make(map[string]int),
 }
