@@ -124,7 +124,7 @@ func setIndex(index, mapping string) {
 	ctx := context.Background()
 	createIndex, err := client.CreateIndex(index).BodyString(mapping).Do(ctx)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("If index is already set, Ingore the following error message.\n", err)
 		return
 	}
 	if !createIndex.Acknowledged {
