@@ -40,10 +40,14 @@ func init() {
 
 func main() {
 	var err error
-	client, err = elastic.NewClient()
+	client, err = elastic.NewClient(
+	elastic.SetURL(fmt.Sprintf("http://%s:%d", SETTINGS.Get("eshost"), SETTINGS.GetInt("esport"))),
+	//	elastic.SetMaxRetries(5),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer client.Stop()
 	// get mapping json file as string
 	mappingBuff, err := ioutil.ReadFile(SETTINGS.Get("file"))
 	if err != nil {
@@ -58,7 +62,7 @@ func main() {
 	chItems := make(chan *Item, 1000)
 	workers := SETTINGS.GetInt("workers")
 
-	go printStatus()
+	go printStatus(chItems)
 
 	wg.Add(workers)
 	for i := 0; i < workers; i++ {
@@ -70,7 +74,7 @@ func main() {
 
 }
 
-func printStatus() {
+func printStatus(chItems chan *Item) {
 	i := 1
 	delta := 10
 	duration := 0
@@ -80,7 +84,7 @@ func printStatus() {
 
 		time.Sleep(time.Duration(delta) * time.Second)
 
-		log.Printf("STATUS: rows:%-10d  %-10d rows/sec", elkRows, speed)
+		log.Printf("STATUS: rows:%-10d  %-10d rows/sec  buffer: %d", elkRows, speed, len(chItems))
 		duration = i * delta
 		speed = elkRows / duration
 		i++
