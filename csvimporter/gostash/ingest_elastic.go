@@ -9,9 +9,9 @@ import (
 	"time"
 
 	// elastic retries
+	"errors"
 	"net/http"
 	"syscall"
-	"errors"
 
 	"golang.org/x/net/context"
 	"gopkg.in/olivere/elastic.v6"
@@ -46,8 +46,8 @@ func init() {
 func main() {
 	var err error
 	client, err = elastic.NewClient(
-	elastic.SetURL(fmt.Sprintf("http://%s:%d", SETTINGS.Get("eshost"), SETTINGS.GetInt("esport"))),
-	elastic.SetRetrier(NewCustomRetrier()),
+		elastic.SetURL(fmt.Sprintf("http://%s:%d", SETTINGS.Get("eshost"), SETTINGS.GetInt("esport"))),
+		elastic.SetRetrier(NewCustomRetrier()),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -132,14 +132,13 @@ func setIndex(index, mapping string) {
 	}
 }
 
-
 type CustomRetrier struct {
 	backoff elastic.Backoff
-  }
+}
 
 func NewCustomRetrier() *CustomRetrier {
-	return &CustomRetrier {
-		backoff: elastic.NewExponentialBackoff(10 * time.Millisecond, 8 * time.Second),
+	return &CustomRetrier{
+		backoff: elastic.NewExponentialBackoff(10*time.Millisecond, 8*time.Second),
 	}
 }
 
