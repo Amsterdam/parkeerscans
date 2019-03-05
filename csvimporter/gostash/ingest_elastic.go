@@ -45,7 +45,7 @@ func init() {
 	SETTINGS.Parse()
 	elkRows = 0
 	syncIndex = &syncIndexes{
-		indexes: make(map[string] bool),
+		indexes: make(map[string]bool),
 	}
 }
 
@@ -162,7 +162,8 @@ func setIndex(index, mapping string) {
 	ctx := context.Background()
 	createIndex, err := client.CreateIndex(index).BodyString(mapping).Do(ctx)
 	if err != nil {
-		fmt.Println("If index is already set, Ingore the following error message.\n", err)
+		// Remove clutter from output
+		//fmt.Println("If index is already set, Ingore the following error message.\n", err)
 		return
 	}
 	if !createIndex.Acknowledged {
@@ -200,9 +201,9 @@ func (r *CustomRetrier) Retry(ctx context.Context, retry int, req *http.Request,
 //Index that are created should be added only once
 //And before the item is stored in elastic search
 type syncIndexes struct {
-	indexes 		map[string] bool
-	DefaultMapping 	string
-	mu 				sync.RWMutex
+	indexes        map[string]bool
+	DefaultMapping string
+	mu             sync.RWMutex
 }
 
 func (s *syncIndexes) Set(index string) {
