@@ -8,6 +8,11 @@ import (
 	"sync"
 	"time"
 
+	// elastic retries
+	"net/http"
+	"syscall"
+	"errors"
+
 	"golang.org/x/net/context"
 	"gopkg.in/olivere/elastic.v6"
 )
@@ -42,7 +47,7 @@ func main() {
 	var err error
 	client, err = elastic.NewClient(
 	elastic.SetURL(fmt.Sprintf("http://%s:%d", SETTINGS.Get("eshost"), SETTINGS.GetInt("esport"))),
-	//	elastic.SetMaxRetries(5),
+	elastic.SetRetrier(NewCustomRetrier()),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -125,4 +130,31 @@ func setIndex(index, mapping string) {
 	if !createIndex.Acknowledged {
 		fmt.Println("Index not acknowledged, Could be ok?!? or not...")
 	}
+}
+
+
+type CustomRetrier struct {
+	backoff elastic.Backoff
+  }
+
+func NewCustomRetrier() *CustomRetrier {
+	return &CustomRetrier {
+		backoff: elastic.NewExponentialBackoff(10 * time.Millisecond, 8 * time.Second),
+	}
+}
+
+func (r *CustomRetrier) Retry(ctx context.Context, retry int, req *http.Request, resp *http.Response, err error) (time.Duration, bool, error) {
+	// Fail hard on a specific error
+	if err == syscall.ECONNREFUSED {
+		return 0, false, errors.New("Elasticsearch or network down")
+	}
+
+	// Stop after 5 retries
+	if retry >= 5 {
+		return 0, false, nil
+	}
+
+	// Let the backoff strategy decide how long to wait and whether to stop
+	wait, stop := r.backoff.Next(retry)
+	return wait, stop, nil
 }
