@@ -37,7 +37,7 @@ func init() {
 
 	// elastic search settings
 	SETTINGS.Set("file", "mappings.json", "path to file with elastic search mapping")
-	SETTINGS.Set("index", "scan", "Name of the Elastic Search Index")
+	SETTINGS.Set("index", "not-set", "Name of the Elastic Search Index")
 	SETTINGS.Set("eshost", "elasticsearch", "Elastic search Hostname ")
 	SETTINGS.SetInt("esport", 9200, "Port under which elastic search runs")
 	SETTINGS.SetInt("esbuffer", 100, "Buffer items before sending to elasticsearch")
@@ -54,6 +54,7 @@ func main() {
 	client, err = elastic.NewClient(
 		elastic.SetURL(fmt.Sprintf("http://%s:%d", SETTINGS.Get("eshost"), SETTINGS.GetInt("esport"))),
 		elastic.SetRetrier(NewCustomRetrier()),
+		elastic.SetSniff(false),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -69,10 +70,12 @@ func main() {
 	syncIndex.DefaultMapping = mapping
 
 	// set Mapping to index
-	setIndex(SETTINGS.Get("index"), mapping)
+	if SETTINGS.Get("index") != "not-set" {
+		setIndex(SETTINGS.Get("index"), mapping)
+	}
 
 	// start workers
-	chItems := make(chan *Item, 1000)
+	chItems := make(chan *Item, 100000)
 	workers := SETTINGS.GetInt("workers")
 
 	go printStatus(chItems)
@@ -86,44 +89,8 @@ func main() {
 	wg.Wait()
 
 	// Check total items in elastic
-	time.Sleep(10 * time.Second)
+	//time.Sleep(10 * time.Second)
 	checkTotalItemsAdded()
-}
-
-func checkTotalItemsAdded() {
-	ctx := context.Background()
-	indexes := []string{}
-	for key := range syncIndex.Indexes {
-		indexes = append(indexes, key)
-	}
-
-	count, err := client.Count(indexes...).Do(ctx)
-	fmt.Println("indexes Added:", indexes)
-	fmt.Println("items found in elastic", count)
-	fmt.Println("rows Added", elkRows)
-	fmt.Println("err", err)
-}
-
-func printStatus(chItems chan *Item) {
-	i := 1
-	delta := 10
-	duration := 0
-	speed := 0
-
-	for {
-		time.Sleep(time.Duration(delta) * time.Second)
-
-		log.Printf("STATUS: rows:%-10d  %-10d rows/sec  buffer: %d", elkRows, speed, len(chItems))
-		duration = i * delta
-		speed = elkRows / duration
-		i++
-	}
-}
-
-func customEsIndex(item *Item) (string, error) {
-	layout := "2006-01-02T15:04:05Z"
-	t, err := time.Parse(layout, strings.Replace(item.Scan_moment, `"`, "", 2))
-	return fmt.Sprintf("scans-%d.%02d.%02d", t.Year(), t.Month(), t.Day()), err
 }
 
 func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
@@ -149,6 +116,7 @@ func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 			continue
 		}
 
+		// README if no custom index is set this step is not needed.
 		// sync new mapping for index before item is added,
 		// If slice of string with new indexes is kept this could be moved to be done before bulk is sent
 		syncIndex.Set(esIndex)
@@ -160,10 +128,11 @@ func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 			_, err := bulkData.Do(ctx)
 			buffer = 0
 			if err != nil {
-				log.Println("ow no", err, string(itemJson))
+				log.Println("ow no", err)
 			}
 		}
 	}
+	// sent remaining items to elastic
 	if buffer > 0 {
 		fmt.Println("Sending last items to elastic. amount:", buffer)
 		_, err := bulkData.Do(ctx)
@@ -236,4 +205,40 @@ func (s *syncIndexes) Update(index string) {
 	defer s.mu.Unlock()
 	setIndex(index, s.DefaultMapping)
 	s.Indexes[index] = true
+}
+
+func customEsIndex(item *Item) (string, error) {
+	layout := "2006-01-02T15:04:05Z"
+	t, err := time.Parse(layout, strings.Replace(item.Scan_moment, `"`, "", 2))
+	return fmt.Sprintf("scans-%d.%02d.%02d", t.Year(), t.Month(), t.Day()), err
+}
+
+func checkTotalItemsAdded() {
+	ctx := context.Background()
+	indexes := []string{}
+	for key := range syncIndex.Indexes {
+		indexes = append(indexes, key)
+	}
+
+	count, err := client.Count(indexes...).Do(ctx)
+	fmt.Println("indexes Added:", indexes)
+	fmt.Println("items found in elastic", count, "rows Added", elkRows,
+		"was a successfull:", count > int64(elkRows))
+	fmt.Println("err", err)
+}
+
+func printStatus(chItems chan *Item) {
+	i := 1
+	delta := 10
+	duration := 0
+	speed := 0
+
+	for {
+		time.Sleep(time.Duration(delta) * time.Second)
+
+		log.Printf("STATUS: rows:%-10d  %-10d rows/sec  buffer: %d", elkRows, speed, len(chItems))
+		duration = i * delta
+		speed = elkRows / duration
+		i++
+	}
 }
