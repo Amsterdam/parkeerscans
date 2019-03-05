@@ -38,6 +38,7 @@ func init() {
 	SETTINGS.Set("index", "scan", "Name of the Elastic Search Index")
 	SETTINGS.Set("eshost", "elasticsearch", "Elastic search Hostname ")
 	SETTINGS.SetInt("esport", 9200, "Port under which elastic search runs")
+	SETTINGS.SetInt("esbuffer", 100, "Buffer items before sending to elasticsearch")
 
 	SETTINGS.Parse()
 	elkRows = 0
@@ -71,7 +72,7 @@ func main() {
 
 	wg.Add(workers)
 	for i := 0; i < workers; i++ {
-		go worker(i, chItems, SETTINGS.Get("index"))
+		go worker(i, chItems, SETTINGS.Get("index"), SETTINGS.GetInt("esbuffer"))
 	}
 	fillFromDB(chItems)
 	close(chItems)
@@ -86,7 +87,6 @@ func printStatus(chItems chan *Item) {
 	speed := 0
 
 	for {
-
 		time.Sleep(time.Duration(delta) * time.Second)
 
 		log.Printf("STATUS: rows:%-10d  %-10d rows/sec  buffer: %d", elkRows, speed, len(chItems))
@@ -96,25 +96,35 @@ func printStatus(chItems chan *Item) {
 	}
 }
 
-func worker(workId int, chItems chan *Item, esIndex string) {
+func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 	ctx := context.Background()
+	bulkData := client.Bulk()
+	buffer := 0
 	for item := range chItems {
 		elkRows += 1
-		//_, err := client.Index().Index(esIndex).Type("info").Id(strconv.Itoa(item.UserID)).BodyJson(item).Do(ctx)
 		itemJson, err := json.Marshal(item)
 
 		if err != nil {
 			log.Fatal("marschall", string(itemJson))
 		}
 
-		_, err =
-			client.Index().Index(esIndex).
-				Type("scan").Id(string(item.Id)).
-				BodyJson(string(itemJson)).Do(ctx)
-
+		rec := elastic.NewBulkIndexRequest().Index(esIndex).Type("scan").Id(string(item.Id)).Doc(string(itemJson))
+		buffer++
+		bulkData = bulkData.Add(rec)
+		if buffer >= 1000 {
+			_, err := bulkData.Do(ctx)
+			buffer = 0
+			if err != nil {
+				log.Println("ow no", err)
+				log.Println("ow no", string(itemJson))
+			}
+		}
+	}
+	if buffer > 0 {
+		fmt.Println("Adding last items", buffer)
+		_, err := bulkData.Do(ctx)
 		if err != nil {
 			log.Println("ow no", err)
-			log.Println("ow no", string(itemJson))
 		}
 	}
 	wg.Done()
