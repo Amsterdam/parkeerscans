@@ -11,6 +11,7 @@ import (
 	// elastic retries
 	"errors"
 	"net/http"
+	"strings"
 	"syscall"
 
 	"golang.org/x/net/context"
@@ -21,6 +22,7 @@ import (
 var client *elastic.Client
 var wg sync.WaitGroup
 var elkRows int
+var syncIndex *syncIndexes
 
 func init() {
 	// run settings
@@ -42,6 +44,9 @@ func init() {
 
 	SETTINGS.Parse()
 	elkRows = 0
+	syncIndex = &syncIndexes{
+		indexes: make(map[string] bool),
+	}
 }
 
 func main() {
@@ -59,7 +64,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	mapping := string(mappingBuff)
+	syncIndex.DefaultMapping = mapping
 
 	// set Mapping to index
 	setIndex(SETTINGS.Get("index"), mapping)
@@ -96,6 +103,12 @@ func printStatus(chItems chan *Item) {
 	}
 }
 
+func customEsIndex(item *Item) (string, error) {
+	layout := "2006-01-02T15:04:05Z"
+	t, err := time.Parse(layout, strings.Replace(item.Scan_moment, `"`, "", 2))
+	return fmt.Sprintf("scans-%d.%02d.%02d", t.Year(), t.Month(), t.Day()), err
+}
+
 func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 	ctx := context.Background()
 	bulkData := client.Bulk()
@@ -105,8 +118,23 @@ func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 		itemJson, err := json.Marshal(item)
 
 		if err != nil {
-			log.Fatal("marschall", string(itemJson))
+			fmt.Println("unable to Json Marshal", string(itemJson))
+			fmt.Println(err)
+			continue
 		}
+
+		// README if index of toplevel is needed comment out the following line
+		// IF statement at this level is expensive
+		esIndex, err = customEsIndex(item)
+		if err != nil {
+			fmt.Println("unable to parse scan_moment as date", item.Scan_moment)
+			fmt.Println(err)
+			continue
+		}
+
+		// sync new mapping for index before item is added,
+		// If slice of string with new indexes is kept this could be moved to be done before bulk is sent
+		syncIndex.Set(esIndex)
 
 		rec := elastic.NewBulkIndexRequest().Index(esIndex).Type("scan").Id(string(item.Id)).Doc(string(itemJson))
 		buffer++
@@ -166,4 +194,29 @@ func (r *CustomRetrier) Retry(ctx context.Context, retry int, req *http.Request,
 	// Let the backoff strategy decide how long to wait and whether to stop
 	wait, stop := r.backoff.Next(retry)
 	return wait, stop, nil
+}
+
+//Global struct for index mapping
+//Index that are created should be added only once
+//And before the item is stored in elastic search
+type syncIndexes struct {
+	indexes 		map[string] bool
+	DefaultMapping 	string
+	mu 				sync.RWMutex
+}
+
+func (s *syncIndexes) Set(index string) {
+	s.mu.RLock()
+	indexFound := s.indexes[index]
+	s.mu.RUnlock()
+	if !indexFound {
+		s.Update(index)
+	}
+}
+
+func (s *syncIndexes) Update(index string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	setIndex(index, s.DefaultMapping)
+	s.indexes[index] = true
 }
