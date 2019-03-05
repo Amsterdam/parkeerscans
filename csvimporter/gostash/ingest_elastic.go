@@ -45,7 +45,7 @@ func init() {
 	SETTINGS.Parse()
 	elkRows = 0
 	syncIndex = &syncIndexes{
-		indexes: make(map[string]bool),
+		Indexes: make(map[string]bool),
 	}
 }
 
@@ -85,6 +85,23 @@ func main() {
 	close(chItems)
 	wg.Wait()
 
+	// Check total items in elastic
+	time.Sleep(10 * time.Second)
+	checkTotalItemsAdded()
+}
+
+func checkTotalItemsAdded() {
+	ctx := context.Background()
+	indexes := []string{}
+	for key := range syncIndex.Indexes {
+		indexes = append(indexes, key)
+	}
+
+	count, err := client.Count(indexes...).Do(ctx)
+	fmt.Println("indexes Added:", indexes)
+	fmt.Println("items found in elastic", count)
+	fmt.Println("rows Added", elkRows)
+	fmt.Println("err", err)
 }
 
 func printStatus(chItems chan *Item) {
@@ -139,17 +156,16 @@ func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 		rec := elastic.NewBulkIndexRequest().Index(esIndex).Type("scan").Id(string(item.Id)).Doc(string(itemJson))
 		buffer++
 		bulkData = bulkData.Add(rec)
-		if buffer >= 1000 {
+		if buffer >= esbuffer {
 			_, err := bulkData.Do(ctx)
 			buffer = 0
 			if err != nil {
-				log.Println("ow no", err)
-				log.Println("ow no", string(itemJson))
+				log.Println("ow no", err, string(itemJson))
 			}
 		}
 	}
 	if buffer > 0 {
-		fmt.Println("Adding last items", buffer)
+		fmt.Println("Sending last items to elastic. amount:", buffer)
 		_, err := bulkData.Do(ctx)
 		if err != nil {
 			log.Println("ow no", err)
@@ -201,14 +217,14 @@ func (r *CustomRetrier) Retry(ctx context.Context, retry int, req *http.Request,
 //Index that are created should be added only once
 //And before the item is stored in elastic search
 type syncIndexes struct {
-	indexes        map[string]bool
+	Indexes        map[string]bool
 	DefaultMapping string
 	mu             sync.RWMutex
 }
 
 func (s *syncIndexes) Set(index string) {
 	s.mu.RLock()
-	indexFound := s.indexes[index]
+	indexFound := s.Indexes[index]
 	s.mu.RUnlock()
 	if !indexFound {
 		s.Update(index)
@@ -219,5 +235,5 @@ func (s *syncIndexes) Update(index string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	setIndex(index, s.DefaultMapping)
-	s.indexes[index] = true
+	s.Indexes[index] = true
 }
