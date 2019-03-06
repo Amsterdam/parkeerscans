@@ -7,7 +7,7 @@ import (
 	"log"
 	"strconv"
 
-	_ "github.com/lib/pq" // here
+	_ "github.com/lib/pq"
 )
 
 //ConnectStr create string to connect to database
@@ -15,12 +15,12 @@ func ConnectStr() string {
 
 	otherParams := "sslmode=disable connect_timeout=5"
 	return fmt.Sprintf(
-		"user=%s dbname=%s password='%s' host=%s port=%s %s",
+		"user=%s dbname=%s password='%s' host=%s port=%d %s",
 		"predictiveparking",
 		"predictiveparking",
 		"insecure",
-		"127.0.0.1",
-		"5432",
+		SETTINGS.Get("dbhost"),
+		SETTINGS.GetInt("dbport"),
 		otherParams,
 	)
 }
