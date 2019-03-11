@@ -60,6 +60,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer client.Stop()
+
 	// get mapping json file as string
 	mappingBuff, err := ioutil.ReadFile(SETTINGS.Get("file"))
 	if err != nil {
@@ -89,7 +90,6 @@ func main() {
 	wg.Wait()
 
 	// Check total items in elastic
-	//time.Sleep(10 * time.Second)
 	checkTotalItemsAdded()
 }
 
