@@ -26,7 +26,7 @@ var syncIndex *syncIndexes
 
 func init() {
 	// run settings
-	SETTINGS.SetInt("workers", 30, "amount of workers")
+	SETTINGS.SetInt("workers", 5, "amount of workers")
 
 	// postgres settings
 	SETTINGS.Set("dbhost", "database", "amount of workers")
@@ -40,7 +40,7 @@ func init() {
 	SETTINGS.Set("index", "not-set", "Name of the Elastic Search Index")
 	SETTINGS.Set("eshost", "elasticsearch", "Elastic search Hostname ")
 	SETTINGS.SetInt("esport", 9200, "Port under which elastic search runs")
-	SETTINGS.SetInt("esbuffer", 100, "Buffer items before sending to elasticsearch")
+	SETTINGS.SetInt("esbuffer", 1000, "Buffer items before sending to elasticsearch")
 
 	SETTINGS.Parse()
 	elkRows = 0
