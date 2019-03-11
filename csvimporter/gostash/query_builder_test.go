@@ -27,7 +27,7 @@ func TestQueryBuilder(t *testing.T) {
 	for testcaseNumber, testcase := range testcases {
 		result := queryDateBuilder(testcase.inputBaseQuery, testcase.inputColumn, testcase.inputStart, testcase.inputEnd)
 		if result != testcase.expected {
-			t.Error("testcase: ", testcaseNumber, "result:", result, "!=", testcase.expected)
+			t.Error("testcase: ", testcaseNumber +1, "result:", result, "!=", testcase.expected)
 		}
 	}
 }
