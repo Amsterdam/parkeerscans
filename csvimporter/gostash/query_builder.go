@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// This function is not safe to use for user specified input
 func queryDateBuilder(baseQuery, column, start, end string) string {
 	if baseQuery[len(baseQuery)-1] == ';' {
 		baseQuery = baseQuery[:len(baseQuery)-1]

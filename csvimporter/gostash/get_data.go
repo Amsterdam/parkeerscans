@@ -251,7 +251,7 @@ func setDateConstrain() string {
 
           FROM metingen_scan
 	`
-	monthsAgo := SETTINGS.GetInt("month")
+	monthsAgo := SETTINGS.GetInt("monthsago")
 	now := time.Now()
 	timeStamp := now.AddDate(0, -monthsAgo, 0)
 
