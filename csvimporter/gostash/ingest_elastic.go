@@ -43,6 +43,7 @@ func init() {
 	SETTINGS.SetInt("esport", 9200, "Specify elastic search port")
 	SETTINGS.SetInt("esbuffer", 1000, "Buffer items before sending to elasticsearch")
 
+
 	SETTINGS.Parse()
 	elkRows = 0
 	syncIndex = &syncIndexes{
