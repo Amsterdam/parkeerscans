@@ -27,6 +27,7 @@ var syncIndex *syncIndexes
 func init() {
 	// run settings
 	SETTINGS.SetInt("workers", 5, "amount of workers")
+	SETTINGS.SetInt("month", 1, "start from minus month x from now")
 
 	// postgres settings
 	SETTINGS.Set("dbhost", "database", "amount of workers")
