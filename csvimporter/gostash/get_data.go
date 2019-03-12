@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -209,12 +210,8 @@ func convertSqlNullFloat(v sql.NullFloat64) float64 {
 
 }
 
-func fillFromDB(items chan *Item) {
-	db, err := dbConnect(ConnectStr())
-	if err != nil {
-		log.Fatal(err)
-	}
-	rows, err := db.Query(`
+func setDateConstrain() string {
+	q := `
           SELECT
              id,
 	     	 scan_id,
@@ -253,7 +250,21 @@ func fillFromDB(items chan *Item) {
              END as shiftrange
 
           FROM metingen_scan
-	`)
+	`
+	monthsAgo := SETTINGS.GetInt("monthsago")
+	now := time.Now()
+	timeStamp := now.AddDate(0, -monthsAgo, 0)
+
+	return queryDateBuilder(q, "scan_moment", timeStamp.Format("2006-01-02"), "")
+}
+
+func fillFromDB(items chan *Item) {
+	db, err := dbConnect(ConnectStr())
+	if err != nil {
+		log.Fatal(err)
+	}
+	query := setDateConstrain()
+	rows, err := db.Query(query)
 
 	if err != nil {
 		log.Fatal(err)

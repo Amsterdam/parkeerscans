@@ -26,21 +26,23 @@ var syncIndex *syncIndexes
 
 func init() {
 	// run settings
-	SETTINGS.SetInt("workers", 30, "amount of workers")
+	SETTINGS.SetInt("workers", 5, "Specify mount of workers")
+	SETTINGS.SetInt("monthsago", 1, "start from minus month x from now")
 
 	// postgres settings
-	SETTINGS.Set("dbhost", "database", "amount of workers")
+	SETTINGS.Set("dbhost", "database", "Specify Elastic search Host")
 	SETTINGS.Set("dbpwsd", "insecure", "Set Database Password")
 	SETTINGS.Set("dbname", "predictiveparking", "Set database name")
 	SETTINGS.Set("dbuser", "user", "Set database user")
-	SETTINGS.SetInt("dbport", 5432, "Port under which database runs ")
+	SETTINGS.SetInt("dbport", 5432, "Specify database port")
 
 	// elastic search settings
-	SETTINGS.Set("file", "mappings.json", "path to file with elastic search mapping")
+	SETTINGS.Set("file", "mappings.json", "Path to file with elastic search mapping")
 	SETTINGS.Set("index", "not-set", "Name of the Elastic Search Index")
-	SETTINGS.Set("eshost", "elasticsearch", "Elastic search Hostname ")
-	SETTINGS.SetInt("esport", 9200, "Port under which elastic search runs")
-	SETTINGS.SetInt("esbuffer", 100, "Buffer items before sending to elasticsearch")
+	SETTINGS.Set("eshost", "elasticsearch", "Specify Elastic search Host")
+	SETTINGS.SetInt("esport", 9200, "Specify elastic search port")
+	SETTINGS.SetInt("esbuffer", 1000, "Buffer items before sending to elasticsearch")
+
 
 	SETTINGS.Parse()
 	elkRows = 0
@@ -60,6 +62,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer client.Stop()
+
 	// get mapping json file as string
 	mappingBuff, err := ioutil.ReadFile(SETTINGS.Get("file"))
 	if err != nil {
@@ -89,7 +92,6 @@ func main() {
 	wg.Wait()
 
 	// Check total items in elastic
-	//time.Sleep(10 * time.Second)
 	checkTotalItemsAdded()
 }
 
