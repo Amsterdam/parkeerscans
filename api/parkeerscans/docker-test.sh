@@ -22,10 +22,10 @@ python manage.py migrate
 
 echo "installed postgres client? psql?"
 # load test data into database
-bash testdata/loadtestdata.sh predictiveparking || true
+bash testdata/loadtestdata.sh parkeerscans || true
 
 # start logstash to index data from database into elastic
-bash testdata/loadelastic.sh predictiveparking
+bash testdata/loadelastic.sh parkeerscans
 
 # now we are ready to run some tests
 python manage.py test

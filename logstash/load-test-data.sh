@@ -30,4 +30,4 @@ curl -H "Content-Type: application/json" -s --trace-ascii -s -v -f -XPUT http://
   }
 }'
 
-DB=predictiveparking TABLE=metingen_scan logstash -f readdb.conf
+DB=parkeerscans TABLE=metingen_scan logstash -f readdb.conf

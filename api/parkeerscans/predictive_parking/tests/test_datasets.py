@@ -27,16 +27,16 @@ class BrowseDatasetsTestCase(APITestCase):
     """
 
     datasets = [
-        # 'predictiveparking/metingen/scans',
-        'predictiveparking/wegdelen',
-        'predictiveparking/vakken',
+        # 'parkeerscans/metingen/scans',
+        'parkeerscans/wegdelen',
+        'parkeerscans/vakken',
     ]
 
     extra_endpoints = [
-        'predictiveparking/voutevakken',
-        'predictiveparking/voutevakken?buurt=W12b&aantal=2',
-        'predictiveparking/gratis',
-        'predictiveparking/gratis?type=all',
+        'parkeerscans/voutevakken',
+        'parkeerscans/voutevakken?buurt=W12b&aantal=2',
+        'parkeerscans/gratis',
+        'parkeerscans/gratis?type=all',
     ]
 
     @classmethod
@@ -134,7 +134,7 @@ class BrowseDatasetsTestCase(APITestCase):
                 0, 'Wrong result count for {}'.format(url))
 
     def test_root_view(self):
-        url = '/predictiveparking/?format=api'
+        url = '/parkeerscans/?format=api'
         response = self.client.get(url)
         self.valid_html_response(url, response)
 
@@ -160,7 +160,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
     def test_aggregation_wegdelenendpoint(self):
 
-        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = 'parkeerscans/metingen/aggregations/wegdelen/?format=json'
         params = '&year_gte=2016&hour_gte=0&hour_lte=23'
         dayrange = '&day_lte=6&day_gte=0'
         response = self.client.get('/{}'.format(url+params+dayrange))
@@ -178,7 +178,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
     def test_aggregation_wegdelenendpoint_explain(self):
 
-        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = 'parkeerscans/metingen/aggregations/wegdelen/?format=json'
         params = ''
         dayrange = '&day_lte=6&day_gte=0'
 
@@ -204,7 +204,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
     def test_aggregation_wegdelenendpoint_filter_no_result(self):
 
-        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = 'parkeerscans/metingen/aggregations/wegdelen/?format=json'
         params = '&year=2015'
         dayrange = '&day_lte=6&day_gte=0'
         response = self.client.get('/{}'.format(url+params+dayrange))
@@ -213,7 +213,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
     def test_selection_range(self):
 
-        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = 'parkeerscans/metingen/aggregations/wegdelen/?format=json'
 
         # TODO auth for minute field
         # range_fields = ['minute', 'hour', 'month']
@@ -249,7 +249,7 @@ class BrowseDatasetsTestCase(APITestCase):
             (2, 0, 200),
             (0, 2, 200),
         ]
-        url = 'predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = 'parkeerscans/metingen/aggregations/wegdelen/?format=json'
         for low, high, status in test_selections:
 
             params = f'&day_lte={high}&day_gte={low}'
@@ -264,9 +264,9 @@ class BrowseDatasetsTestCase(APITestCase):
         test_data_params = '&year_lte=2016&hour_gte=0&hour_lte=23'
 
         bbox_urls = [
-            '/predictiveparking/metingen/aggregations/wegdelen/?format=json' +
+            '/parkeerscans/metingen/aggregations/wegdelen/?format=json' +
             test_data_params,
-            '/predictiveparking/metingen/aggregations/vakken/?format=json'
+            '/parkeerscans/metingen/aggregations/vakken/?format=json'
         ]
 
         lat1 = '52.37560'
@@ -294,7 +294,7 @@ class BrowseDatasetsTestCase(APITestCase):
             self.assertEqual(response.status_code, 400)
 
     def test_stadsdeel(self):
-        url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = '/parkeerscans/metingen/aggregations/wegdelen/?format=json'
 
         test_params = '&stadsdeel=A'
 
@@ -329,7 +329,7 @@ class BrowseDatasetsTestCase(APITestCase):
             'sperscode': 'test',
         }
 
-        url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = '/parkeerscans/metingen/aggregations/wegdelen/?format=json'
 
         for term_field, test_value in terms.items():
             outcome = test_value
@@ -348,7 +348,7 @@ class BrowseDatasetsTestCase(APITestCase):
         """
 
         test_date_params = '&year_lte=2024&year_gte=2015'
-        url = '/predictiveparking/metingen/aggregations/wegdelen/?format=json'
+        url = '/parkeerscans/metingen/aggregations/wegdelen/?format=json'
 
         response = self.client.get(url+test_date_params)
         selection = response.data['selection']
@@ -360,7 +360,7 @@ class BrowseDatasetsTestCase(APITestCase):
 
     def test_aggregation_vakken(self):
 
-        url = 'predictiveparking/metingen/aggregations/vakken/?format=json'
+        url = 'parkeerscans/metingen/aggregations/vakken/?format=json'
         response = self.client.get('/{}'.format(url))
         self.assertEqual(response.status_code, 200)
         self.assertIn('vakken', response.data)

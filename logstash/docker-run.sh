@@ -42,7 +42,7 @@ curl -H "Content-Type: application/json" -s --trace-ascii -f -PUT http://${ELKHO
 
 tablenames='/app/data/tables.txt'
 
-export DB=predictiveparking
+export DB=parkeerscans
 
 # run max_workers logstash instances.
 < $tablenames xargs -P $max_workers -n 1 -I tablename env TABLE=tablename logstash -f readdb.conf --pipeline.workers 4 --path.data /tmp/tablename

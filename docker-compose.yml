@@ -7,8 +7,8 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: insecure
-      POSTGRES_USER: predictiveparking
-      POSTGRES_DB: predictiveparking
+      POSTGRES_USER: parkeerscans
+      POSTGRES_DB: parkeerscans
       LOCAL: 'yes'
     volumes:
       - ~/.ssh/datapunt.key:/root/.ssh/datapunt.key
@@ -40,7 +40,7 @@ services:
       - database:database
       - elasticsearch:elasticsearch
     environment:
-      DATABASE_NAME: predictiveparking
+      DATABASE_NAME: parkeerscans
       DATABASE_PASSWORD: insecure
       UWSGI_HTTP: ":8080"
       UWSGI_MODULE: "predictive_parking.wsgi:application"
@@ -71,7 +71,7 @@ services:
     links:
       - database:database
     environment:
-      DATABASE_NAME: predictiveparking
+      DATABASE_NAME: parkeerscans
       DATABASE_PASSWORD: insecure
     volumes:
       - ./unzipped:/app/unzipped

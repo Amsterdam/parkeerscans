@@ -12,7 +12,7 @@ DB=$1
 if [ -z "$1" ]
 then
       echo "No database name supplied using test_predictivepakring"
-      DB="test_predictiveparking"
+      DB="test_parkeerscans"
 fi
 
 

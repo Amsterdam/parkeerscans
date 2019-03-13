@@ -32,7 +32,7 @@ if os.getenv('ENVIRONMENT', '') == 'production':
     API_ROOT = 'https://api.data.amsterdam.nl'
 
 # API_ROOT = 'http://127.0.0.1:8000'
-API_PATH = '/predictiveparking/metingen/aggregations/wegdelen/'
+API_PATH = '/parkeerscans/metingen/aggregations/wegdelen/'
 
 API_URL = f'{API_ROOT}{API_PATH}'
 

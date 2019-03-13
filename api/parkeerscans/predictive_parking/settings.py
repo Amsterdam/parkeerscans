@@ -1,7 +1,7 @@
 """
 Django settings for predictive_parking project.
 
-NOTE: database is predictiveparking.
+NOTE: database is parkeerscans.
 
 """
 
@@ -176,8 +176,8 @@ DATABASE_OPTIONS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_NAME', 'predictiveparking'),
-        'USER': os.getenv('DATABASE_USER', 'predictiveparking'),
+        'NAME': os.getenv('DATABASE_NAME', 'parkeerscans'),
+        'USER': os.getenv('DATABASE_USER', 'parkeerscans'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
     }
 }

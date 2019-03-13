@@ -25,7 +25,7 @@ class PredictiveParkingView(routers.APIRootView):
 
     WFS data of vakken, wegdelen:
 
-    [WFS wegdelen](https://map.data.amsterdam.nl/maps/predictiveparking?REQUEST=GetCapabilities&SERVICE=wfs)
+    [WFS wegdelen](https://map.data.amsterdam.nl/maps/parkeerscans?REQUEST=GetCapabilities&SERVICE=wfs)
 
     [WFS parkeervakken](https://map.data.amsterdam.nl/maps/parkeervakken?REQUEST=GetCapabilities&SERVICE=wfs)
 
@@ -47,51 +47,51 @@ class PredictiveParkingRouter(routers.DefaultRouter):
     APIRootView = PredictiveParkingView
 
 
-predictiveparking = PredictiveParkingRouter()
+parkeerscans = PredictiveParkingRouter()
 
-predictiveparking.register(
+parkeerscans.register(
     r'occupancy/public',
     occupancy_views.OccupancyInBBOX, 'bboxoccupancy')
 
 
-predictiveparking.register(
+parkeerscans.register(
     r'occupancy/roadparts',
     occupancy_views.RoadOccupancyViewSet, 'roadoccupancy')
 
-predictiveparking.register(
+parkeerscans.register(
     r'wegdelen', wegdelen_views.WegdelenViewSet, 'wegdeel')
 
-predictiveparking.register(
+parkeerscans.register(
     r'vakken', wegdelen_views.VakkenViewSet, 'parkeervak')
 
 
-predictiveparking.register(
+parkeerscans.register(
     r'metingen/aggregations/wegdelen',
     meting_views.WegdelenAggregationViewSet, 'wegdelen')
 
 
-predictiveparking.register(
+parkeerscans.register(
     r'metingen/aggregations/vakken',
     meting_views.VakkenAggregationViewSet, 'vakken')
 
-predictiveparking.urls.append(url(
+parkeerscans.urls.append(url(
     r'voutevakken',
     wegdelen_views.verdachte_vakken_view))
 
-predictiveparking.urls.append(
+parkeerscans.urls.append(
     url(r'gratis', wegdelen_views.verdachte_bgt_parkeervlak))
 
-# predictiveparking.extend(kansen)
+# parkeerscans.extend(kansen)
 schema_view = get_swagger_view(title='Parkeer Scans')
 
 json_schema_view = get_schema_view(title='Parkeerscan API')
-# predictiveparking.register(r'parkeerkans', kansen.urls
+# parkeerscans.register(r'parkeerkans', kansen.urls
 
 urlpatterns = [
     url(r'^status/', include('health.urls')),
     url(r'^schema/', json_schema_view),
-    url(r'^predictiveparking/doc', schema_view),
-    url(r'^predictiveparking/', include(predictiveparking.urls)),
+    url(r'^parkeerscans/doc', schema_view),
+    url(r'^parkeerscans/', include(parkeerscans.urls)),
     # url(r'^metingen/', include(kansen.urls)),
 ]
 

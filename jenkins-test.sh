@@ -27,7 +27,7 @@ echo "Create normal empty database"
 dc run --rm ppapi python manage.py migrate
 
 echo "# load test data into database"
-dc run --rm ppapi bash testdata/loadtestdata.sh predictiveparking || true
+dc run --rm ppapi bash testdata/loadtestdata.sh parkeerscans || true
 
 echo "start logstash to index data from database into elastic"
 

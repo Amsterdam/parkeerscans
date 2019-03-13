@@ -1,19 +1,19 @@
 
 export PGPASSWORD=insecure
-export DB_USER=predictiveparking
+export DB_USER=parkeerscans
 export DB_SERVER=database
 export DB_NAME=$1
 
 
 if [ -z "$1" ]
 then
-      echo "No database name supplied using 'test_predictiveparking'"
-      DB_NAME="test_predictiveparking"
+      echo "No database name supplied using 'test_parkeerscans'"
+      DB_NAME="test_parkeerscans"
 fi
 
 
 loaddata() {
-  psql -h database -U predictiveparking -d $1 -c "COPY $2 FROM STDIN"
+  psql -h database -U parkeerscans -d $1 -c "COPY $2 FROM STDIN"
 }
 
 docker_loaddata() {

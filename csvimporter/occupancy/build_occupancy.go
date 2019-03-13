@@ -79,7 +79,7 @@ func init() {
 	// postgres settings
 	SETTINGS.Set("dbhost", "database", "Specify Elastic search Host")
 	SETTINGS.Set("dbpwsd", "insecure", "Set Database Password")
-	SETTINGS.Set("dbname", "predictiveparking", "Set database name")
+	SETTINGS.Set("dbname", "parkeerscans", "Set database name")
 	SETTINGS.Set("dbuser", "user", "Set database user")
 	SETTINGS.SetInt("dbport", 5432, "Specify database port")
 

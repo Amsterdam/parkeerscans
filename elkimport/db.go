@@ -16,8 +16,8 @@ func ConnectStr() string {
 	otherParams := "sslmode=disable connect_timeout=5"
 	return fmt.Sprintf(
 		"user=%s dbname=%s password='%s' host=%s port=%s %s",
-		"predictiveparking",
-		"predictiveparking",
+		"parkeerscans",
+		"parkeerscans",
 		"insecure",
 		"database",
 		"5432",

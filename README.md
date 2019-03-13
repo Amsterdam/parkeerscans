@@ -132,9 +132,9 @@ Step1, Data preparation:
 
     - docker-compose up -d test database elasticsearch
 
-    - 'cd' in the api/predictive_parking folder and run
-    - bash testdata/loadtestdata.sh predictiveparking
-    - bash testdata/loadelastic.sh predictiveparking
+    - 'cd' in the api/parkeerscans folder and run
+    - bash testdata/loadtestdata.sh parkeerscans
+    - bash testdata/loadelastic.sh parkeerscans
     - manage.py test will work now.
 
 Tips.

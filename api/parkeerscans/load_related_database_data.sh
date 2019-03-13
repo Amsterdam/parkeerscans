@@ -18,20 +18,20 @@ gettable(){
 	dc exec -T database update-table.sh $*  $username || true
 }
 
-gettable parkeervakken parkeervakken bv predictiveparking
+gettable parkeervakken parkeervakken bv parkeerscans
 # foutparkeerders / scans niet in vakken
-gettable  basiskaart BGT_OWGL_verkeerseiland bgt predictiveparking
-gettable  basiskaart BGT_OWGL_berm bgt predictiveparking
-gettable  basiskaart BGT_OTRN_open_verharding bgt predictiveparking
-gettable  basiskaart BGT_OTRN_transitie bgt predictiveparking
-gettable  basiskaart BGT_WGL_fietspad bgt predictiveparking
-gettable  basiskaart BGT_WGL_voetgangersgebied bgt predictiveparking
-gettable  basiskaart BGT_WGL_voetpad bgt predictiveparking
+gettable  basiskaart BGT_OWGL_verkeerseiland bgt parkeerscans
+gettable  basiskaart BGT_OWGL_berm bgt parkeerscans
+gettable  basiskaart BGT_OTRN_open_verharding bgt parkeerscans
+gettable  basiskaart BGT_OTRN_transitie bgt parkeerscans
+gettable  basiskaart BGT_WGL_fietspad bgt parkeerscans
+gettable  basiskaart BGT_WGL_voetgangersgebied bgt parkeerscans
+gettable  basiskaart BGT_WGL_voetpad bgt parkeerscans
 
 # scans op wegen en vakken
-gettable basiskaart BGT_WGL_parkeervlak bgt predictiveparking
-gettable basiskaart BGT_WGL_rijbaan_lokale_weg bgt predictiveparking
-gettable basiskaart BGT_WGL_rijbaan_regionale_weg bgt predictiveparking
+gettable basiskaart BGT_WGL_parkeervlak bgt parkeerscans
+gettable basiskaart BGT_WGL_rijbaan_lokale_weg bgt parkeerscans
+gettable basiskaart BGT_WGL_rijbaan_regionale_weg bgt parkeerscans
 
 echo "Load buurt / buurtcombinatie"
-gettable bag bag_buurt public predictiveparking
+gettable bag bag_buurt public parkeerscans

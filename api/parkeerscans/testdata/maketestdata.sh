@@ -1,10 +1,10 @@
 export PGPASSWORD=insecure
-export DB_USER=predictiveparking
+export DB_USER=parkeerscans
 export DB_SERVER=database
-export DB_NAME=predictiveparking
+export DB_NAME=parkeerscans
 
 dedb() {
-  psql -h database -U predictiveparking -d predictiveparking -c "COPY(SELECT * FROM $1 WHERE geometrie && ST_MakeEnvelope(4.8879,52.3882 , 4.8957,52.3932, 4326) LIMIT 1000) TO STDOUT;"
+  psql -h database -U parkeerscans -d parkeerscans -c "COPY(SELECT * FROM $1 WHERE geometrie && ST_MakeEnvelope(4.8879,52.3882 , 4.8957,52.3932, 4326) LIMIT 1000) TO STDOUT;"
 }
 dockerdb() {
   docker exec -it --user postgres predictive_parking_database_1 psql "postgresql://$DB_USER:$PGPASSWORD@$DB_SERVERl/$DB_NAME" -c "COPY(SELECT * FROM $1 WHERE geometrie && ST_MakeEnvelope(4.8879,52.3882 , 4.8957,52.3932, 4326) LIMIT 1000) TO STDOUT;"

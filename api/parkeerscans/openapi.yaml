@@ -6,7 +6,7 @@ host: 'acc.api.data.amsterdam.nl'
 schemes:
   - http
 paths:
-  /predictiveparking/kansen/buurt/:
+  /parkeerscans/kansen/buurt/:
     get:
       operationId: kansen_buurt_list
       responses:
@@ -55,7 +55,7 @@ paths:
       summary: Raster data van OIS met parkeerkans berekeneningen
       tags:
         - kansen
-  '/predictiveparking/kansen/buurt/{id}/':
+  '/parkeerscans/kansen/buurt/{id}/':
     get:
       operationId: kansen_buurt_read
       responses:
@@ -79,7 +79,7 @@ paths:
       summary: Raster data van OIS met parkeerkans berekeneningen
       tags:
         - kansen
-  /predictiveparking/metingen/aggregations/vakken/:
+  /parkeerscans/metingen/aggregations/vakken/:
     get:
       operationId: metingen_aggregations_vakken_list
       responses:
@@ -90,7 +90,7 @@ paths:
       summary: Show scan counts of parkingspot / vakken in given bbox
       tags:
         - metingen
-  /predictiveparking/metingen/aggregations/wegdelen/:
+  /parkeerscans/metingen/aggregations/wegdelen/:
     get:
       operationId: metingen_aggregations_wegdelen_list
       responses:
@@ -192,7 +192,7 @@ paths:
       summary: List dates with wegdeelen and distinct vakken count
       tags:
         - metingen
-  /predictiveparking/metingen/scans/:
+  /parkeerscans/metingen/scans/:
     get:
       operationId: metingen_scans_list
       responses:
@@ -281,7 +281,7 @@ paths:
       summary: Scan metingen.
       tags:
         - metingen
-  '/predictiveparking/metingen/scans/{id}/':
+  '/parkeerscans/metingen/scans/{id}/':
     get:
       operationId: metingen_scans_read
       responses:
@@ -300,7 +300,7 @@ paths:
       summary: Scan metingen.
       tags:
         - metingen
-  /predictiveparking/vakken/:
+  /parkeerscans/vakken/:
     get:
       operationId: vakken_list
       responses:
@@ -329,7 +329,7 @@ paths:
       summary: Parkeer Vakken
       tags:
         - vakken
-  '/predictiveparking/vakken/{id}/':
+  '/parkeerscans/vakken/{id}/':
     get:
       operationId: vakken_read
       responses:
@@ -348,7 +348,7 @@ paths:
       summary: Parkeer Vakken
       tags:
         - vakken
-  /predictiveparking/wegdelen/:
+  /parkeerscans/wegdelen/:
     get:
       operationId: wegdelen_list
       responses:
@@ -382,7 +382,7 @@ paths:
       summary: Wegdelen
       tags:
         - wegdelen
-  '/predictiveparking/wegdelen/{id}/':
+  '/parkeerscans/wegdelen/{id}/':
     get:
       operationId: wegdelen_read
       responses:
