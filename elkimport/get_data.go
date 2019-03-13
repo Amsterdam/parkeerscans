@@ -112,9 +112,9 @@ type geo_point struct {
 
 type Item struct {
 	Id                  string `json:"id"`
-	Scan_id             int64  `json:"scan_id"`
-	Scan_moment         string `json:"scan_momemt"`
-	Scan_source         string `json:"scan_source"`
+	ScanId              int64  `json:"scan_id"`
+	ScanMoment          int64  `json:"@timestamp"`
+	ScanSource          string `json:"scan_source"`
 	Sperscode           string `json:"sperscode"`
 	Qualcode            string `json:"qualcode"`
 	Ff_df               string `json:"ff_df"`
@@ -215,7 +215,7 @@ func setDateConstrain() string {
           SELECT
              id,
 	     	 scan_id,
-             scan_moment,
+			 EXTRACT(EPOCH FROM scan_moment)::int as scan_moment,
              scan_source,
              sperscode,
              qualcode,
@@ -271,7 +271,7 @@ func fillFromDB(items chan *Item) {
 	}
 	var id string
 	var scan_id sql.NullInt64
-	var scan_moment sql.NullString
+	var scan_moment sql.NullInt64
 	var scan_source sql.NullString
 	var sperscode sql.NullString
 	var qualcode sql.NullString
@@ -338,12 +338,12 @@ func fillFromDB(items chan *Item) {
 		}
 
 		item := &Item{
-			Id:          id,
-			Scan_id:     convertSqlNullInt(scan_id),
-			Scan_moment: convertSqlNullString(scan_moment),
-			Scan_source: convertSqlNullString(scan_source),
-			Sperscode:   convertSqlNullString(sperscode),
-			Qualcode:    convertSqlNullString(qualcode),
+			Id:         id,
+			ScanId:     convertSqlNullInt(scan_id),
+			ScanMoment: convertSqlNullInt(scan_moment),
+			ScanSource: convertSqlNullString(scan_source),
+			Sperscode:  convertSqlNullString(sperscode),
+			Qualcode:   convertSqlNullString(qualcode),
 
 			Ff_df: convertSqlNullString(ff_df),
 

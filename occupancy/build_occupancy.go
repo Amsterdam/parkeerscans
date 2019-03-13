@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -73,7 +72,7 @@ type MonsterMap struct {
 
 func init() {
 	// run settings
-	SETTINGS.SetInt("workers", 1, "Specify mount of workers")
+	SETTINGS.SetInt("workers", 4, "Specify mount of workers")
 	SETTINGS.SetInt("monthsago", 1, "start from minus month x from now")
 
 	// postgres settings
@@ -120,11 +119,7 @@ func main() {
 }
 
 func mapKey(item *Item) string {
-	layout := "2006-01-02T15:04:05Z"
-	t, err := time.Parse(layout, strings.Replace(item.Scan_moment, `"`, "", 2))
-	if err != nil {
-		panic(err)
-	}
+	t := time.Unix(item.Scan_moment, 0)
 	keylayout := "2006-01-02T15"
 	return t.Format(keylayout)
 }

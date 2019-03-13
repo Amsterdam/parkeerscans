@@ -11,7 +11,6 @@ import (
 	// elastic retries
 	"errors"
 	"net/http"
-	"strings"
 	"syscall"
 
 	"golang.org/x/net/context"
@@ -102,6 +101,8 @@ func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 		elkRows += 1
 		itemJson, err := json.Marshal(item)
 
+		//fmt.Println(string(itemJson))
+
 		if err != nil {
 			fmt.Println("unable to Json Marshal", string(itemJson))
 			fmt.Println(err)
@@ -110,12 +111,7 @@ func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 
 		// README if index of toplevel is needed comment out the following line
 		// IF statement at this level is expensive
-		esIndex, err = customEsIndex(item)
-		if err != nil {
-			fmt.Println("unable to parse scan_moment as date", item.Scan_moment)
-			fmt.Println(err)
-			continue
-		}
+		esIndex = customEsIndex(item)
 
 		// README if no custom index is set this step is not needed.
 		// sync new mapping for index before item is added,
@@ -127,6 +123,7 @@ func worker(workId int, chItems chan *Item, esIndex string, esbuffer int) {
 		bulkData = bulkData.Add(rec)
 		if buffer >= esbuffer {
 			_, err := bulkData.Do(ctx)
+			//log.Println(status)
 			buffer = 0
 			if err != nil {
 				log.Println("ow no", err)
@@ -208,10 +205,9 @@ func (s *syncIndexes) Update(index string) {
 	s.Indexes[index] = true
 }
 
-func customEsIndex(item *Item) (string, error) {
-	layout := "2006-01-02T15:04:05Z"
-	t, err := time.Parse(layout, strings.Replace(item.Scan_moment, `"`, "", 2))
-	return fmt.Sprintf("scans-%d.%02d.%02d", t.Year(), t.Month(), t.Day()), err
+func customEsIndex(item *Item) string {
+	t := time.Unix(item.ScanMoment, 0)
+	return fmt.Sprintf("scans-%d.%02d.%02d", t.Year(), t.Month(), t.Day())
 }
 
 func checkTotalItemsAdded() {

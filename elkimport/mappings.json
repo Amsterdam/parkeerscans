@@ -93,7 +93,8 @@
                 "type": "long"
             },
             "@timestamp": {
-                "type": "date"
+                "type": "date",
+		"format": "epoch_second"
             },
             "parkeervak_soort": {
                 "type": "text",
