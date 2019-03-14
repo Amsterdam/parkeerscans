@@ -17,8 +17,8 @@ func ConnectStr() string {
 	otherParams := "sslmode=disable connect_timeout=5"
 	return fmt.Sprintf(
 		"user=%s dbname=%s password='%s' host=%s port=%d %s",
-		"predictiveparking",
-		"predictiveparking",
+		"parkeerscans",
+		"parkeerscans",
 		"insecure",
 		SETTINGS.Get("dbhost"),
 		SETTINGS.GetInt("dbport"),
@@ -70,7 +70,7 @@ func dbConnect(connStr string) (*sql.DB, error) {
  reliability_gps      | geometry(Point,4326)     |           |          |
  parkeerrecht_id      | bigint                   |           |          |
 
-type Item struct {
+type Scan struct {
 	id                   string	     `json:"id"`
 	scan_id              sql.NullString `json:"scan_id"`
 	scan_moment          sql.NullString `json:"scan_momemt"`
@@ -110,7 +110,7 @@ type geo_point struct {
 	lat float64 `json:"lat"`
 }
 
-type Item struct {
+type Scan struct {
 	Id                  string `json:"id"`
 	Scan_id             int64  `json:"scan_id"`
 	Scan_moment         int64  `json:"@timestamp"`
@@ -140,6 +140,18 @@ type Item struct {
 	Month      string `json:"month"`
 	Day        string `json:"day"`
 	Shiftrange string `json:"shiftrange"`
+}
+
+func (i Scan) getMapID() string {
+	return time.Unix(i.Scan_moment, 0).Format("2006-01-02T15")
+}
+
+func (i Scan) getStrWeek() string {
+	return time.Unix(i.Scan_moment, 0).Weekday().String()
+}
+
+func (i Scan) isWeekend() bool {
+	return int(time.Unix(i.Scan_moment, 0).Weekday()) >= 5
 }
 
 func convertSqlNullString(v sql.NullString) string {
@@ -258,7 +270,7 @@ func setDateConstrain() string {
 	return queryDateBuilder(q, "scan_moment", timeStamp.Format("2006-01-02"), "")
 }
 
-func fillFromDB(items chan *Item) {
+func fillFromDB(items chan *Scan) {
 	db, err := dbConnect(ConnectStr())
 	if err != nil {
 		log.Fatal(err)
@@ -337,7 +349,7 @@ func fillFromDB(items chan *Item) {
 			log.Fatal(err)
 		}
 
-		item := &Item{
+		item := &Scan{
 			Id:          id,
 			Scan_id:     convertSqlNullInt(scan_id),
 			Scan_moment: convertSqlNullInt(scan_moment),

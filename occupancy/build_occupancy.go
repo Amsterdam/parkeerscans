@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
@@ -14,61 +15,12 @@ import (
 var client *elastic.Client
 var wg sync.WaitGroup
 var mapRows int
-var monsterMap MonsterMap
+var AllScans theList
 
-type WegDeelStat struct {
-	//Bgt_wegdeel    string
-	min int
-	max int
-	std int
-	avg int
-}
+type filterFunc func() []*Scan
 
-type WegDeelScans struct {
-	Parkeervak_ids map[string]bool
-	scanCount      int
-}
-
-type WegDeelHours struct {
-	Wegdelen  map[string]*WegDeelScans
-	scanCount int
-}
-
-func (w *WegDeelScans) Add(pvkey string) {
-	w.Parkeervak_ids[pvkey] = true
-}
-
-func (m *MonsterMap) setDefault(key string) *WegDeelHours {
-
-	if v, ok := m.Hours[key]; ok {
-		return v
-	} else {
-		val := &WegDeelHours{
-			Wegdelen:  make(map[string]*WegDeelScans),
-			scanCount: 0,
-		}
-		m.Hours[key] = val
-		return val
-	}
-}
-
-func (w *WegDeelHours) setDefault(wd string) *WegDeelScans {
-
-	if v, ok := w.Wegdelen[wd]; ok {
-		return v
-	} else {
-		val := &WegDeelScans{
-			Parkeervak_ids: make(map[string]bool),
-			scanCount:      0,
-		}
-		w.Wegdelen[wd] = val
-		return val
-	}
-}
-
-type MonsterMap struct {
-	Hours map[string]*WegDeelHours
-}
+type theList []*Scan
+type groupByType map[string]theList
 
 func init() {
 	// run settings
@@ -92,17 +44,14 @@ func init() {
 	SETTINGS.Parse()
 	mapRows = 0
 
-	monsterMap = MonsterMap{
-		Hours: make(map[string]*WegDeelHours),
-		//Wegdelen: make(map[string]*WegDeelScans),
-	}
+	AllScans = make(theList, 100000)
 }
 
 func main() {
 	//var err error
 
 	// start workers
-	chItems := make(chan *Item, 100000)
+	chItems := make(chan *Scan, 100000)
 	workers := SETTINGS.GetInt("workers")
 
 	go printStatus(chItems)
@@ -116,43 +65,47 @@ func main() {
 	fillFromDB(chItems)
 	close(chItems)
 	wg.Wait()
+	http.HandleFunc("/", rest)
+	log.Fatal(http.ListenAndServe("0:8080", nil))
 }
 
-func mapKey(item *Item) string {
+func mapKey(item *Scan) string {
 	t := time.Unix(item.Scan_moment, 0)
 	keylayout := "2006-01-02T15"
 	return t.Format(keylayout)
 }
 
-func worker(workId int, chItems chan *Item) {
+func worker(workID int, chItems chan *Scan) {
 
-	for item := range chItems {
+	for scan := range chItems {
 
 		mapRows++
-		timekey := mapKey(item)
-
-		hourmap := monsterMap.setDefault(timekey)
-		wegdeel := hourmap.setDefault(item.Bgt_wegdeel)
-
 		//pvmap.
-		wegdeel.Add(item.Parkeervak_id)
+		AllScans = append(AllScans, scan)
 
 	}
 	wg.Done()
 }
 
-func printStatus(chItems chan *Item) {
+func printStatus(chItems chan *Scan) {
 	i := 1
 	delta := 5
 	duration := 0
 	speed := 0
+	lastRowCount := -1
 
 	for {
 		time.Sleep(time.Duration(delta) * time.Second)
+
+		if mapRows == lastRowCount {
+			break
+		}
 
 		log.Printf("STATUS: rows:%-10d  %-10d rows/sec  buffer: %d", mapRows, speed, len(chItems))
 		duration = i * delta
 		speed = mapRows / duration
 		i++
+
+		lastRowCount = mapRows
 	}
 }

@@ -40,7 +40,7 @@ func init() {
 	SETTINGS.Set("index", "not-set", "Name of the Elastic Search Index")
 	SETTINGS.Set("eshost", "elasticsearch", "Specify Elastic search Host")
 	SETTINGS.SetInt("esport", 9200, "Specify elastic search port")
-	SETTINGS.SetInt("esbuffer", 1000, "Buffer items before sending to elasticsearch")
+	SETTINGS.SetInt("esbuffer", 10000, "Buffer items before sending to elasticsearch")
 
 	SETTINGS.Parse()
 	elkRows = 0
