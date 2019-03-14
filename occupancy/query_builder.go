@@ -16,12 +16,12 @@ func queryDateBuilder(baseQuery, column, start, end string) string {
 	hasEnd := end != ""
 	switch {
 	case hasStart && hasEnd:
-		return fmt.Sprintf("%s WHERE %s AND %s;", baseQuery, startQ, endQ)
+		return fmt.Sprintf("%s WHERE %s AND %s LIMIT 100000;", baseQuery, startQ, endQ)
 	case hasStart:
-		return fmt.Sprintf("%s WHERE %s;", baseQuery, startQ)
+		return fmt.Sprintf("%s WHERE %s LIMIT 100000;", baseQuery, startQ)
 	case hasEnd:
-		return fmt.Sprintf("%s WHERE %s;", baseQuery, endQ)
+		return fmt.Sprintf("%s WHERE %s LIMIT 100000;", baseQuery, endQ)
 	default:
-		return baseQuery + ";"
+		return baseQuery + "LIMIT 100000;"
 	}
 }

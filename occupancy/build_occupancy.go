@@ -70,6 +70,10 @@ func main() {
 	fillScansFromDB(chItems)
 	close(chItems)
 	wg.Wait()
+
+	// this should go rest service.
+	aEndResult := fillWegDeelVakkenByHour()
+
 	http.HandleFunc("/", rest)
 	log.Fatal(http.ListenAndServe("0:8080", nil))
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -13,6 +14,67 @@ type wegdeel struct {
 	vakken        int64
 	fiscaleVakken int64
 	scanCount     int64
+}
+
+type VakIDHour struct {
+	uniqevakken map[string]bool
+}
+
+type wegdeelAggregator struct {
+	uniqehours map[string]*VakIDHour
+}
+
+func (vkh VakIDHour) addpvID(pvID string) {
+
+	if vkh.uniqevakken == nil {
+		vkh.uniqevakken = make(map[string]bool)
+	}
+
+	vkh.uniqevakken[pvID] = true
+}
+
+func (wa wegdeelAggregator) addHourKey(hourkey string, pvID string) {
+	if _, ok := wa.uniqehours[hourkey]; !ok {
+		wa.uniqehours[hourkey] = &VakIDHour{
+			uniqevakken: make(map[string]bool),
+		}
+	}
+
+	wa.uniqehours[hourkey].addpvID(pvID)
+}
+
+type endResult struct {
+	wegdelen map[string]*wegdeelAggregator
+}
+
+func (e endResult) addWegdeel(wd string, hourkey string, pvID string) {
+
+	fmt.Println("test")
+	if e.wegdelen == nil {
+		e.wegdelen = make(map[string]*wegdeelAggregator)
+	}
+
+	if _, ok := e.wegdelen[wd]; !ok {
+		e.wegdelen[wd] = &wegdeelAggregator{
+			uniqehours: make(map[string]*VakIDHour),
+		}
+	}
+
+	e.wegdelen[wd].addHourKey(hourkey, pvID)
+}
+
+type wegdeelOccupancyResult struct {
+	ID            int64
+	bgtID         string
+	bgtFunctie    string
+	geometrie     string
+	vakken        int64
+	fiscaleVakken int64
+	scanCount     int64
+	avgOccupany   int64
+	minOccupany   int64
+	maxOccupany   int64
+	stdOccupany   int64
 }
 
 /*
@@ -86,4 +148,24 @@ func fillWegdelenFromDB() {
 	if err := rows.Err(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func fillWegDeelVakkenByHour() endResult {
+
+	//var wdID string
+	aEndResult := endResult{}
+	fmt.Println("test0")
+	fmt.Println(aEndResult)
+
+	for _, scan := range AllScans {
+		//get wegdeel hour collector.
+		if scan == nil {
+			continue
+		}
+		wdID := scan.bgtWegdeel
+		hourkey := scan.getMapHourID()
+		pvID := scan.ParkeervakID
+		aEndResult.addWegdeel(wdID, hourkey, pvID)
+	}
+	return aEndResult
 }

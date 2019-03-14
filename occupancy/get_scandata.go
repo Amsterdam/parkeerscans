@@ -91,7 +91,7 @@ type Scan struct {
 	Qualcode            string `json:"qualcode"`
 	Ff_df               string `json:"ff_df"`
 	Naheffing_hoogte    int64  `json:"naheffing_hoogte"`
-	Bgt_wegdeel         string `json:"bgt_wegdeel"`
+	bgtWegdeel          string `json:"bgt_wegdeel"`
 	Bgt_wegdeel_functie string `json:"bgt_wegdeel_functie"`
 	Buurtcode           string `json:"buurtcode"`
 	Buurtcombinatie     string `json:"buurtcombinatie"`
@@ -114,7 +114,7 @@ type Scan struct {
 	Shiftrange string `json:"shiftrange"`
 }
 
-func (i Scan) getMapID() string {
+func (i Scan) getMapHourID() string {
 	return time.Unix(i.Scan_moment, 0).Format("2006-01-02T15")
 }
 
@@ -193,7 +193,7 @@ func fillScansFromDB(items chan *Scan) {
 	var qualcode sql.NullString
 	var ff_df sql.NullString
 	var naheffing_hoogte sql.NullInt64
-	var bgt_wegdeel sql.NullString
+	var bgtWegdeel sql.NullString
 	var bgt_wegdeel_functie sql.NullString
 	var buurtcode sql.NullString
 	var buurtcombinatie sql.NullString
@@ -225,7 +225,7 @@ func fillScansFromDB(items chan *Scan) {
 			&qualcode,
 			&ff_df,
 			&naheffing_hoogte,
-			&bgt_wegdeel,
+			&bgtWegdeel,
 			&bgt_wegdeel_functie,
 			&buurtcode,
 			&buurtcombinatie,
@@ -264,7 +264,7 @@ func fillScansFromDB(items chan *Scan) {
 			Ff_df: convertSqlNullString(ff_df),
 
 			Naheffing_hoogte:    convertSqlNullInt(naheffing_hoogte),
-			Bgt_wegdeel:         convertSqlNullString(bgt_wegdeel),
+			bgtWegdeel:          convertSqlNullString(bgtWegdeel),
 			Bgt_wegdeel_functie: convertSqlNullString(bgt_wegdeel_functie),
 			Buurtcode:           convertSqlNullString(buurtcode),
 			Buurtcombinatie:     convertSqlNullString(buurtcombinatie),
