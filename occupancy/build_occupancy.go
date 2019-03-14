@@ -15,7 +15,10 @@ import (
 var client *elastic.Client
 var wg sync.WaitGroup
 var mapRows int
+
+// AllScans will container all scans in memory
 var AllScans theList
+var wegdelen map[string]*wegdeel
 
 type filterFunc func() []*Scan
 
@@ -45,6 +48,7 @@ func init() {
 	mapRows = 0
 
 	AllScans = make(theList, 100000)
+	wegdelen = make(map[string]*wegdeel, 10000)
 }
 
 func main() {
@@ -62,7 +66,8 @@ func main() {
 		go worker(i, chItems)
 	}
 
-	fillFromDB(chItems)
+	fillWegdelenFromDB()
+	fillScansFromDB(chItems)
 	close(chItems)
 	wg.Wait()
 	http.HandleFunc("/", rest)
@@ -98,6 +103,7 @@ func printStatus(chItems chan *Scan) {
 		time.Sleep(time.Duration(delta) * time.Second)
 
 		if mapRows == lastRowCount {
+			log.Printf("Done loading scans from DB")
 			break
 		}
 

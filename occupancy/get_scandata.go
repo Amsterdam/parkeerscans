@@ -2,40 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
-	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
 )
-
-//ConnectStr create string to connect to database
-func ConnectStr() string {
-
-	otherParams := "sslmode=disable connect_timeout=5"
-	return fmt.Sprintf(
-		"user=%s dbname=%s password='%s' host=%s port=%d %s",
-		"parkeerscans",
-		"parkeerscans",
-		"insecure",
-		SETTINGS.Get("dbhost"),
-		SETTINGS.GetInt("dbport"),
-		otherParams,
-	)
-}
-
-func dbConnect(connStr string) (*sql.DB, error) {
-	//connStr := connectStr()
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return db, err
-	}
-
-	err = db.Ping()
-	return db, err
-}
 
 /*
  id                   | integer                  |           | not null | nextval('metingen_scan_id_seq'::regclass)
@@ -105,13 +76,14 @@ type Scan struct {
 }
 */
 
-type geo_point struct {
+type geoPoint struct {
 	lon float64 `json:"lon"`
 	lat float64 `json:"lat"`
 }
 
+//Scan instance of a car.
 type Scan struct {
-	Id                  string `json:"id"`
+	ID                  string `json:"id"`
 	Scan_id             int64  `json:"scan_id"`
 	Scan_moment         int64  `json:"@timestamp"`
 	Scan_source         string `json:"scan_source"`
@@ -124,10 +96,10 @@ type Scan struct {
 	Buurtcode           string `json:"buurtcode"`
 	Buurtcombinatie     string `json:"buurtcombinatie"`
 	Stadsdeel           string `json:"stadsdeel"`
-	Parkeervak_id       string `json:"parkeervak_id"`
+	ParkeervakID        string `json:"parkeervak_id"`
 	Parkeervak_soort    string `json:"parkeervak_soort"`
 
-	geo_point
+	geoPoint
 
 	Hour int64 `json:"hour"`
 	Week int64 `json:"week"`
@@ -152,74 +124,6 @@ func (i Scan) getStrWeek() string {
 
 func (i Scan) isWeekend() bool {
 	return int(time.Unix(i.Scan_moment, 0).Weekday()) >= 5
-}
-
-func convertSqlNullString(v sql.NullString) string {
-	var err error
-	var raw []byte
-
-	if v.Valid {
-		raw, err = json.Marshal(v.String)
-	} else {
-		raw, err = json.Marshal(nil)
-	}
-
-	if err != nil {
-		panic(err)
-	}
-
-	return string(raw)
-
-}
-
-func convertSqlNullInt(v sql.NullInt64) int64 {
-	var err error
-	var output []byte
-
-	if v.Valid {
-		output, err = json.Marshal(v.Int64)
-	} else {
-		output, err = json.Marshal(nil)
-		return int64(0)
-	}
-
-	if err != nil {
-		panic(err)
-	}
-
-	bla, err := strconv.ParseInt(string(output), 10, 64)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return bla
-
-}
-
-func convertSqlNullFloat(v sql.NullFloat64) float64 {
-	var err error
-	var output []byte
-
-	if v.Valid {
-		output, err = json.Marshal(v.Float64)
-	} else {
-		output, err = json.Marshal(nil)
-		return float64(0)
-	}
-
-	if err != nil {
-		panic(err)
-	}
-
-	bla, err := strconv.ParseFloat(string(output), 64)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return bla
-
 }
 
 func setDateConstrain() string {
@@ -270,7 +174,7 @@ func setDateConstrain() string {
 	return queryDateBuilder(q, "scan_moment", timeStamp.Format("2006-01-02"), "")
 }
 
-func fillFromDB(items chan *Scan) {
+func fillScansFromDB(items chan *Scan) {
 	db, err := dbConnect(ConnectStr())
 	if err != nil {
 		log.Fatal(err)
@@ -281,7 +185,7 @@ func fillFromDB(items chan *Scan) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var id string
+	var ID string
 	var scan_id sql.NullInt64
 	var scan_moment sql.NullInt64
 	var scan_source sql.NullString
@@ -294,7 +198,7 @@ func fillFromDB(items chan *Scan) {
 	var buurtcode sql.NullString
 	var buurtcombinatie sql.NullString
 	var stadsdeel sql.NullString
-	var parkeervak_id sql.NullString
+	var parkeervakID sql.NullString
 	var parkeervak_soort sql.NullString
 	var lat sql.NullFloat64
 	var lon sql.NullFloat64
@@ -313,7 +217,7 @@ func fillFromDB(items chan *Scan) {
 
 	for rows.Next() {
 		if err := rows.Scan(
-			&id,
+			&ID,
 			&scan_id,
 			&scan_moment,
 			&scan_source,
@@ -326,7 +230,7 @@ func fillFromDB(items chan *Scan) {
 			&buurtcode,
 			&buurtcombinatie,
 			&stadsdeel,
-			&parkeervak_id,
+			&parkeervakID,
 			&parkeervak_soort,
 			&lat,
 			&lon,
@@ -350,7 +254,7 @@ func fillFromDB(items chan *Scan) {
 		}
 
 		item := &Scan{
-			Id:          id,
+			ID:          ID,
 			Scan_id:     convertSqlNullInt(scan_id),
 			Scan_moment: convertSqlNullInt(scan_moment),
 			Scan_source: convertSqlNullString(scan_source),
@@ -365,9 +269,9 @@ func fillFromDB(items chan *Scan) {
 			Buurtcode:           convertSqlNullString(buurtcode),
 			Buurtcombinatie:     convertSqlNullString(buurtcombinatie),
 			Stadsdeel:           convertSqlNullString(stadsdeel),
-			Parkeervak_id:       convertSqlNullString(parkeervak_id),
+			ParkeervakID:        convertSqlNullString(parkeervakID),
 
-			geo_point: geo_point{
+			geoPoint: geoPoint{
 				lat: convertSqlNullFloat(lat),
 				lon: convertSqlNullFloat(lon),
 			},
