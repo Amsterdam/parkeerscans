@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -17,13 +18,12 @@ var wg sync.WaitGroup
 var mapRows int
 
 // AllScans will container all scans in memory
-var AllScans theList
+var AllScans Scans
 var wegdelen map[string]*wegdeel
 
 type filterFunc func() []*Scan
 
-type theList []*Scan
-type groupByType map[string]theList
+type groupByType map[string]Scans
 
 func init() {
 	// run settings
@@ -47,7 +47,7 @@ func init() {
 	SETTINGS.Parse()
 	mapRows = 0
 
-	AllScans = make(theList, 100000)
+	AllScans = Scans{}
 	wegdelen = make(map[string]*wegdeel, 10000)
 }
 
@@ -71,17 +71,16 @@ func main() {
 	close(chItems)
 	wg.Wait()
 
-	// this should go rest service.
-	aEndResult := fillWegDeelVakkenByHour()
-
-	http.HandleFunc("/", rest)
+	// Runserver rest serivice
+	http.HandleFunc("/", listRest)
+	http.HandleFunc("/help/", helpRest)
+	fmt.Println("starting server, with:", len(AllScans), "items")
 	log.Fatal(http.ListenAndServe("0:8080", nil))
 }
 
 func mapKey(item *Scan) string {
-	t := time.Unix(item.Scan_moment, 0)
 	keylayout := "2006-01-02T15"
-	return t.Format(keylayout)
+	return item.ScanMoment.Format(keylayout)
 }
 
 func worker(workID int, chItems chan *Scan) {

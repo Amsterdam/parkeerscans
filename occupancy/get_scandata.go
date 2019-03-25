@@ -83,47 +83,38 @@ type geoPoint struct {
 
 //Scan instance of a car.
 type Scan struct {
-	ID                  string `json:"id"`
-	Scan_id             int64  `json:"scan_id"`
-	Scan_moment         int64  `json:"@timestamp"`
-	Scan_source         string `json:"scan_source"`
-	Sperscode           string `json:"sperscode"`
-	Qualcode            string `json:"qualcode"`
-	Ff_df               string `json:"ff_df"`
-	Naheffing_hoogte    int64  `json:"naheffing_hoogte"`
-	bgtWegdeel          string `json:"bgt_wegdeel"`
-	Bgt_wegdeel_functie string `json:"bgt_wegdeel_functie"`
-	Buurtcode           string `json:"buurtcode"`
-	Buurtcombinatie     string `json:"buurtcombinatie"`
-	Stadsdeel           string `json:"stadsdeel"`
-	ParkeervakID        string `json:"parkeervak_id"`
-	Parkeervak_soort    string `json:"parkeervak_soort"`
+	ID                string    `json:"id"`
+	ScanID            int64     `json:"scan_id"`
+	ScanMoment        time.Time `json:"@timestamp"`
+	ScanSource        string    `json:"scan_source"`
+	Sperscode         string    `json:"sperscode"`
+	Qualcode          string    `json:"qualcode"`
+	Ff_df             string    `json:"ff_df"`
+	NaheffingHoogte   int64     `json:"naheffing_hoogte"`
+	bgtWegdeel        string    `json:"bgt_wegdeel"`
+	BGTwegdeelFunctie string    `json:"bgt_wegdeel_functie"`
+	Buurtcode         string    `json:"buurtcode"`
+	Buurtcombinatie   string    `json:"buurtcombinatie"`
+	Stadsdeel         string    `json:"stadsdeel"`
+	ParkeervakID      string    `json:"parkeervak_id"`
+	ParkeervakSoort   string    `json:"parkeervak_soort"`
 
 	geoPoint
-
-	Hour int64 `json:"hour"`
-	Week int64 `json:"week"`
-	Year int64 `json:"year"`
-
-	Day_of_year int64 `json:"day_of_year"`
-	Minute      int64 `json:"minute"`
-	Second      int64 `json:"second"`
-
-	Month      string `json:"month"`
-	Day        string `json:"day"`
-	Shiftrange string `json:"shiftrange"`
 }
 
+type Scans []*Scan
+type ScansGroupedBy map[string]Scans
+
 func (i Scan) getMapHourID() string {
-	return time.Unix(i.Scan_moment, 0).Format("2006-01-02T15")
+	return i.ScanMoment.Format("2006-01-02T15")
 }
 
 func (i Scan) getStrWeek() string {
-	return time.Unix(i.Scan_moment, 0).Weekday().String()
+	return i.ScanMoment.Weekday().String()
 }
 
 func (i Scan) isWeekend() bool {
-	return int(time.Unix(i.Scan_moment, 0).Weekday()) >= 5
+	return int(i.ScanMoment.Weekday()) >= 5
 }
 
 func setDateConstrain() string {
@@ -145,26 +136,7 @@ func setDateConstrain() string {
              parkeervak_id,
              parkeervak_soort,
              round(ST_Y(geometrie)::numeric,8) as lat,
-             round(ST_X(geometrie)::numeric,8) as lon,
-             EXTRACT(HOUR FROM scan_moment)::int as hour,
-             EXTRACT(WEEK FROM scan_moment)::int as week,
-             EXTRACT(YEAR FROM scan_moment)::int as year,
-             EXTRACT(DOY FROM scan_moment)::int as day_of_year,
-             EXTRACT(MINUTE FROM scan_moment)::int as minute,
-             EXTRACT(SECOND FROM scan_moment)::int as second,
-             to_char(scan_moment, 'month') as month,
-             to_char(scan_moment, 'day') as day,
-
-             CASE
-                WHEN EXTRACT(HOUR FROM scan_moment)::int IN (9, 10, 11) THEN  '09-11'
-                WHEN EXTRACT(HOUR FROM scan_moment)::int IN (11, 12, 13) THEN '11-13'
-                WHEN EXTRACT(HOUR FROM scan_moment)::int IN (13, 14, 15) THEN '13-15'
-                WHEN EXTRACT(HOUR FROM scan_moment)::int IN (16, 17, 18) THEN '16-18'
-                WHEN EXTRACT(HOUR FROM scan_moment)::int IN (19, 20, 21) THEN '19-21'
-                WHEN EXTRACT(HOUR FROM scan_moment)::int IN (21, 22, 23) THEN '21-23'
-                WHEN EXTRACT(HOUR FROM scan_moment)::int IN (0, 1, 3, 4, 5, 6) THEN '00-06'
-             END as shiftrange
-
+             round(ST_X(geometrie)::numeric,8) as lon
           FROM metingen_scan
 	`
 	monthsAgo := SETTINGS.GetInt("monthsago")
@@ -203,18 +175,6 @@ func fillScansFromDB(items chan *Scan) {
 	var lat sql.NullFloat64
 	var lon sql.NullFloat64
 
-	var hour sql.NullInt64
-	var week sql.NullInt64
-	var year sql.NullInt64
-
-	var day_of_year sql.NullInt64
-	var minute sql.NullInt64
-	var second sql.NullInt64
-
-	var month sql.NullString
-	var day sql.NullString
-	var shiftrange sql.NullString
-
 	for rows.Next() {
 		if err := rows.Scan(
 			&ID,
@@ -234,19 +194,6 @@ func fillScansFromDB(items chan *Scan) {
 			&parkeervak_soort,
 			&lat,
 			&lon,
-
-			&hour,
-			&week,
-			&year,
-
-			&day_of_year,
-			&minute,
-			&second,
-
-			&month,
-			&day,
-
-			&shiftrange,
 		); err != nil {
 			// Check for a scan error.
 			// Query rows will be closed with defer.
@@ -254,39 +201,31 @@ func fillScansFromDB(items chan *Scan) {
 		}
 
 		item := &Scan{
-			ID:          ID,
-			Scan_id:     convertSqlNullInt(scan_id),
-			Scan_moment: convertSqlNullInt(scan_moment),
-			Scan_source: convertSqlNullString(scan_source),
-			Sperscode:   convertSqlNullString(sperscode),
-			Qualcode:    convertSqlNullString(qualcode),
+			ID:         ID,
+			ScanID:     convertSqlNullInt(scan_id),
+			ScanMoment: time.Unix(convertSqlNullInt(scan_moment), 0),
+			ScanSource: convertSqlNullString(scan_source),
+			Sperscode:  convertSqlNullString(sperscode),
+			Qualcode:   convertSqlNullString(qualcode),
 
 			Ff_df: convertSqlNullString(ff_df),
 
-			Naheffing_hoogte:    convertSqlNullInt(naheffing_hoogte),
-			bgtWegdeel:          convertSqlNullString(bgtWegdeel),
-			Bgt_wegdeel_functie: convertSqlNullString(bgt_wegdeel_functie),
-			Buurtcode:           convertSqlNullString(buurtcode),
-			Buurtcombinatie:     convertSqlNullString(buurtcombinatie),
-			Stadsdeel:           convertSqlNullString(stadsdeel),
-			ParkeervakID:        convertSqlNullString(parkeervakID),
+			NaheffingHoogte:   convertSqlNullInt(naheffing_hoogte),
+			bgtWegdeel:        convertSqlNullString(bgtWegdeel),
+			BGTwegdeelFunctie: convertSqlNullString(bgt_wegdeel_functie),
+			Buurtcode:         convertSqlNullString(buurtcode),
+			Buurtcombinatie:   convertSqlNullString(buurtcombinatie),
+			Stadsdeel:         convertSqlNullString(stadsdeel),
+			ParkeervakID:      convertSqlNullString(parkeervakID),
 
 			geoPoint: geoPoint{
 				lat: convertSqlNullFloat(lat),
 				lon: convertSqlNullFloat(lon),
 			},
+		}
 
-			Hour: convertSqlNullInt(hour),
-			Week: convertSqlNullInt(week),
-			Year: convertSqlNullInt(year),
-
-			Day_of_year: convertSqlNullInt(day_of_year),
-			Minute:      convertSqlNullInt(minute),
-			Second:      convertSqlNullInt(second),
-
-			Month:      convertSqlNullString(month),
-			Day:        convertSqlNullString(day),
-			Shiftrange: convertSqlNullString(shiftrange),
+		if item == nil {
+			continue
 		}
 
 		items <- item

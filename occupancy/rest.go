@@ -38,7 +38,7 @@ func rest(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(item)
 	return
 
-	var items theList
+	var items Scans
 
 	w.Header().Set("Total-Items", strconv.Itoa(len(items)))
 	w.WriteHeader(http.StatusOK)

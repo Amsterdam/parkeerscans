@@ -255,7 +255,9 @@ func setDateConstrain() string {
 	now := time.Now()
 	timeStamp := now.AddDate(0, -monthsAgo, 0)
 
-	return queryDateBuilder(q, "scan_moment", timeStamp.Format("2006-01-02"), "")
+	sql := queryDateBuilder(q, "scan_moment", timeStamp.Format("2006-01-02"), "")
+
+	return sql
 }
 
 func fillFromDB(items chan *Item) {
