@@ -47,7 +47,8 @@ func convertSqlNullString(v sql.NullString) string {
 		panic(err)
 	}
 
-	return string(raw)
+	noquotes := string(raw[1 : len(raw)-1])
+	return noquotes
 
 }
 

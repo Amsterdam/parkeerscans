@@ -22,7 +22,6 @@ var AllScans Scans
 var wegdelen map[string]*wegdeel
 
 type filterFunc func() []*Scan
-
 type groupByType map[string]Scans
 
 func init() {
@@ -85,11 +84,8 @@ func mapKey(item *Scan) string {
 }
 
 func worker(workID int, chItems chan *Scan) {
-
 	for scan := range chItems {
-
 		mapRows++
-		//pvmap.
 		AllScans = append(AllScans, scan)
 
 	}

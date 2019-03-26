@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"strconv"
 )
 
 type wegdeel struct {
@@ -32,6 +33,40 @@ type wegdeelOccupancyResult struct {
 	BuckerCount   int64  `json:"buckets"`
 }
 
+func (i wegdeelOccupancyResult) Columns() []string {
+	return []string{
+		"ID",
+		"BgtID",
+		"BgtFunctie",
+		"Geometrie",
+		"Vakken",
+		"FiscaleVakken",
+		"ScanCount",
+		"AvgOccupany",
+		"MinOccupany",
+		"MaxOccupany",
+		"StdOccupany",
+		"BuckerCount",
+	}
+}
+
+func (i wegdeelOccupancyResult) Row() []string {
+	return []string{
+		strconv.Itoa(int(i.ID)),
+		i.BgtID,
+		i.BgtFunctie,
+		i.Geometrie,
+		strconv.Itoa(int(i.Vakken)),
+		strconv.Itoa(int(i.FiscaleVakken)),
+		strconv.Itoa(int(i.ScanCount)),
+		strconv.Itoa(int(i.AvgOccupany)),
+		strconv.Itoa(int(i.MinOccupany)),
+		strconv.Itoa(int(i.MaxOccupany)),
+		strconv.Itoa(int(i.StdOccupany)),
+		strconv.Itoa(int(i.BuckerCount)),
+	}
+}
+
 /*
 id               int6
 bgt_id
@@ -48,7 +83,12 @@ func fillWegdelenFromDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	query := "select * from wegdelen_wegdeel where fiscale_vakken > 4"
+
+	query := `select
+
+	id, bgt_id, bgt_functie, st_asewkt(geometrie) as geometrie, vakken, fiscale_vakken
+
+	from wegdelen_wegdeel where vakken > 3`
 
 	rows, err := db.Query(query)
 
@@ -62,7 +102,6 @@ func fillWegdelenFromDB() {
 	var geometrie sql.NullString
 	var vakken sql.NullInt64
 	var fiscaleVakken sql.NullInt64
-	var scanCount sql.NullInt64
 	wdCounter := 0
 
 	for rows.Next() {
@@ -73,7 +112,6 @@ func fillWegdelenFromDB() {
 			&geometrie,
 			&vakken,
 			&fiscaleVakken,
-			&scanCount,
 		); err != nil {
 			log.Fatal(err)
 		}

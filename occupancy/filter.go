@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -18,6 +20,9 @@ type registerFuncType map[string]filterFuncc
 type registerGroupByFunc map[string]func(*Scan) string
 type filterType map[string][]string
 
+type formatRespFunc func(w http.ResponseWriter, r *http.Request, wd wegdeelResponse)
+type registerFormatMap map[string]formatRespFunc
+
 // Filter Functions
 func filterStadsdeelContains(i *Scan, s string) bool {
 	return strings.Contains(i.Stadsdeel, s)
@@ -25,6 +30,27 @@ func filterStadsdeelContains(i *Scan, s string) bool {
 
 func filterBuurtoceContains(i *Scan, s string) bool {
 	return strings.Contains(i.Buurtcode, s)
+}
+
+func filterWeekdayContains(i *Scan, s string) bool {
+	weekday := i.ScanMoment.Weekday().String()
+	weekday = strings.ToLower(weekday)
+	return weekday == s
+}
+
+func filterHourContains(i *Scan, s string) bool {
+	hour := i.ScanMoment.Hour()
+	input, err := strconv.Atoi(s)
+	if err != nil {
+		fmt.Println("invalid hour input")
+		return false
+	}
+	return hour == input
+}
+
+func filterIsWeekend(i *Scan, s string) bool {
+	isWeekend := i.ScanMoment.Weekday() >= 5
+	return isWeekend
 }
 
 func filterBeforeDate(i *Scan, s string) bool {
@@ -113,11 +139,15 @@ func mapIndex(scans Scans, indexes []int) Scans {
 
 var registerFuncMap registerFuncType
 var registerGroupBy registerGroupByFunc
+var registerFormat registerFormatMap
 
 func init() {
 	registerFuncMap = make(registerFuncType)
 	registerFuncMap["stadsdeel"] = filterStadsdeelContains
 	registerFuncMap["buurtcode"] = filterBuurtoceContains
+	registerFuncMap["weekday"] = filterWeekdayContains
+	registerFuncMap["hour"] = filterHourContains
+	registerFuncMap["isweekend"] = filterIsWeekend
 	registerFuncMap["before"] = filterBeforeDate
 	registerFuncMap["after"] = filterAfterDate
 	registerFuncMap["match"] = filterMatchDate
@@ -127,6 +157,9 @@ func init() {
 	registerGroupBy["weekend"] = groupByWeekend
 	registerGroupBy["year"] = groupByYear
 
+	registerFormat = make(registerFormatMap)
+	registerFormat["json"] = formatResponseJSON
+	registerFormat["csv"] = formatResponseCSV
 }
 
 // API
@@ -136,9 +169,9 @@ func listRest(w http.ResponseWriter, r *http.Request) {
 
 	filterScans := filtered(AllScans, filterMap, excludeMap, registerFuncMap)
 
-	w.Header().Set("Content-Type", "application/json")
+	//w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Total-Items", strconv.Itoa(len(filterScans)))
-	w.WriteHeader(http.StatusOK)
+	//w.WriteHeader(http.StatusOK)
 
 	//groupByS, groupByFound := r.URL.Query()["groupby"]
 	//if !groupByFound {
@@ -150,8 +183,8 @@ func listRest(w http.ResponseWriter, r *http.Request) {
 	aEndResult := fillWegDeelVakkenByBucket(filterScans)
 	//responseJSON, _ := json.Marshal(aEndResult)
 	// groupByItems := groupByRunner(items, groupByS[0])
-	json.NewEncoder(w).Encode(aEndResult)
-
+	// json.NewEncoder(w).Encode(aEndResult)
+	FormatAndSend(w, r, aEndResult)
 	//garbage collection
 	go func() {
 		time.Sleep(2 * time.Second)
@@ -245,4 +278,41 @@ func runPrintMem() {
 		printMemUsage()
 		time.Sleep(4 * time.Second)
 	}
+}
+
+func formatResponseJSON(w http.ResponseWriter, r *http.Request, items wegdeelResponse) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(items)
+}
+
+func formatResponseCSV(w http.ResponseWriter, r *http.Request, items wegdeelResponse) {
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment;filename=output.csv")
+	wr := csv.NewWriter(w)
+	if err := wr.Write(items[0].Columns()); err != nil {
+		log.Fatal(err)
+	}
+	for _, item := range items { // make a loop for 100 rows just for testing purposes
+		if err := wr.Write(item.Row()); err != nil {
+			log.Fatal(err)
+		}
+	}
+	wr.Flush() // writes the csv writer data to  the buffered data io writer(b(bytes.buffer))
+}
+
+func FormatAndSend(w http.ResponseWriter, r *http.Request, items wegdeelResponse) {
+	respFormatSlice, respFormatFound := r.URL.Query()["format"]
+	respFormat := ""
+	if respFormatFound {
+		respFormat = respFormatSlice[0]
+	}
+
+	w.Header().Set("Total-Items", strconv.Itoa(len(items)))
+	w.WriteHeader(http.StatusOK)
+
+	respFormatFunc, found := registerFormat[respFormat]
+	if !found {
+		respFormatFunc = registerFormat["json"]
+	}
+	respFormatFunc(w, r, items)
 }
