@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -227,93 +226,6 @@ func groupByRunner(items Scans, groubByParameter string) ScansGroupedBy {
 	return grouping
 }
 
-func main1() {
-	//defer profile.Start(profile.MemProfile).Stop()
-	go runPrintMem()
-	//go func() {
-	//	for {
-	//		time.Sleep(5 * time.Second)
-	//		runtime.GC()
-	//	}
-	//}()
-	//defer profile.Start().Stop()
-	//amount := 125000000	//100M
-	//amount := 1000000	// 1M
-	runserver := true
-	groupedByExample := false
-	runScript := false
-	runProblem := false
-
-	if runserver {
-		http.HandleFunc("/", listRest)
-		http.HandleFunc("/help/", helpRest)
-		fmt.Println("starting server, with:", len(AllScans), "items")
-		log.Fatal(http.ListenAndServe("0:8080", nil))
-	}
-	if runScript {
-
-		//Examples how to use filtered function
-
-		filterMap := make(filterType)
-		//filterMap["ideven"] = []string{""}
-		//filterMap["namecontains"] = []string{"", "8"}
-		//filterMap["before"] = []string{"2010-06-01"}
-		filterMap["after"] = []string{"0001-03-01"}
-		//filterMap["match"] = []string{"2840-03-28"}
-		//filterMap["FInName"] = []string{"a", "9"}
-
-		exludeMap := make(filterType)
-		items := filtered(AllScans, filterMap, exludeMap, registerFuncMap)
-		var itemJSON []byte
-		//groupByItems := groupByRunner(items, groupByS[0])
-		if !groupedByExample {
-			itemJSON, _ = json.Marshal(items)
-		} else {
-			groupByItems := groupByRunner(items, "year")
-			itemJSON, _ = json.Marshal(groupByItems)
-		}
-		fmt.Println(string(itemJSON), "amount:", len(items))
-	}
-
-	runtime.GC()
-	fmt.Println("start first")
-	runtime.GC()
-	if runProblem {
-		time.Sleep(1 * time.Second)
-		for i := 0; i < 1; i++ {
-			time.Sleep(100 * time.Millisecond)
-			go problem(i)
-		}
-	}
-	time.Sleep(20 * time.Second)
-	//debug.FreeOSMemory()
-	fmt.Println("start second")
-	if runProblem {
-		time.Sleep(10 * time.Second)
-		for i := 0; i < 1; i++ {
-			time.Sleep(1000 * time.Millisecond)
-			//runtime.GC()
-			go problem(i)
-		}
-	}
-	time.Sleep(20 * time.Second)
-	fmt.Println("Done!!!")
-	//debug.FreeOSMemory()
-	time.Sleep(30 * time.Second)
-}
-
-func problem(workerID int) {
-	filterMap := make(filterType)
-	exludeMap := make(filterType)
-	items := filtered(AllScans, filterMap, exludeMap, registerFuncMap)
-	fmt.Println(workerID, len(items))
-	//for i, _ := range items {
-	//	items[i] = nil
-	//}
-	//items = nil
-	runtime.GC()
-}
-
 func printMemUsage() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
@@ -331,6 +243,6 @@ func bToMb(b uint64) uint64 {
 func runPrintMem() {
 	for {
 		printMemUsage()
-		time.Sleep(1 * time.Second)
+		time.Sleep(4 * time.Second)
 	}
 }

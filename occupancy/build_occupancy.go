@@ -71,6 +71,7 @@ func main() {
 	close(chItems)
 	wg.Wait()
 
+	go runPrintMem()
 	// Runserver rest serivice
 	http.HandleFunc("/", listRest)
 	http.HandleFunc("/help/", helpRest)
