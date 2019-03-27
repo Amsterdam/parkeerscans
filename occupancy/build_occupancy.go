@@ -6,14 +6,9 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
-	// elastic retries
-
-	"gopkg.in/olivere/elastic.v6"
 )
 
 // globals
-var client *elastic.Client
 var wg sync.WaitGroup
 var mapRows int
 
@@ -35,13 +30,6 @@ func init() {
 	SETTINGS.Set("dbname", "parkeerscans", "Set database name")
 	SETTINGS.Set("dbuser", "user", "Set database user")
 	SETTINGS.SetInt("dbport", 5432, "Specify database port")
-
-	// elastic search settings
-	SETTINGS.Set("file", "mappings.json", "Path to file with elastic search mapping")
-	SETTINGS.Set("index", "not-set", "Name of the Elastic Search Index")
-	SETTINGS.Set("eshost", "elasticsearch", "Specify Elastic search Host")
-	SETTINGS.SetInt("esport", 9200, "Specify elastic search port")
-	SETTINGS.SetInt("esbuffer", 1000, "Buffer items before sending to elasticsearch")
 
 	SETTINGS.Parse()
 	mapRows = 0

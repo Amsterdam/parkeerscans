@@ -130,7 +130,7 @@ func fillWegdelenFromDB() {
 
 	}
 
-	log.Printf("STATUS: wegdelen met 4+ fiscale vakken. %-10d", wdCounter)
+	log.Printf("STATUS: wegdelen met 3+ vakken. %-10d", wdCounter)
 	rerr := rows.Close()
 
 	if rerr != nil {

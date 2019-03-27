@@ -39,9 +39,6 @@ func filterWeekdayContains(i *Scan, s string) bool {
 }
 
 func filterHourContains(i *Scan, s string) bool {
-	if i == nil {
-		return false
-	}
 	hour := i.ScanMoment.Hour()
 	input, err := strconv.Atoi(s)
 	if err != nil {
@@ -118,6 +115,9 @@ func exclude(item *Scan, excludes filterType, registerFuncs registerFuncType) bo
 }
 
 func any(item *Scan, filters filterType, registerFuncs registerFuncType) bool {
+	if len(filters) == 0 {
+		return true
+	}
 	for funcName, args := range filters {
 		filterFunc := registerFuncs[funcName]
 		if filterFunc == nil {
