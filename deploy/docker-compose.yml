@@ -7,10 +7,10 @@ services:
     #  - "5434:5432"
     environment:
       POSTGRES_PASSWORD: insecure
-      POSTGRES_USER: predictiveparking
-      POSTGRES_DB: predictiveparking
+      POSTGRES_USER: parkeerscans
+      POSTGRES_DB: parkeerscans
     networks:
-      predictiveparking:
+      parkeerscans:
     volumes:
       - databasevolume:/tmp
       - ./backups:/backups
@@ -27,8 +27,8 @@ services:
       - database:database
       #- elasticsearch:elasticsearch
     environment:
-      DATABASE_NAME: predictiveparking
-      DATABASE_USER: predictiveparking
+      DATABASE_NAME: parkeerscans
+      DATABASE_USER: parkeerscans
       DATABASE_PASSWORD: insecure
       PARKEERVAKKEN_OBJECTSTORE_PASSWORD: ${PARKEERVAKKEN_OBJECTSTORE_PASSWORD}
       PGPASSWORD: insecure
@@ -39,7 +39,7 @@ services:
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
     user: root
     networks:
-      predictiveparking:
+      parkeerscans:
     volumes:
       - data-volume:/app/data
       - unzip-volume:/app/unzipped
@@ -48,9 +48,9 @@ services:
     image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
     # build: ../csvimporter/
     networks:
-      predictiveparking:
+      parkeerscans:
     environment:
-      DATABASE_NAME: predictiveparking
+      DATABASE_NAME: parkeerscans
       DATABASE_PASSWORD: insecure
       TESTING:
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
@@ -63,4 +63,4 @@ volumes:
   databasevolume:
 
 networks:
-  predictiveparking:
+  parkeerscans:
