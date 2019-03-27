@@ -39,10 +39,12 @@ func filterWeekdayContains(i *Scan, s string) bool {
 }
 
 func filterHourContains(i *Scan, s string) bool {
+	if i == nil {
+		return false
+	}
 	hour := i.ScanMoment.Hour()
 	input, err := strconv.Atoi(s)
 	if err != nil {
-		fmt.Println("invalid hour input")
 		return false
 	}
 	return hour == input
@@ -115,9 +117,27 @@ func exclude(item *Scan, excludes filterType, registerFuncs registerFuncType) bo
 	return true
 }
 
-func filtered(items Scans, filters filterType, excludes filterType, registerFuncs registerFuncType) Scans {
+func any(item *Scan, filters filterType, registerFuncs registerFuncType) bool {
+	for funcName, args := range filters {
+		filterFunc := registerFuncs[funcName]
+		if filterFunc == nil {
+			continue
+		}
+		for _, arg := range args {
+			if filterFunc(item, arg) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func filtered(items Scans, filters filterType, excludes filterType, anys filterType, registerFuncs registerFuncType) Scans {
 	filteredScans := Scans{}
 	for _, item := range items {
+		if !any(item, anys, registerFuncs) {
+			continue
+		}
 		if !all(item, filters, registerFuncs) {
 			continue
 		}
@@ -165,9 +185,9 @@ func init() {
 // API
 
 func listRest(w http.ResponseWriter, r *http.Request) {
-	filterMap, excludeMap := parseURLParameters(r)
+	filterMap, excludeMap, anyMap := parseURLParameters(r)
 
-	filterScans := filtered(AllScans, filterMap, excludeMap, registerFuncMap)
+	filterScans := filtered(AllScans, filterMap, excludeMap, anyMap, registerFuncMap)
 
 	//w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Total-Items", strconv.Itoa(len(filterScans)))
@@ -212,20 +232,25 @@ func helpRest(w http.ResponseWriter, r *http.Request) {
 }
 
 // util for api
-func parseURLParameters(r *http.Request) (filterType, filterType) {
+func parseURLParameters(r *http.Request) (filterType, filterType, filterType) {
 	filterMap := make(filterType)
 	excludeMap := make(filterType)
+	anyMap := make(filterType)
 	for k := range registerFuncMap {
-		parameter, parameterFound := r.URL.Query()[k]
+		parameters, parameterFound := r.URL.Query()[k]
 		if parameterFound {
-			filterMap[k] = parameter
+			filterMap[k] = parameters
 		}
-		parameter, parameterFound = r.URL.Query()["!"+k]
+		parameters, parameterFound = r.URL.Query()["!"+k]
 		if parameterFound {
-			excludeMap[k] = parameter
+			excludeMap[k] = parameters
+		}
+		parameters, parameterFound = r.URL.Query()["any_"+k]
+		if parameterFound {
+			anyMap[k] = parameters
 		}
 	}
-	return filterMap, excludeMap
+	return filterMap, excludeMap, anyMap
 }
 
 // Group by functions
@@ -289,6 +314,9 @@ func formatResponseCSV(w http.ResponseWriter, r *http.Request, items wegdeelResp
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "attachment;filename=output.csv")
 	wr := csv.NewWriter(w)
+	if len(items) == 0 {
+		return
+	}
 	if err := wr.Write(items[0].Columns()); err != nil {
 		log.Fatal(err)
 	}
