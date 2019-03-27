@@ -43,18 +43,12 @@ The project is devided in a few docker-containers with their own functions.
      - uses postgres database for assets and messurements
      - uses elasticsearch to create aggregations of all kinds
      - contains database building / migrations and loading of related databases
-  - angluar
-     - occupancy viewer build on top of API. (Will be replaced)
   - csvimporter
     - golang code which crunches and cleans up the raw csv scan data into postgres database
   - kibana
     - default kibana to analyse scan - data. deployed at: https://kibana.parkeren.data.amsterdam.nl
-  - logstash
-    - import data from database into elasticsearch (should be replaced..)
   - postgres
     - database docker with custom settings
-  - .jenkins
-    - import environment to build new dataset
 
 There are the implemented stages
 
