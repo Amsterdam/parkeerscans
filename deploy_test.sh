@@ -29,12 +29,12 @@ dc run --rm ppapi python manage.py migrate
 echo "# load test data into database"
 dc run --rm ppapi bash testdata/loadtestdata.sh parkeerscans || true
 
-echo "start logstash to index data from database into elastic"
+echo "start elkstash golang to get data from database into elastic"
 
-dc run --rm logstash /app/load-test-data.sh
+# dc run --rm logstash /app/load-test-data.sh
 
 # now we are ready to run some tests
-dc run --rm ppapi python manage.py test
+# dc run --rm ppapi python manage.py test
 
 dc down
 dc rm -f

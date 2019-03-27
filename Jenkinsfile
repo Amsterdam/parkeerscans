@@ -32,7 +32,7 @@ node {
 
     stage("Test") {
         tryStep "Test", {
-            sh "./deploy/test.sh"
+            sh "./deploy_test.sh"
 	}, {
             sh "docker-compose -p test -f docker-compose-test.yml down"
         }
