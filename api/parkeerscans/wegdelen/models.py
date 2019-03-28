@@ -49,6 +49,8 @@ class WegDeel(models.Model):
     # count indication of scans of last month
     # used to cleanup / find errors in dataset
     scan_count = models.IntegerField(null=True)
+    buurt = models.CharField(
+        null=True, db_index=True, max_length=4)
 
 
 class Buurt(models.Model):
