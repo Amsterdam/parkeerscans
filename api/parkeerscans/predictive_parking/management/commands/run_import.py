@@ -147,6 +147,7 @@ class Command(BaseCommand):
         elif options['mergewegdelen']:
             import_wegdelen.add_wegdeel_to_parkeervak(distance=0.00001)
         elif options['mergebuurten']:
+            import_wegdelen.add_buurt_to_wegdelen()
             import_wegdelen.add_buurt_to_parkeervak()
         elif options['setcounts']:
             import_wegdelen.add_parkeervak_count_to_buurt()

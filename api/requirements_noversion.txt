@@ -11,6 +11,7 @@ cached-property
 click
 colorama
 debtcollector
+drf_amsterdam
 django-extensions
 django-filter
 Django

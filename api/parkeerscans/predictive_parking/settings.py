@@ -134,7 +134,7 @@ def in_docker():
     try:
         cgroup = open('/proc/1/cgroup', 'r').read()
         return ':/docker/' in cgroup or ':/docker-ce/' in cgroup
-    except:
+    except:   # noqa
         return False
 
 
@@ -250,21 +250,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'console',
         },
-
-        'graypy': {
-            'level': 'ERROR',
-            'class': 'graypy.GELFHandler',
-            'host': LOGSTASH_HOST,
-            'port': LOGSTASH_PORT,
-        },
-
     },
 
     'root': {
-        'level': 'ERROR',
-        'handlers': ['console', 'graypy'],
+        'level': 'DEBUG',
+        'handlers': ['console'],
     },
-
 
     'loggers': {
         'django.db': {

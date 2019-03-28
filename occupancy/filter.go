@@ -320,12 +320,13 @@ func formatResponseCSV(w http.ResponseWriter, r *http.Request, items wegdeelResp
 	if err := wr.Write(items[0].Columns()); err != nil {
 		log.Fatal(err)
 	}
-	for _, item := range items { // make a loop for 100 rows just for testing purposes
+	for _, item := range items {
 		if err := wr.Write(item.Row()); err != nil {
 			log.Fatal(err)
 		}
 	}
-	wr.Flush() // writes the csv writer data to  the buffered data io writer(b(bytes.buffer))
+	// writes the csv writer data to  the buffered data io writer(b(bytes.buffer))
+	wr.Flush()
 }
 
 func FormatAndSend(w http.ResponseWriter, r *http.Request, items wegdeelResponse) {

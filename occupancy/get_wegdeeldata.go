@@ -11,6 +11,7 @@ type wegdeel struct {
 	bgtID         string
 	bgtFunctie    string
 	geometrie     string
+	buurt         string
 	vakken        int64
 	fiscaleVakken int64
 	scanCount     int64
@@ -22,6 +23,7 @@ type wegdeelOccupancyResult struct {
 	ID            int64  `json:"id"`
 	BgtID         string `json:"bgtID"`
 	BgtFunctie    string `json:"bgtFunctie"`
+	Buurt         string `json:"bgtFunctie"`
 	Geometrie     string `json:"geometrie"`
 	Vakken        int64  `json:"vakken"`
 	FiscaleVakken int64  `json:"fiscaleVakken"`
@@ -38,7 +40,7 @@ func (i wegdeelOccupancyResult) Columns() []string {
 		"ID",
 		"BgtID",
 		"BgtFunctie",
-		"Geometrie",
+		"Buurt",
 		"Vakken",
 		"FiscaleVakken",
 		"ScanCount",
@@ -47,6 +49,7 @@ func (i wegdeelOccupancyResult) Columns() []string {
 		"MaxOccupany",
 		"StdOccupany",
 		"BuckerCount",
+		"Geometrie",
 	}
 }
 
@@ -55,7 +58,7 @@ func (i wegdeelOccupancyResult) Row() []string {
 		strconv.Itoa(int(i.ID)),
 		i.BgtID,
 		i.BgtFunctie,
-		i.Geometrie,
+		i.Buurt,
 		strconv.Itoa(int(i.Vakken)),
 		strconv.Itoa(int(i.FiscaleVakken)),
 		strconv.Itoa(int(i.ScanCount)),
@@ -64,6 +67,7 @@ func (i wegdeelOccupancyResult) Row() []string {
 		strconv.Itoa(int(i.MaxOccupany)),
 		strconv.Itoa(int(i.StdOccupany)),
 		strconv.Itoa(int(i.BuckerCount)),
+		i.Geometrie,
 	}
 }
 
@@ -86,7 +90,7 @@ func fillWegdelenFromDB() {
 
 	query := `select
 
-	id, bgt_id, bgt_functie, st_asewkt(geometrie) as geometrie, vakken, fiscale_vakken
+	id, bgt_id, bgt_functie, st_asewkt(geometrie) as geometrie, vakken, fiscale_vakken, buurt
 
 	from wegdelen_wegdeel where vakken > 3`
 
@@ -100,6 +104,7 @@ func fillWegdelenFromDB() {
 	var bgtID sql.NullString
 	var bgtFunctie sql.NullString
 	var geometrie sql.NullString
+	var buurt sql.NullString
 	var vakken sql.NullInt64
 	var fiscaleVakken sql.NullInt64
 	wdCounter := 0
@@ -112,6 +117,7 @@ func fillWegdelenFromDB() {
 			&geometrie,
 			&vakken,
 			&fiscaleVakken,
+			&buurt,
 		); err != nil {
 			log.Fatal(err)
 		}
@@ -123,6 +129,7 @@ func fillWegdelenFromDB() {
 			geometrie:     convertSqlNullString(geometrie),
 			vakken:        convertSqlNullInt(vakken),
 			fiscaleVakken: convertSqlNullInt(fiscaleVakken),
+			buurt:         convertSqlNullString(buurt),
 		}
 		wdCounter++
 

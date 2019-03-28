@@ -170,7 +170,7 @@ def add_wegdeel_to_parkeervak(distance=0.000049):
         .filter(soort="FISCAAL")
         .count())
 
-    log.debug(
+    log.info(
         "Fiscale Parkeervakken zonder WegDeel %s van %s",
         pv_no_wd_count,
         Parkeervak.objects.count())
@@ -185,14 +185,14 @@ def sql_count(table):
         c.execute(c_stmt)
         row = c.fetchone()
         count += row[0]
-        log.debug('COUNT %s %s', table, count)
+        log.info('COUNT %s %s', table, count)
 
     return count
 
 
 @LogWith(log)
 def import_parkeervakken():
-    log.debug('Import en Converteer parkeervakken naar WGS84')
+    log.info('Import en Converteer parkeervakken naar WGS84')
 
     Parkeervak.objects.all().delete()
 
@@ -218,16 +218,17 @@ def import_parkeervakken():
     FROM bv.parkeervakken pv
     """)
 
-    log.debug("Alle    Vakken %s", Parkeervak.objects.all().count())
-    log.debug("Fiscale Vakken %s",
-              Parkeervak.objects.filter(soort='FISCAAL').count())
+    log.info("Alle    Vakken %s", Parkeervak.objects.all().count())
+    log.info(
+        "Fiscale Vakken %s",
+        Parkeervak.objects.filter(soort='FISCAAL').count())
 
 
 def import_bgt_wegdelen_from(bron, functie):
     """
     Importeerd data uit verschillende bronnen
     """
-    log.debug("Starting Wegdelen %s %s", WegDeel.objects.all().count(), bron)
+    log.info("Starting Wegdelen %s %s", WegDeel.objects.all().count(), bron)
 
     with connection.cursor() as c:
         c.execute(f"""
@@ -243,12 +244,12 @@ def import_bgt_wegdelen_from(bron, functie):
     FROM bgt."{bron}" wd
     """)
 
-    log.debug("Done Wegdelen %s %s", WegDeel.objects.all().count(), bron)
+    log.info("Done Wegdelen %s %s", WegDeel.objects.all().count(), bron)
 
 
 @LogWith(log)
 def import_wegdelen():
-    log.debug('Importeer en Converteer wegdelen naar WGS84 Polygonen')
+    log.info('Importeer en Converteer wegdelen naar WGS84 Polygonen')
 
     WegDeel.objects.all().delete()
 
@@ -275,7 +276,7 @@ def import_buurten():
     """
     Buurt.objects.all().delete()
 
-    log.debug('Create buurten dataset < 1 min')
+    log.info('Create buurten dataset < 1 min')
     with connection.cursor() as c:
         c.execute("""
     INSERT INTO wegdelen_buurt(
@@ -298,18 +299,41 @@ def add_buurt_to_parkeervak():
     """
     Given parkeervakken find buurt of each pv
     """
-    log.debug('Add buurtcode to each parkeervak < 1 min')
+    log.info('Add buurtcode to each parkeervak < 1 min')
 
     with connection.cursor() as c:
         c.execute("""
     UPDATE  wegdelen_parkeervak pv
     SET buurt = b.code
     FROM wegdelen_buurt b
-    WHERE ST_Contains(b.geometrie, pv.point)
+    WHERE ST_DWithin(b.geometrie, pv.point, 0)
     """)
 
-    log.debug("Parkeervak zonder buurt %s",
-              Parkeervak.objects.filter(buurt=None).count())
+    log.info(
+       "Parkeervak zonder buurt %s",
+       Parkeervak.objects.filter(buurt=None).count())
+
+
+@LogWith(log)
+def add_buurt_to_wegdelen():
+    """
+    Given wegdeel find buurt of each wegdeel which has vakken.
+    """
+    log.info('Add buurtcode to each wegdeel < 1 min')
+
+    with connection.cursor() as c:
+        c.execute("""
+    UPDATE  wegdelen_wegdeel wd
+    SET buurt = b.code
+    FROM wegdelen_buurt b
+    WHERE ST_DWithin(b.geometrie, st_centroid(wd.geometrie), 0)
+    AND wd.vakken is not null
+    """)
+
+    log.info(
+        "Wegdelen in Amsterdam zonder buurt %s",
+        WegDeel.objects.filter(buurt=None).filter(vakken__isnull=False).count()
+    )
 
 
 @LogWith(log)
@@ -317,16 +341,16 @@ def add_parkeervak_count_to_wegdeel():
     """
     Each wegdeel needs to have a count of parkeervakken.
     """
-    log.debug('Add parkeervak count to each wegdeel ~ 1 min')
+    log.info('Add parkeervak count to each wegdeel ~ 1 min')
 
     def status(state):
 
-        log.debug(
+        log.info(
             "%6s Wegdelen met parkeervak count %s",
             state,
             WegDeel.objects.filter(vakken__gt=0).count())
 
-        log.debug(
+        log.info(
             "%6s Wegdelen met fiscale pv count %s",
             state,
             WegDeel.objects.filter(fiscale_vakken__gt=0).count())

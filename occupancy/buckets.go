@@ -144,6 +144,7 @@ func fillWegDeelVakkenByBucket(filteredScans Scans) wegdeelResponse {
 			Geometrie:     wdSource.geometrie,
 			Vakken:        wdSource.vakken,
 			FiscaleVakken: wdSource.fiscaleVakken,
+			Buurt:         wdSource.buurt,
 			ScanCount:     wdAgg.scanCount,
 			BuckerCount:   bcount,
 			AvgOccupany:   avg,
