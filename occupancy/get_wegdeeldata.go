@@ -48,7 +48,7 @@ func (i wegdeelOccupancyResult) Columns() []string {
 		"MinOccupany",
 		"MaxOccupany",
 		"StdOccupany",
-		"BuckerCount",
+		"BucketCount",
 		"Geometrie",
 	}
 }
