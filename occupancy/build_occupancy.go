@@ -31,6 +31,8 @@ func init() {
 	SETTINGS.Set("dbuser", "user", "Set database user")
 	SETTINGS.SetInt("dbport", 5432, "Specify database port")
 
+	SETTINGS.Set("storefile", "storage.json", "Specify name for file, that stores scans")
+
 	SETTINGS.Parse()
 	mapRows = 0
 
@@ -62,6 +64,7 @@ func main() {
 	// Runserver rest serivice
 	http.HandleFunc("/", listRest)
 	http.HandleFunc("/help/", helpRest)
+	http.HandleFunc("/load/", func(w http.ResponseWriter, r *http.Request) { loadFile() })
 	fmt.Println("starting server, with:", len(AllScans), "items")
 	log.Fatal(http.ListenAndServe("0:8080", nil))
 }

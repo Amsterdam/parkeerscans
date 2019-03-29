@@ -189,21 +189,15 @@ func listRest(w http.ResponseWriter, r *http.Request) {
 
 	filterScans := filtered(AllScans, filterMap, excludeMap, anyMap, registerFuncMap)
 
-	//w.Header().Set("Content-Type", "application/json")
+	// if store is set in URL store result on disk
+	_, storeFileFound := r.URL.Query()["store"]
+	if storeFileFound {
+		storeTofile(filterScans)
+	}
 	w.Header().Set("Total-Items", strconv.Itoa(len(filterScans)))
-	//w.WriteHeader(http.StatusOK)
-
-	//groupByS, groupByFound := r.URL.Query()["groupby"]
-	//if !groupByFound {
-	//	json.NewEncoder(w).Encode(filterScans)
-	//	return
-	//}
 
 	// this should go rest service.
 	aEndResult := fillWegDeelVakkenByBucket(filterScans)
-	//responseJSON, _ := json.Marshal(aEndResult)
-	// groupByItems := groupByRunner(items, groupByS[0])
-	// json.NewEncoder(w).Encode(aEndResult)
 	FormatAndSend(w, r, aEndResult)
 	//garbage collection
 	go func() {
