@@ -91,9 +91,6 @@ Local development can be done using `docker-compose up database elasticsearch`.
 
 To get quick results and vast visualizations we choose kibana on top of elastic search.
 
-We use a dockerized logstash instance to load the postgres database `scans_scan` into
-elastic index.
-
 The visuallizations are done with a kibana instance.
 
 

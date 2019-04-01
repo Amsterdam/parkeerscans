@@ -15,7 +15,7 @@ import (
 	//	"github.com/pkg/profile"
 )
 
-type filterFuncc func(*Scan, string) bool
+type filterFuncc func(Scan, string) bool
 type registerFuncType map[string]filterFuncc
 type registerGroupByFunc map[string]func(*Scan) string
 type filterType map[string][]string
@@ -24,21 +24,21 @@ type formatRespFunc func(w http.ResponseWriter, r *http.Request, wd wegdeelRespo
 type registerFormatMap map[string]formatRespFunc
 
 // Filter Functions
-func filterStadsdeelContains(i *Scan, s string) bool {
+func filterStadsdeelContains(i Scan, s string) bool {
 	return strings.Contains(i.Stadsdeel, s)
 }
 
-func filterBuurtoceContains(i *Scan, s string) bool {
+func filterBuurtoceContains(i Scan, s string) bool {
 	return strings.Contains(i.Buurtcode, s)
 }
 
-func filterWeekdayContains(i *Scan, s string) bool {
+func filterWeekdayContains(i Scan, s string) bool {
 	weekday := i.ScanMoment.Weekday().String()
 	weekday = strings.ToLower(weekday)
 	return weekday == s
 }
 
-func filterHourContains(i *Scan, s string) bool {
+func filterHourContains(i Scan, s string) bool {
 	hour := i.ScanMoment.Hour()
 	input, err := strconv.Atoi(s)
 	if err != nil {
@@ -47,24 +47,21 @@ func filterHourContains(i *Scan, s string) bool {
 	return hour == input
 }
 
-func filterIsWeekend(i *Scan, s string) bool {
+func filterIsWeekend(i Scan, s string) bool {
 	isWeekend := i.ScanMoment.Weekday() >= 5
 	return isWeekend
 }
 
-func filterBeforeDate(i *Scan, s string) bool {
+func filterBeforeDate(i Scan, s string) bool {
 	filterTime, err := time.Parse("2006-01-02", s)
 	if err != nil {
 		return false
 	}
-	if i == nil {
-		fmt.Println("i == nil")
-		return false
-	}
+
 	return i.ScanMoment.Before(filterTime)
 }
 
-func filterAfterDate(i *Scan, s string) bool {
+func filterAfterDate(i Scan, s string) bool {
 	filterTime, err := time.Parse("2006-01-02", s)
 	if err != nil {
 		return false
@@ -72,7 +69,7 @@ func filterAfterDate(i *Scan, s string) bool {
 	return i.ScanMoment.After(filterTime)
 }
 
-func filterMatchDate(i *Scan, s string) bool {
+func filterMatchDate(i Scan, s string) bool {
 	filterTime, err := time.Parse("2006-01-02", s)
 	if err != nil {
 		return false
@@ -90,7 +87,7 @@ func all(item *Scan, filters filterType, registerFuncs registerFuncType) bool {
 			continue
 		}
 		for _, arg := range args {
-			if !filterFunc(item, arg) {
+			if !filterFunc(*item, arg) {
 				return false
 			}
 		}
@@ -106,7 +103,7 @@ func exclude(item *Scan, excludes filterType, registerFuncs registerFuncType) bo
 			continue
 		}
 		for _, arg := range args {
-			if excludeFunc(item, arg) {
+			if excludeFunc(*item, arg) {
 				return false
 			}
 		}
@@ -124,7 +121,7 @@ func any(item *Scan, filters filterType, registerFuncs registerFuncType) bool {
 			continue
 		}
 		for _, arg := range args {
-			if filterFunc(item, arg) {
+			if filterFunc(*item, arg) {
 				return true
 			}
 		}
@@ -135,6 +132,9 @@ func any(item *Scan, filters filterType, registerFuncs registerFuncType) bool {
 func filtered(items Scans, filters filterType, excludes filterType, anys filterType, registerFuncs registerFuncType) Scans {
 	filteredScans := Scans{}
 	for _, item := range items {
+		if item == nil {
+			continue
+		}
 		if !any(item, anys, registerFuncs) {
 			continue
 		}
@@ -320,21 +320,13 @@ func formatResponseCSV(w http.ResponseWriter, r *http.Request, items wegdeelResp
 	if err := wr.Write(items[0].Columns()); err != nil {
 		log.Fatal(err)
 	}
-<<<<<<< HEAD
-	for _, item := range items { // make a loop for 100 rows just for testing purposes
-=======
 	for _, item := range items {
->>>>>>> parkeerscans
 		if err := wr.Write(item.Row()); err != nil {
 			log.Fatal(err)
 		}
 	}
-<<<<<<< HEAD
-	wr.Flush() // writes the csv writer data to  the buffered data io writer(b(bytes.buffer))
-=======
 	// writes the csv writer data to  the buffered data io writer(b(bytes.buffer))
 	wr.Flush()
->>>>>>> parkeerscans
 }
 
 func FormatAndSend(w http.ResponseWriter, r *http.Request, items wegdeelResponse) {

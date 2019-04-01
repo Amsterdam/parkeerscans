@@ -11,10 +11,7 @@ type wegdeel struct {
 	bgtID         string
 	bgtFunctie    string
 	geometrie     string
-<<<<<<< HEAD
-=======
 	buurt         string
->>>>>>> parkeerscans
 	vakken        int64
 	fiscaleVakken int64
 	scanCount     int64
@@ -26,10 +23,7 @@ type wegdeelOccupancyResult struct {
 	ID            int64  `json:"id"`
 	BgtID         string `json:"bgtID"`
 	BgtFunctie    string `json:"bgtFunctie"`
-<<<<<<< HEAD
-=======
 	Buurt         string `json:"bgtFunctie"`
->>>>>>> parkeerscans
 	Geometrie     string `json:"geometrie"`
 	Vakken        int64  `json:"vakken"`
 	FiscaleVakken int64  `json:"fiscaleVakken"`
@@ -46,11 +40,8 @@ func (i wegdeelOccupancyResult) Columns() []string {
 		"ID",
 		"BgtID",
 		"BgtFunctie",
-<<<<<<< HEAD
 		"Geometrie",
-=======
 		"Buurt",
->>>>>>> parkeerscans
 		"Vakken",
 		"FiscaleVakken",
 		"ScanCount",
@@ -58,12 +49,9 @@ func (i wegdeelOccupancyResult) Columns() []string {
 		"MinOccupany",
 		"MaxOccupany",
 		"StdOccupany",
-<<<<<<< HEAD
 		"BuckerCount",
-=======
 		"BucketCount",
 		"Geometrie",
->>>>>>> parkeerscans
 	}
 }
 
@@ -72,11 +60,8 @@ func (i wegdeelOccupancyResult) Row() []string {
 		strconv.Itoa(int(i.ID)),
 		i.BgtID,
 		i.BgtFunctie,
-<<<<<<< HEAD
 		i.Geometrie,
-=======
 		i.Buurt,
->>>>>>> parkeerscans
 		strconv.Itoa(int(i.Vakken)),
 		strconv.Itoa(int(i.FiscaleVakken)),
 		strconv.Itoa(int(i.ScanCount)),
@@ -85,10 +70,7 @@ func (i wegdeelOccupancyResult) Row() []string {
 		strconv.Itoa(int(i.MaxOccupany)),
 		strconv.Itoa(int(i.StdOccupany)),
 		strconv.Itoa(int(i.BuckerCount)),
-<<<<<<< HEAD
-=======
 		i.Geometrie,
->>>>>>> parkeerscans
 	}
 }
 
@@ -111,11 +93,7 @@ func fillWegdelenFromDB() {
 
 	query := `select
 
-<<<<<<< HEAD
-	id, bgt_id, bgt_functie, st_asewkt(geometrie) as geometrie, vakken, fiscale_vakken
-=======
 	id, bgt_id, bgt_functie, st_asewkt(geometrie) as geometrie, vakken, fiscale_vakken, buurt
->>>>>>> parkeerscans
 
 	from wegdelen_wegdeel where vakken > 3`
 
@@ -129,10 +107,7 @@ func fillWegdelenFromDB() {
 	var bgtID sql.NullString
 	var bgtFunctie sql.NullString
 	var geometrie sql.NullString
-<<<<<<< HEAD
-=======
 	var buurt sql.NullString
->>>>>>> parkeerscans
 	var vakken sql.NullInt64
 	var fiscaleVakken sql.NullInt64
 	wdCounter := 0
@@ -145,10 +120,7 @@ func fillWegdelenFromDB() {
 			&geometrie,
 			&vakken,
 			&fiscaleVakken,
-<<<<<<< HEAD
-=======
 			&buurt,
->>>>>>> parkeerscans
 		); err != nil {
 			log.Fatal(err)
 		}
@@ -160,10 +132,7 @@ func fillWegdelenFromDB() {
 			geometrie:     convertSqlNullString(geometrie),
 			vakken:        convertSqlNullInt(vakken),
 			fiscaleVakken: convertSqlNullInt(fiscaleVakken),
-<<<<<<< HEAD
-=======
 			buurt:         convertSqlNullString(buurt),
->>>>>>> parkeerscans
 		}
 		wdCounter++
 

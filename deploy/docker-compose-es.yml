@@ -17,14 +17,6 @@ services:
     volumes:
       - ./backups/elasticsearch:/tmp/backups
 
-  logstash:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/predictive_parking_logstash:${ENVIRONMENT}
-    # build: ../logstash
-    volumes:
-      - data-volume:/app/data
-    environment:
-      TABLE:
-
 volumes:
   data-volume:
 

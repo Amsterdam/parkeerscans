@@ -50,13 +50,6 @@ services:
       - elasticsearch:elasticsearch
     command: kibana
 
-  customviewer:
-    build: ./angular
-    ports:
-      - "5602:80"
-    links:
-      - ppapi:ppapi
-
   csvimporter:
     build: ./csvimporter/
     links:
@@ -66,19 +59,3 @@ services:
       DATABASE_PASSWORD: insecure
     volumes:
       - ./unzipped:/app/unzipped
-
-  angular:
-    build: ./angular
-    ports:
-      - "8099:80"
-
-  # geoserver with elastic support
-  #
-  #geoserver:
-  #  ports:
-  #    - "8080:8080"
-  #  links:
-  #    - database:database
-  #    - elasticsearch:elasticsearch
-  #  image: eeacms/elasticgeo
-  #

@@ -11,15 +11,6 @@ services:
     image: amsterdam/elasticsearch6
     command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
 
-  logstash:
-    build: ./logstash
-    links:
-      - database:database
-      - elasticsearch:elasticsearch
-    environment:
-      START_DATE:
-      END_DATE:
-
   ppapi:
     build: ./api
     links:
