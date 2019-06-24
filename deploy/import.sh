@@ -28,7 +28,7 @@ dc() {
 dc down --remove-orphans
 
 ## get the latest and greatest
-dc pull
+# dc pull
 
 # Elastic needs to run afterwards..
 # trap 'dc kill ; dc rm -f -v' EXIT

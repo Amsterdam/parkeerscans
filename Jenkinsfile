@@ -1,5 +1,12 @@
 #!groovy
 
+String KIBANA_IMAGE_NAME = "datapunt/parkeerscans_kibana"
+String CSVIMPORTER_IMAGE_NAME = "datapunt/parkeerscans_csvpgvoer"
+String PPAPI_IMAGE_NAME = "datapunt/parkeerscans"
+
+String DOCKER_REPOSITORY = "https://repo.data.amsterdam.nl"
+String BRANCH = "${env.BRANCH_NAME}"
+
 def tryStep(String message, Closure block, Closure tearDown = null) {
     try {
         block();
@@ -27,37 +34,51 @@ node {
         tryStep "Test", {
             sh "./deploy_test.sh"
 	}, {
-            sh "docker-compose -p test -f docker-compose-test.yml down"
+            sh "docker-compose -p pp_test -f docker-compose-test.yml down"
         }
     }
 
     stage("Build dockers") {
         tryStep "build", {
-            def kibana = docker.build("repo.data.amsterdam.nl/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}", "kibana")
-            kibana.push()
-            kibana.push("acceptance")
+            docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
+                def kibana = docker.build("${KIBANA_IMAGE_NAME}:${env.BUILD_NUMBER}",
+                    "--pull " +
+                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "kibana"
+                )
+                kibana.push()
 
-            def csvimporter = docker.build("repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}", "csvimporter")
-            csvimporter.push()
-            csvimporter.push("acceptance")
+                def csvimporter = docker.build("${CSVIMPORTER_IMAGE_NAME}:${env.BUILD_NUMBER}",
+                    "--pull " +
+                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "csvimporter"
+                )
+                csvimporter.push()
 
-            def ppapi = docker.build("repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}", "api")
-            ppapi.push()
-            ppapi.push("acceptance")
+                def ppapi = docker.build("${PPAPI_IMAGE_NAME}:${env.BUILD_NUMBER}",
+                    "--pull " +
+                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "api"
+                )
+                ppapi.push()
+            }
         }
     }
 }
-
-String BRANCH = "${env.BRANCH_NAME}"
 
 if (BRANCH == "master") {
 
     node {
         stage('Push acceptance image') {
             tryStep "image tagging", {
-                def image = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("acceptance")
+                docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
+                    def ppapi = docker.image("${PPAPI_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    ppapi.pull()
+                    ppapi.push("acceptance")
+                }
             }
         }
     }
@@ -83,20 +104,23 @@ if (BRANCH == "master") {
     node {
         stage('Push production image') {
             tryStep "image tagging", {
-                def kibana = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}")
-                kibana.pull()
-                kibana.push("production")
-                kibana.push("latest")
+                docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
 
-                def csvimporter = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}")
-                csvimporter.pull()
-                csvimporter.push("production")
-                csvimporter.push("latest")
+                    def kibana = docker.image("${KIBANA_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    kibana.pull()
+                    kibana.push("production")
+                    kibana.push("latest")
 
-                def ppapi = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}")
-                ppapi.pull()
-                ppapi.push("production")
-                ppapi.push("latest")
+                    def csvimporter = docker.image("${CSVIMPORTER_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    csvimporter.pull()
+                    csvimporter.push("production")
+                    csvimporter.push("latest")
+
+                    def ppapi = docker.image("${PPAPI_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    ppapi.pull()
+                    ppapi.push("production")
+                    ppapi.push("latest")
+                }
             }
         }
     }

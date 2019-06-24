@@ -1,7 +1,7 @@
 version: '3.0'
 services:
   database:
-    image: amsterdam/postgres
+    image: amsterdam/postgres:11
     # build: ../postgres
     #ports:
     #  - "5434:5432"
@@ -21,7 +21,7 @@ services:
       admin.datapunt.amsterdam.nl: 10.99.157.24
 
   importer:
-    image: repo.data.amsterdam.nl/datapunt/predictive_parking:${ENVIRONMENT}
+    image: repo.data.amsterdam.nl/datapunt/predictive_parking:${ENVIRONMENT:-latest}
     # build: ../api/
     links:
       - database:database
@@ -45,7 +45,7 @@ services:
       - unzip-volume:/app/unzipped
 
   csvimporter:
-    image: repo.data.amsterdam.nl/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT}
+    image: repo.data.amsterdam.nl/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT:-latest}
     # build: ../csvimporter/
     networks:
       parkeerscans:

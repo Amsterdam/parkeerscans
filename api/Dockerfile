@@ -24,6 +24,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 USER datapunt
 
-COPY predictive_parking /app/
+COPY parkeerscans /app/
 
 CMD ["/app/docker-run.sh"]

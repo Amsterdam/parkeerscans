@@ -80,7 +80,7 @@ kibana dashboard.
 The kibana project has one customized view with loads out vector data of roads, neighborhood and
 parkingspots and allows us to create dynamic maps.
 
-In the `.jenkins` folder is the `import.sh` which triggers all the needed build steps.
+In the `deploy` folder is the `import.sh` which triggers all the needed build steps.
 
 Local development can be done using `docker-compose up database elasticsearch`.
 
@@ -115,7 +115,7 @@ Step1, Data preparation:
   - set environment variables TESTING=no/yes (when yes will load small subset of all data),
     ENVIRONMENT=acceptance, and PARKEERVAKKEN_OBJECTSTORE (parking spaces) password.
 
-  - RUN .jenkins/import.sh
+  - RUN deploy/import.sh
 
   - TEST .jenkins-test.sh
 
@@ -133,7 +133,7 @@ Tips.
   - Downloads are cached in named volumes. Database downloads, zips and csv's are saved.
     forcefull remove the named volume (pp_unzip-volume) if it contains the wrong data.
     When TESTING = no the `unziped` will be deleted
-  - to follow the import flow check the the steps .jenkins/import.sh
+  - to follow the import flow check the the steps deploy/import.sh
 
 Step2, Visualization
 ----------------------------

@@ -5,7 +5,7 @@ set -e   # stop on any error
 set -x
 
 dc() {
-   docker-compose -p test -f docker-compose-test.yml $*;
+   docker-compose -p pp_test -f docker-compose-test.yml $*;
 }
 
 trap 'dc down; dc kill ; dc rm -f' EXIT
