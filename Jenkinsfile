@@ -18,6 +18,7 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 
 
 node {
+
     stage("Checkout") {
         checkout scm
     }
@@ -32,18 +33,15 @@ node {
 
     stage("Build dockers") {
         tryStep "build", {
-            def kibana = docker.build(
-	    	"repo.data.amsterdam.nl/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}")
+            def kibana = docker.build("repo.data.amsterdam.nl/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}", "kibana")
             kibana.push()
             kibana.push("acceptance")
 
-            def csvimporter = docker.build(
-	    	"repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}"
+            def csvimporter = docker.build("repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}", "csvimporter")
             csvimporter.push()
             csvimporter.push("acceptance")
 
-            def ppapi = docker.build(
-	    	"repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}")
+            def ppapi = docker.build("repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}", "api")
             ppapi.push()
             ppapi.push("acceptance")
         }
