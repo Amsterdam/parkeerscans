@@ -18,14 +18,6 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 
 
 node {
-
-    environment {
-      HTTP_PROXY    = "${env.JENKINS_HTTP_PROXY_STRING}"
-      HTTPS_PROXY   = "${env.JENKINS_HTTP_PROXY_STRING}"
-      NO_PROXY      = "${env.JENKINS_NO_PROXY_STRING}"
-      PROXY_ENABLED = 'TRUE'
-    }
-
     stage("Checkout") {
         checkout scm
     }
@@ -41,20 +33,17 @@ node {
     stage("Build dockers") {
         tryStep "build", {
             def kibana = docker.build(
-	    	"build.datapunt.amsterdam.nl:5000/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}",
-		"--build-arg http_proxy=${env.HTTP_PROXY} --build-arg https_proxy=${env.HTTP_PROXY} kibana")
+	    	"repo.data.amsterdam.nl/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}")
             kibana.push()
             kibana.push("acceptance")
 
             def csvimporter = docker.build(
-	    	"build.datapunt.amsterdam.nl:5000/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}",
-		"--build-arg http_proxy=${env.HTTP_PROXY} --build-arg https_proxy=${env.HTTP_PROXY} csvimporter")
+	    	"repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}"
             csvimporter.push()
             csvimporter.push("acceptance")
 
             def ppapi = docker.build(
-	    	"build.datapunt.amsterdam.nl:5000/datapunt/parkeerscans:${env.BUILD_NUMBER}",
-		"--build-arg http_proxy=${env.HTTP_PROXY} --build-arg https_proxy=${env.HTTP_PROXY} api")
+	    	"repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}")
             ppapi.push()
             ppapi.push("acceptance")
         }
@@ -68,7 +57,7 @@ if (BRANCH == "master") {
     node {
         stage('Push acceptance image') {
             tryStep "image tagging", {
-                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/parkeerscans:${env.BUILD_NUMBER}")
+                def image = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}")
                 image.pull()
                 image.push("acceptance")
             }
@@ -96,17 +85,17 @@ if (BRANCH == "master") {
     node {
         stage('Push production image') {
             tryStep "image tagging", {
-                def kibana = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}")
+                def kibana = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans_kibana:${env.BUILD_NUMBER}")
                 kibana.pull()
                 kibana.push("production")
                 kibana.push("latest")
 
-                def csvimporter = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}")
+                def csvimporter = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${env.BUILD_NUMBER}")
                 csvimporter.pull()
                 csvimporter.push("production")
                 csvimporter.push("latest")
 
-                def ppapi = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/parkeerscans:${env.BUILD_NUMBER}")
+                def ppapi = docker.image("repo.data.amsterdam.nl/datapunt/parkeerscans:${env.BUILD_NUMBER}")
                 ppapi.pull()
                 ppapi.push("production")
                 ppapi.push("latest")
