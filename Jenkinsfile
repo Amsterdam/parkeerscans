@@ -80,6 +80,10 @@ if (BRANCH == "master") {
                     ppapi.pull()
                     ppapi.push("acceptance")
 
+                    def csvimporter = docker.image("${CSVIMPORTER_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    csvimporter.pull()
+                    csvimporter.push("acceptance")
+
                     def deploy = docker.image("${DEPLOY_IMAGE_NAME}:${env.BUILD_NUMBER}")
                     deploy.pull()
                     deploy.push("acceptance")
