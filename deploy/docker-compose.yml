@@ -21,7 +21,7 @@ services:
       admin.datapunt.amsterdam.nl: 10.99.157.24
 
   importer:
-    image: repo.data.amsterdam.nl/datapunt/predictive_parking:${ENVIRONMENT:-latest}
+    image: repo.data.amsterdam.nl/datapunt/parkeerscans:${ENVIRONMENT:-latest}
     # build: ../api/
     links:
       - database:database
@@ -45,7 +45,7 @@ services:
       - unzip-volume:/app/unzipped
 
   csvimporter:
-    image: repo.data.amsterdam.nl/datapunt/predictive_parking_csvpgvoer:${ENVIRONMENT:-latest}
+    image: repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${ENVIRONMENT:-latest}
     # build: ../csvimporter/
     networks:
       parkeerscans:

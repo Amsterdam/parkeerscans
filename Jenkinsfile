@@ -44,32 +44,24 @@ node {
             docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
                 def kibana = docker.build("${KIBANA_IMAGE_NAME}:${env.BUILD_NUMBER}",
                     "--pull " +
-                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
-                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
                     "kibana"
                 )
                 kibana.push()
 
                 def csvimporter = docker.build("${CSVIMPORTER_IMAGE_NAME}:${env.BUILD_NUMBER}",
                     "--pull " +
-                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
-                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
                     "csvimporter"
                 )
                 csvimporter.push()
 
                 def ppapi = docker.build("${PPAPI_IMAGE_NAME}:${env.BUILD_NUMBER}",
                     "--pull " +
-                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
-                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
                     "api"
                 )
                 ppapi.push()
 
                 def deploy = docker.build("${DEPLOY_IMAGE_NAME}:${env.BUILD_NUMBER}",
                     "--pull " +
-                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
-                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
                     "deploy"
                 )
                 deploy.push()
