@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apt-get install -y \
 	unar \
+	rename \
 	&& apt-get clean
 
 

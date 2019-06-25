@@ -10,6 +10,7 @@ python get_os_data.py
 echo 'start extracting..'
 
 ls /app/data/*.rar | xargs -I rarfile unar -s rarfile -o /app/unzipped/ || true
+rename -v 's/(.*?)(\d{4})(.*?)/export_scandata_stad_$2/g' /app/data/*.rar
 
 ls -alh /app/unzipped
 
