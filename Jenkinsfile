@@ -3,6 +3,7 @@
 String KIBANA_IMAGE_NAME = "datapunt/parkeerscans_kibana"
 String CSVIMPORTER_IMAGE_NAME = "datapunt/parkeerscans_csvpgvoer"
 String PPAPI_IMAGE_NAME = "datapunt/parkeerscans"
+String DEPLOY_IMAGE_NAME = "datapunt/parkeerscans_deploy"
 
 String DOCKER_REPOSITORY = "https://repo.data.amsterdam.nl"
 String BRANCH = "${env.BRANCH_NAME}"
@@ -64,6 +65,14 @@ node {
                     "api"
                 )
                 ppapi.push()
+
+                def deploy = docker.build("${DEPLOY_IMAGE_NAME}:${env.BUILD_NUMBER}",
+                    "--pull " +
+                    "--build-arg http_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "--build-arg https_proxy=${JENKINS_HTTP_PROXY_STRING} " +
+                    "deploy"
+                )
+                deploy.push()
             }
         }
     }
@@ -78,6 +87,10 @@ if (BRANCH == "master") {
                     def ppapi = docker.image("${PPAPI_IMAGE_NAME}:${env.BUILD_NUMBER}")
                     ppapi.pull()
                     ppapi.push("acceptance")
+
+                    def deploy = docker.image("${DEPLOY_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    deploy.pull()
+                    deploy.push("acceptance")
                 }
             }
         }
@@ -120,6 +133,11 @@ if (BRANCH == "master") {
                     ppapi.pull()
                     ppapi.push("production")
                     ppapi.push("latest")
+
+                    def deploy = docker.image("${DEPLOY_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    deploy.pull()
+                    deploy.push("production")
+                    deploy.push("latest")
                 }
             }
         }
