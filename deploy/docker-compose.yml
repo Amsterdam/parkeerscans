@@ -22,7 +22,7 @@ services:
 
   importer:
     image: repo.data.amsterdam.nl/datapunt/parkeerscans:${ENVIRONMENT:-latest}
-    # build: ../api/
+    build: ../api/
     links:
       - database:database
       #- elasticsearch:elasticsearch
@@ -46,7 +46,7 @@ services:
 
   csvimporter:
     image: repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${ENVIRONMENT:-latest}
-    # build: ../csvimporter/
+    build: ../csvimporter/
     networks:
       parkeerscans:
     environment:
