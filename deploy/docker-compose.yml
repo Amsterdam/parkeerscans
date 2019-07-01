@@ -13,9 +13,8 @@ services:
       parkeerscans:
     volumes:
       - databasevolume:/tmp
-      - ./backups:/backups
+      - ./backups:/tmp/backups
       - data-volume:/app/data
-      - ./backup-db-scans.sh:/backup-db-scans.sh
       - ./backup-db-occupancy.sh:/backup-db-occupancy.sh
     extra_hosts:
       admin.datapunt.amsterdam.nl: 10.99.157.24
@@ -36,6 +35,7 @@ services:
       ENDDATE:
       TESTING:
       ENVIRONMENT:
+      RUNELASTIC:
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
     user: root
     networks:

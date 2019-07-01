@@ -17,8 +17,8 @@ ls -alh /app/unzipped
 
 if [ "$TESTING" = "yes" ]
 then
-  echo "testing so shrink csv's to 1000 lines"
-  ls /app/unzipped/*.csv | xargs -I csvfile sed -i '1001,$ d' csvfile
+  echo "testing so shrink csv's to 5000 lines"
+  ls /app/unzipped/*.csv | xargs -I csvfile sed -i '5001,$ d' csvfile
 fi
 
 ls -alh /app/unzipped

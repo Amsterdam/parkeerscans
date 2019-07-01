@@ -25,6 +25,7 @@ services:
 
   ppapi:
     build: ./api
+    image: repo.data.amsterdam.nl/datapunt/parkeerscans:${ENVIRONMENT:-latest}
     ports:
       - "8080:8080"
     links:
@@ -51,6 +52,7 @@ services:
     command: kibana
 
   csvimporter:
+    image: repo.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${ENVIRONMENT:-latest}
     build: ./csvimporter/
     links:
       - database:database

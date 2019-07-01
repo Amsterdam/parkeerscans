@@ -427,7 +427,9 @@ func NormalizeRow(record *[]string, rowcount int) ([]interface{}, int, error) {
 		}
 	}
 
-	row[fieldMap["scan_id"]] = scanID
+    if row[fieldMap["device_id"]] == "" {
+        row[fieldMap["device_id"]] = row[fieldMap["device_code"]]
+    }
 
 	// copy fields to database columns ready row
 	// we look at the dbColumns list to check which
@@ -471,7 +473,8 @@ func csvloader(id int, jobs <-chan string) {
 		//cleanTable(Db, target)
 		cleanTable(Db, source)
 
-		pgTable, err := NewImport(Db, "public", source, dbColumns)
+		// pgTable, err := NewImport(Db, "public", source, dbColumns)
+		pgTable, err := NewImport(Db, "public", target, dbColumns)
 		checkErr(err)
 
 		LoadSingleCSV(csvfile, pgTable)
@@ -481,18 +484,19 @@ func csvloader(id int, jobs <-chan string) {
 			panic(err)
 		}
 		// within 0.1 meter from parkeervak
-		count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
-		// within 1.5 meters from parkeervak
-		count15 := mergeScansParkeervakWegdelen(Db, source, target, 0.000015)
-		// scans op bgt wegdeel
-		countW := mergeScansWegdelen(Db, source, target, 0.000001)
+		// count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)
+		// // within 1.5 meters from parkeervak
+		// count15 := mergeScansParkeervakWegdelen(Db, source, target, 0.000015)
+		// // scans op bgt wegdeel
+		// countW := mergeScansWegdelen(Db, source, target, 0.000001)
 
-		indb += countW + count15 + count1
+		// indb += countW + count15 + count1
+		indb += 0
 
-		log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d \n\n",
-			target,
-			count1, count15, countW,
-		)
+		// log.Printf("\n\n%s pv 0.1m:%d  pv1.5m:%d  w:%d \n\n",
+			// target,
+			// count1, count15, countW,
+		// )
 		// Drop import table
 		dropTable(Db, source)
 		// finalize csv file import in db

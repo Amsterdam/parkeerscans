@@ -60,7 +60,7 @@ class Scan(models.Model):
 
     bgt_wegdeel_functie = models.CharField(null=True, max_length=25)
 
-    scan_id = models.IntegerField()  # not unique!!
+    scan_id = models.IntegerField(unique=True)
     scan_moment = models.DateTimeField(db_index=True)
     device_id = models.IntegerField(null=True)
     scan_source = models.CharField(max_length=15)

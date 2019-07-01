@@ -28,7 +28,11 @@ dc() {
 dc down --remove-orphans
 
 ## get the latest and greatest
-dc pull
+
+if [ $PULL != "no" ]
+then
+    dc pull
+fi
 
 # Elastic needs to run afterwards..
 # trap 'dc kill ; dc rm -f -v' EXIT
@@ -58,31 +62,31 @@ dc run --rm importer ./docker-migrate.sh
 
 echo "download latest files.."
 dc run --rm importer ./docker-prepare-csvdata.sh
-#
+
 echo "Load latest parkeervakken.."
-dc exec -T database update-table.sh parkeervakken parkeervakken bv parkeerscans
-echo "Load latest wegdelen.."
+# dc exec -T database update-table.sh parkeervakken parkeervakken bv parkeerscans
+# echo "Load latest wegdelen.."
 
-# foutparkeerders / scans niet in vakken
-dc exec -T database update-table.sh basiskaart BGT_OWGL_verkeerseiland bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_OWGL_berm bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_OTRN_open_verharding bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_OTRN_transitie bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_WGL_fietspad bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_WGL_voetgangersgebied bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_WGL_voetpad bgt parkeerscans
-
-# scans op wegen en vakken
-dc exec -T database update-table.sh basiskaart BGT_WGL_parkeervlak bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_lokale_weg bgt parkeerscans
-dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_regionale_weg bgt parkeerscans
-
-#echo "Load buurt / buurtcombinatie"
-dc exec -T database update-table.sh bag bag_buurt public parkeerscans
-
-
-# echo "create wegdelen / buurten and complete the scans data"
-dc run --rm importer ./docker-wegdelen.sh
+# # foutparkeerders / scans niet in vakken
+# dc exec -T database update-table.sh basiskaart BGT_OWGL_verkeerseiland bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_OWGL_berm bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_OTRN_open_verharding bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_OTRN_transitie bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_WGL_fietspad bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_WGL_voetgangersgebied bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_WGL_voetpad bgt parkeerscans
+# 
+# # scans op wegen en vakken
+# dc exec -T database update-table.sh basiskaart BGT_WGL_parkeervlak bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_lokale_weg bgt parkeerscans
+# dc exec -T database update-table.sh basiskaart BGT_WGL_rijbaan_regionale_weg bgt parkeerscans
+# 
+# #echo "Load buurt / buurtcombinatie"
+# dc exec -T database update-table.sh bag bag_buurt public parkeerscans
+# 
+# 
+# # echo "create wegdelen / buurten and complete the scans data"
+# dc run --rm importer ./docker-wegdelen.sh
 #
 echo "loading the unzipped scans into database, add wegdelen / pv to scans"
 
@@ -92,16 +96,12 @@ echo "Logging database output. just in case of errors"
 dc logs database
 
 # crate table list for logstash / scan count stats on wegdelen / vakken
-dc run --rm importer ./docker-scanstats.sh
+# dc run --rm importer ./docker-scanstats.sh
 
 echo "DONE! importing scans into DATABASE"
 
-if [ $RUNELASTIC != "yes" ]
-then
-	echo "create scan db dump"
-	# run the DB backup shizzle
-	dc exec -T database ./backup-db-scans.sh
-fi
+echo "create scan db dump"
+dc exec -T database /bin/backup-db.sh parkeerscans parkeerscans
 
 echo "DONE! with scan data import. You are awesome! <3"
 echo "Leaving docker and data around for elastic import"
