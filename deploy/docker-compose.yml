@@ -35,6 +35,7 @@ services:
       ENDDATE:
       TESTING:
       ENVIRONMENT:
+      HANDLED_FILES_ENV:
       RUNELASTIC:
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
     user: root
