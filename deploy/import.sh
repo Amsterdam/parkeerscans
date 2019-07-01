@@ -29,6 +29,7 @@ dc down --remove-orphans
 
 ## get the latest and greatest
 
+PULL=${PULL:-no}
 if [ $PULL != "no" ]
 then
     dc pull
