@@ -76,6 +76,11 @@ if (BRANCH == "master") {
         stage('Push acceptance image') {
             tryStep "image tagging", {
                 docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
+
+                    def kibana = docker.image("${KIBANA_IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    kibana.pull()
+                    kibana.push("acceptance")
+
                     def ppapi = docker.image("${PPAPI_IMAGE_NAME}:${env.BUILD_NUMBER}")
                     ppapi.pull()
                     ppapi.push("acceptance")
