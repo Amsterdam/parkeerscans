@@ -22,8 +22,16 @@ import (
 	"sync"
 	"time"
 
+    "github.com/getsentry/raven-go"
 	geo "github.com/paulmach/go.geo"
 )
+
+func init() {
+    dsn := os.Getenv("SENTRY_DSN")
+    if dsn != "" {
+        raven.SetDSN(dsn)
+    }
+}
 
 //DatePair start and end data string values
 type DatePair struct {
