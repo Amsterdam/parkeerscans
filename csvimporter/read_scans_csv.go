@@ -481,7 +481,7 @@ func csvloader(id int, jobs <-chan string) {
 
 		err = pgTable.Commit()
 		if err != nil {
-			panic(err)
+			log.Println(err)
 		}
 		// within 0.1 meter from parkeervak
 		// count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)

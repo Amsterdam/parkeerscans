@@ -230,14 +230,19 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 		// printCols(cols, dbColumns)
 
 		if err := pgTable.AddRow(cols...); err != nil {
+			fileErrors++
+            failed++
+            if strings.Contains(err.Error(), "") {
+                continue
+            }
 			log.Println("DB ERROR")
 			printRecord(&record, cols)
 			printCols(cols, dbColumns)
 			log.Println(filename)
-			fileErrors++
 			s := []string{filename, "FATAL"}
 			fileErrorsMap[strings.Join(s, " ")] = 1
-			panic(err)
+			log.Println(err)
+            panic(err)
 		}
 
 		success++
