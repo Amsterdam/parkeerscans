@@ -17,6 +17,8 @@ services:
       - database:database
       - elasticsearch:elasticsearch
     environment:
+      DATABASE_HOST: database
+      DATABASE_PORT: 5432
       DATABASE_NAME: parkeerscans
       DATABASE_PASSWORD: insecure
       UWSGI_HTTP: ":8080"
