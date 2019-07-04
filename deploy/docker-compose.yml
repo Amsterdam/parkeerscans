@@ -26,11 +26,11 @@ services:
       - database:database
       #- elasticsearch:elasticsearch
     environment:
-      DATABASE_HOST: database
-      DATABASE_PORT: 5432
-      DATABASE_NAME: parkeerscans
-      DATABASE_USER: parkeerscans
-      DATABASE_PASSWORD: insecure
+      DATABASE_HOST: ${DATABASE_HOST:-database}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-parkeerscans}
+      DATABASE_USER: ${DATABASE_USER:-parkeerscans}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-insecure}
       PARKEERVAKKEN_OBJECTSTORE_PASSWORD: ${PARKEERVAKKEN_OBJECTSTORE_PASSWORD}
       PGPASSWORD: insecure
       STARTDATE:
@@ -53,10 +53,10 @@ services:
     networks:
       parkeerscans:
     environment:
-      DATABASE_HOST: database
-      DATABASE_NAME: parkeerscans
-      DATABASE_PASSWORD: parkeerscans
-      TESTING:
+      DATABASE_HOST: ${DATABASE_HOST:-database}
+      DATABASE_NAME: ${DATABASE_NAME:-parkeerscans}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-insecure}
+      TESTING: ${TESTING:-no}
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
       SENTRY_DSN:
     volumes:
