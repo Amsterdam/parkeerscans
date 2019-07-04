@@ -32,9 +32,6 @@ ALLOWED_HOSTS = ['*']
 
 INTERNAL_IPS = ('127.0.0.1', '0.0.0.0')
 
-OVERRIDE_HOST_ENV_VAR = 'DATABASE_HOST_OVERRIDE'
-OVERRIDE_PORT_ENV_VAR = 'DATABASE_PORT_OVERRIDE'
-
 OVERRIDE_EL_HOST_VAR = 'ELASTICSEARCH_HOST_OVERRIDE'
 OVERRIDE_EL_PORT_VAR = 'ELASTICSEARCH_PORT_OVERRIDE'
 
@@ -112,77 +109,21 @@ SCRAPE = {
 }
 
 
-def get_docker_host():
-    """Find the local docker-deamon
-    """
-    d_host = os.getenv('DOCKER_HOST', None)
-    if d_host:
-        if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', d_host):
-            return d_host
-        return re.match(r'tcp://(.*?):\d+', d_host).group(1)
-    return '127.0.0.1'
-
-
-# noinspection PyBroadException
-def in_docker():
-    """
-    Checks pid 1 cgroup settings to check with reasonable certainty we're in a
-    docker env.
-    :return: true when running in a docker container, false otherwise
-    """
-
-    try:
-        cgroup = open('/proc/1/cgroup', 'r').read()
-        return ':/docker/' in cgroup or ':/docker-ce/' in cgroup
-    except:   # noqa
-        return False
-
-
-class LocationKey(object):
-    local = 'local'
-    docker = 'docker'
-    override = 'override'
-
-
-def get_database_key():
-    if os.getenv(OVERRIDE_HOST_ENV_VAR):
-        return LocationKey.override
-    elif in_docker():
-        return LocationKey.docker
-
-    return LocationKey.local
-
-
-DATABASE_OPTIONS = {
-    LocationKey.docker: {
-        'HOST': 'database',
-        'PORT': '5432'
-    },
-    LocationKey.local: {
-        'HOST': get_docker_host(),
-        'PORT': '5432'    # defined in compose file
-    },
-    LocationKey.override: {
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
-        'HOST': os.getenv(OVERRIDE_HOST_ENV_VAR),
-        'PORT': os.getenv(OVERRIDE_PORT_ENV_VAR, '5432')
-    }
-}
-
-
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'HOST': os.getenv('DATABASE_HOST', 'database'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
         'NAME': os.getenv('DATABASE_NAME', 'parkeerscans'),
         'USER': os.getenv('DATABASE_USER', 'parkeerscans'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
     }
 }
 
-DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
+#  DATABASES['default'].update(DATABASE_OPTIONS[get_database_key()])
 
 
 ELASTIC_INDICES = {

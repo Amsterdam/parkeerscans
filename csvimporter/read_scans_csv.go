@@ -43,6 +43,7 @@ type fileErrorMap map[string]int
 
 type settings struct {
 	dbhost       string
+	dbpassword   string
 	targetCSVdir string
 	workers      int
 	csvfiles     []string
@@ -51,6 +52,7 @@ type settings struct {
 var (
 	// databse host
 	dbhost  string
+	dbpassword  string
 	csvfile string
 	files   []string
 
@@ -116,7 +118,7 @@ func ConnectStr() string {
 		"user=%s dbname=%s password='%s' host=%s port=%s %s",
 		"parkeerscans",
 		"parkeerscans",
-		"insecure",
+		setting.dbpassword,
 		setting.dbhost,
 		"5432",
 		otherParams,
@@ -160,23 +162,27 @@ func init() {
 
 	// available flags
 	envNameWorkers := "w"
-	envNameDbhost := "dbhost"
+	envNameDbhost := "DATABASE_HOST"
+	envNameDbpassword := "DATABASE_PASSWORD"
 	envNametargetCSVdir := "target"
 
 	// default parameters
 	defaultWorkers := 3
 	defaultTargetCSVdir := "/app/unzipped"
 	defaultDbhost := "database"
+	defaultDbpassword := "insecure"
 
 	flag.IntVar(&workers, envNameWorkers, -1, "amount of workers")
 	flag.StringVar(&targetCSVdir, envNametargetCSVdir, "", "path to unzipped csv files")
 	flag.StringVar(&dbhost, envNameDbhost, "", "database host")
+	flag.StringVar(&dbpassword, envNameDbpassword, "", "database password")
 	flag.StringVar(&csvfile, "csv", "", "specific csv file")
 	flag.Parse()
 
 	setting.workers = handleInputInt(workers, defaultWorkers, envNameWorkers)
 	setting.targetCSVdir = handleInputString(targetCSVdir, defaultTargetCSVdir, envNametargetCSVdir)
 	setting.dbhost = handleInputString(dbhost, defaultDbhost, envNameDbhost)
+	setting.dbpassword = handleInputString(dbpassword, defaultDbpassword, envNameDbpassword)
 
 	if len(csvfile) > 0 {
 		csvfiles := []string{csvfile}

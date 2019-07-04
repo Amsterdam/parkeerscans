@@ -26,6 +26,8 @@ services:
       - database:database
       #- elasticsearch:elasticsearch
     environment:
+      DATABASE_HOST: database
+      DATABASE_PORT: 5432
       DATABASE_NAME: parkeerscans
       DATABASE_USER: parkeerscans
       DATABASE_PASSWORD: insecure
@@ -51,8 +53,9 @@ services:
     networks:
       parkeerscans:
     environment:
+      DATABASE_HOST: database
       DATABASE_NAME: parkeerscans
-      DATABASE_PASSWORD: insecure
+      DATABASE_PASSWORD: parkeerscans
       TESTING:
       DATAPUNT_API_URL: ${DATAPUNT_API_URL:-https://api.data.amsterdam.nl/}
       SENTRY_DSN:
