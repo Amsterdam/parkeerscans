@@ -232,7 +232,7 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader, filename string) {
 		if err := pgTable.AddRow(cols...); err != nil {
 			fileErrors++
             failed++
-            if strings.Contains(err.Error(), "") {
+            if strings.Contains(err.Error(), "metingen_scan_pkey") {
                 continue
             }
 			log.Println("DB ERROR")

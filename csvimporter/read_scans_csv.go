@@ -435,9 +435,13 @@ func NormalizeRow(record *[]string, rowcount int) ([]interface{}, int, error) {
 		}
 	}
 
-    if row[fieldMap["device_id"]] == "" {
+    // log.Println("Device ID: '", row[fieldMap["device_id"]], "'")
+    // log.Println("Device code: '", row[fieldMap["device_code"]], "'")
+    if row[fieldMap["device_id"]] == nil {
         row[fieldMap["device_id"]] = row[fieldMap["device_code"]]
+        // log.Println("Replacing device_id with:", row[fieldMap["device_id"]])
     }
+
 
 	// copy fields to database columns ready row
 	// we look at the dbColumns list to check which
@@ -489,7 +493,7 @@ func csvloader(id int, jobs <-chan string) {
 
 		err = pgTable.Commit()
 		if err != nil {
-			log.Println(err)
+			log.Println("CSV File error", csvfile, err)
 		}
 		// within 0.1 meter from parkeervak
 		// count1 := mergeScansParkeervakWegdelen(Db, source, target, 0.000001)

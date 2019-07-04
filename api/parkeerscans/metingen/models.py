@@ -62,7 +62,7 @@ class Scan(models.Model):
 
     scan_id = models.IntegerField()  # not unique!!
     scan_moment = models.DateTimeField(db_index=True)
-    device_id = models.IntegerField(null=True)
+    device_id = models.CharField(max_length=32, null=True)
     scan_source = models.CharField(max_length=15)
 
     afstand = models.CharField(null=True, max_length=1)
