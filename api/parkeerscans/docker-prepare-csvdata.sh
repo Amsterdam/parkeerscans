@@ -24,3 +24,7 @@ fi
 ls -alh /app/unzipped
 
 echo "Database and Raw csv files are ready"
+
+if [ -z "$(ls -A /app/unzipped)" ]; then
+   exit 0
+fi
