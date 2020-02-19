@@ -4,8 +4,6 @@ String KIBANA_IMAGE_NAME = "datapunt/parkeerscans_kibana"
 String CSVIMPORTER_IMAGE_NAME = "datapunt/parkeerscans_csvpgvoer"
 String PPAPI_IMAGE_NAME = "datapunt/parkeerscans"
 String DEPLOY_IMAGE_NAME = "datapunt/parkeerscans_deploy"
-
-String DOCKER_REPOSITORY = "https://repo.data.amsterdam.nl"
 String BRANCH = "${env.BRANCH_NAME}"
 
 def tryStep(String message, Closure block, Closure tearDown = null) {
@@ -41,7 +39,7 @@ node {
 
     stage("Build dockers") {
         tryStep "build", {
-            docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
+                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
                 def kibana = docker.build("${KIBANA_IMAGE_NAME}:${env.BUILD_NUMBER}",
                     "--pull " +
                     "kibana"
@@ -75,7 +73,7 @@ if (BRANCH == "master") {
     node {
         stage('Push acceptance image') {
             tryStep "image tagging", {
-                docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
+                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
 
                     def kibana = docker.image("${KIBANA_IMAGE_NAME}:${env.BUILD_NUMBER}")
                     kibana.pull()
@@ -109,7 +107,6 @@ if (BRANCH == "master") {
         }
     }
 
-
     stage('Waiting for approval') {
         slackSend channel: '#ci-channel', color: 'warning', message: 'Parkeerscans is waiting for Production Release - please confirm'
         input "Deploy to Production?"
@@ -118,7 +115,7 @@ if (BRANCH == "master") {
     node {
         stage('Push production image') {
             tryStep "image tagging", {
-                docker.withRegistry("${DOCKER_REPOSITORY}",'docker-registry') {
+                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
 
                     def kibana = docker.image("${KIBANA_IMAGE_NAME}:${env.BUILD_NUMBER}")
                     kibana.pull()
