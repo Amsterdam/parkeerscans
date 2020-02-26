@@ -11,7 +11,7 @@ services:
       - ./backups/elasticsearch:/tmp/backups
 
   esbackup:
-    image: repo.data.amsterdam.nl/datapunt/predictive_parking:${ENVIRONMENT}
+    image: ${DOCKER_REGISTRY_HOST}/datapunt/predictive_parking:${ENVIRONMENT}
     links:
       - elasticsearch:elasticsearch
     volumes:
