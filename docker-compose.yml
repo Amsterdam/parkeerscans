@@ -25,7 +25,7 @@ services:
 
   ppapi:
     build: ./api
-    image: docker-registry.data.amsterdam.nl/datapunt/parkeerscans:${ENVIRONMENT:-latest}
+    image: ${DOCKER_REGISTRY_HOST}/datapunt/parkeerscans:${ENVIRONMENT:-latest}
     ports:
       - "8080:8080"
     links:
@@ -52,7 +52,7 @@ services:
     command: kibana
 
   csvimporter:
-    image: docker-registry.data.amsterdam.nl/datapunt/parkeerscans_csvpgvoer:${ENVIRONMENT:-latest}
+    image: ${DOCKER_REGISTRY_HOST}/datapunt/parkeerscans_csvpgvoer:${ENVIRONMENT:-latest}
     build: ./csvimporter/
     links:
       - database:database
